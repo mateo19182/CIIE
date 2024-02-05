@@ -11,3 +11,5 @@
 | Cambio de fase |  |  |  |
 | Mercader |  |  |  |
 | Decoracion |  |  |  |
+| Monedas y Coleccionables |  |  |  |
+| Vidas |  |  |  |
