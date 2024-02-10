@@ -14,3 +14,6 @@
 | Decoracion |  |  |  |
 | Monedas y Coleccionables |  |  |  |
 | Vidas |  |  |  |
+
+
+Sprites: https://docs.google.com/document/d/1EuMQ6IRIVIDK1ZTutrC-vJyGtHOsDGUhb8_T0rz1q54/edit
