@@ -1,3 +1,4 @@
+import random
 import pygame
 from os import listdir
 from os.path import isfile, join
@@ -75,6 +76,7 @@ class Player(pygame.sprite.Sprite):
        self.animation_count = 0
        self.fall_count = 0
        self.jump_count = 0
+       self.coins = 0
 
     def jump(self):
         self.y_vel = -self.GRAVITY * 8
@@ -151,7 +153,15 @@ class Object(pygame.sprite.Sprite):
 
     def draw(self,window,offset_x):
         window.blit(self.image,(self.rect.x - offset_x,self.rect.y))
-        
+
+class Coin(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        self.image = pygame.image.load('./assets/colectibles/coin_0.png') 
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+
 class Block(Object):
     def __init__(self,x,y,size):
         super().__init__(x,y,size,size)
@@ -265,6 +275,15 @@ def main(window):
     
     objects = [*floor,plat]
 
+
+    coins = pygame.sprite.Group()
+    for i in range(10):
+        x = random.randint(0, 100)
+        y = random.randint(0, 100)
+    coin = Coin(x, y)
+    coins.add(coin)
+
+
     while run:
         clock.tick(FPS)
 
@@ -275,7 +294,7 @@ def main(window):
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE and player.jump_count < 2:
-                  player.jump()  
+                    player.jump()  
 
         player.loop(FPS)
         handle_move(player,objects)
