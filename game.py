@@ -1,16 +1,24 @@
 import random
-import pygame
+import pygame, sys, pickle
 from os import listdir
 from os.path import isfile, join
+from button import Button
 
 pygame.init()
 
+SCREEN = pygame.display.set_mode((1000, 800))
 pygame.display.set_caption("Platformer")
 
+BG = pygame.image.load("assets/Background.png")
+YL = pygame.image.load("assets/Background/Yellow.png")
 BG_COLOR = (255,255,255)
 WIDTH, HEIGHT = 1000, 800
 FPS = 60
 PLAYER_VEL = 5
+VOLUME =  0.5
+
+def get_font(size): # Returns Press-Start-2P in the desired size
+    return pygame.font.Font("assets/font.ttf", size)
 
 window = pygame.display.set_mode((WIDTH,HEIGHT))
 
@@ -257,7 +265,79 @@ def handle_move(player,objects):
     vertical_collide = handle_vertical_colission(player,objects,player.y_vel)
     to_check = [*vertical_collide]
         
-def main(window):
+
+def options(window):
+
+    try:
+        with open('volumen.pkl', 'rb') as f:
+            volume = pickle.load(f)
+    except FileNotFoundError:
+        volume =  0.5
+
+    dragging_thumb = False
+    while True:
+        OPTIONS_MOUSE_POS = pygame.mouse.get_pos()
+
+        SCREEN.fill("white")
+
+        VOLUME_TEXT = get_font(75).render("VOLUME", True, "#b68f40")
+        VOLUME_RECT = VOLUME_TEXT.get_rect(center=(400, 300))
+        SCREEN.blit(VOLUME_TEXT, VOLUME_RECT)
+
+        scroll_bar_width =  20
+        scroll_bar_height =  200
+        scroll_bar = pygame.Surface((scroll_bar_width, scroll_bar_height))
+        scroll_bar.fill((200,  200,  200))
+
+        # Draw the thumb (the part you drag)
+        thumb_height = int(volume * scroll_bar_height)
+        thumb = pygame.Surface((scroll_bar_width, thumb_height))
+        thumb.fill((100,  100,  100))  # Set a different color for the thumb
+        scroll_bar.blit(thumb, (0, scroll_bar_height - thumb_height))
+
+        scroll_bar_rect = scroll_bar.get_rect(center=(700,  300))
+        window.blit(scroll_bar, scroll_bar_rect.topleft)
+
+        OPTIONS_BACK = Button(image=None, pos=(515, 550), 
+                            text_input="BACK", font=get_font(75), base_color="Black", hovering_color="Green")
+
+        OPTIONS_BACK.changeColor(OPTIONS_MOUSE_POS)
+        OPTIONS_BACK.update(SCREEN)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if OPTIONS_BACK.checkForInput(OPTIONS_MOUSE_POS):
+                    main_menu(window)
+                if scroll_bar_rect.collidepoint(event.pos):
+                    # Start dragging the scroll bar thumb
+                    dragging_thumb = True
+                    last_mouse_y = event.pos[1]    
+            elif event.type ==pygame.MOUSEBUTTONUP:
+                dragging_thumb = False
+            elif event.type == pygame.MOUSEMOTION:
+                if dragging_thumb:
+                    # Calculate the new volume based on the mouse movement
+                    delta_y = event.pos[1] - last_mouse_y
+                    volume += delta_y / scroll_bar_height
+                    volume = max(min(volume,  1),  0)  # Clamp between  0 and  1
+                    with open('volumen.pkl', 'wb') as f:
+                        pickle.dump(volume, f)
+                    last_mouse_y = event.pos[1]
+
+                    # Update the thumb position
+                    thumb_height = int(volume * scroll_bar_height)
+                    thumb = pygame.Surface((scroll_bar_width, thumb_height))
+                    thumb.fill((100,  100,  100))
+                    scroll_bar.fill((200,  200,  200))  # Reset the scroll bar background
+                    scroll_bar.blit(thumb, (0, scroll_bar_height - thumb_height))        
+
+        pygame.display.update()
+
+
+def play(window):
     clock = pygame.time.Clock()
     background,bg_image = get_background("Blue.png")
 
@@ -307,5 +387,44 @@ def main(window):
     pygame.quit()
     quit()
 
+
+def main_menu(window):
+    while True:
+        #SCREEN.blit(BG, (0, 0))
+        SCREEN.fill("black")
+
+        MENU_MOUSE_POS = pygame.mouse.get_pos()
+
+        MENU_TEXT = get_font(75).render("DRAGON KILL?", True, "#b68f40")
+        MENU_RECT = MENU_TEXT.get_rect(center=(515, 120))
+
+        PLAY_BUTTON = Button(image=pygame.image.load("assets/Play Rect.png"), pos=(515, 300), 
+                            text_input="PLAY", font=get_font(75), base_color="#d7fcd4", hovering_color="White")
+        OPTIONS_BUTTON = Button(image=pygame.image.load("assets/Options Rect.png"), pos=(515, 475), 
+                            text_input="OPTIONS", font=get_font(75), base_color="#d7fcd4", hovering_color="White")
+        QUIT_BUTTON = Button(image=pygame.image.load("assets/Quit Rect.png"), pos=(515, 650), 
+                            text_input="QUIT", font=get_font(75), base_color="#d7fcd4", hovering_color="White")
+
+        SCREEN.blit(MENU_TEXT, MENU_RECT)
+
+        for button in [PLAY_BUTTON, OPTIONS_BUTTON, QUIT_BUTTON]:
+            button.changeColor(MENU_MOUSE_POS)
+            button.update(SCREEN)
+        
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if PLAY_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    play(window)
+                if OPTIONS_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    options(window)
+                if QUIT_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    pygame.quit()
+                    sys.exit()
+
+        pygame.display.update()    
+
 if __name__ == "__main__":
-    main(window)
+    main_menu(window)
