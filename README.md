@@ -1,7 +1,7 @@
 | Por hacer | Desarrollo | Pruebas | Finalizado |
 |---|---|---|---|
-| pantalla inicial (jugar y opciones) |  |  |  |
-| Opciones (volumen, tamaño...) |  |  |  |
+|  |  |  |  | pantalla inicial (jugar y opciones)
+|  | Opciones (volumen, tamaño...) |  |  |
 | Movimiento personaje |  |  |  |
 | Contadores |  |  |  |
 | Diseño nivel basico |  |  |  |
