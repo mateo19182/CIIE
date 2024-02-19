@@ -64,7 +64,7 @@ def get_platform(size):
     path = join("assets","Terrain","Terrain.png")
     image = pygame.image.load(path).convert_alpha()
     surface = pygame.Surface((size,size),pygame.SRCALPHA,32)
-    rect = pygame.Rect(370,0,size,size)
+    rect = pygame.Rect(270,0,size,10)
     surface.blit(image,(0,0),rect)
 
     return pygame.transform.scale2x(surface)
@@ -344,17 +344,25 @@ def play(window):
     player = Player(400,400,50,50)
     
     block_size = 96
+    plat_size = 100
 
     offset_x = 0
     scroll_area_width = 200
 
     run = True
     
-    floor = [Block(i*block_size,HEIGHT - block_size,block_size)for i in range(-WIDTH // block_size,WIDTH*2 // block_size)]
-    plat = Platform(block_size,HEIGHT - block_size - 200,block_size)
+    floor = [Block(i*block_size,HEIGHT - block_size ,block_size)for i in range(-WIDTH // block_size,WIDTH*2 // block_size)]
+    floor2 = [Block(i*block_size,HEIGHT - block_size ,block_size)for i in range(5 + WIDTH*2 // block_size,WIDTH*4 // block_size)]
+    plat1 = [Platform(i*block_size + 800,HEIGHT - block_size - 125, plat_size)for i in range(0,4)]
+    plat2 = [Platform(i*block_size + 1300,HEIGHT - block_size - 300, plat_size)for i in range(0,2)]
+    plat3 = [Platform(4*i*block_size + 1600,HEIGHT - block_size - 500, plat_size)for i in range(0,2)]
+    plat4 = [Platform(2*i*block_size + 700,HEIGHT - block_size - 450, plat_size)for i in range(0,3)]
+    plat5 = [Platform(i*block_size + 400,HEIGHT - block_size - 625, plat_size)for i in range(0,1)]
+    plat6 = [Platform(i*block_size + 2050,HEIGHT - block_size - 150, plat_size)for i in range(0,2)]
     
-    objects = [*floor,plat]
-
+    
+    objects = [*floor,*floor2,*plat1,*plat2,*plat3,*plat4,*plat5,*plat6]
+   
 
     coins = pygame.sprite.Group()
     for i in range(10):
