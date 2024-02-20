@@ -1,4 +1,5 @@
 import random
+import time
 import pygame, sys, pickle
 from os import listdir
 from os.path import isfile, join
@@ -16,6 +17,9 @@ WIDTH, HEIGHT = 1000, 800
 FPS = 60
 PLAYER_VEL = 5
 VOLUME =  0.5
+LEVEL = 1
+BAR_WIDTH = 300
+BAR_HEIGHT = 20
 
 def get_font(size): # Returns Press-Start-2P in the desired size
     return pygame.font.Font("assets/font.ttf", size)
@@ -69,13 +73,21 @@ def get_platform(size):
 
     return pygame.transform.scale2x(surface)
 
+def get_coin(size):
+    path = join("assets","colectibles","coin_0.png")
+    image = pygame.image.load(path).convert_alpha()
+    surface = pygame.Surface((size,size),pygame.SRCALPHA,32)
+    rect = pygame.Rect(270,0,size,10)
+    surface.blit(image,(0,0),rect)
+    return pygame.transform.scale2x(surface)
+
 class Player(pygame.sprite.Sprite):
     COLOR = (255,0,0)
     GRAVITY = 1
     SPRITES = load_sprite_sheets("MainCharacters","MaskDude",32,32,True)
     ANIMATION_DELAY = 3
 
-    def __init__(self,x,y,width,height):
+    def __init__(self,x,y,width,height, lives):
        self.rect = pygame.Rect(x,y,width,height)
        self.x_vel = 0
        self.y_vel = 0
@@ -85,6 +97,9 @@ class Player(pygame.sprite.Sprite):
        self.fall_count = 0
        self.jump_count = 0
        self.coins = 0
+       self.lives = lives
+       self._last_called = 0
+
 
     def jump(self):
         self.y_vel = -self.GRAVITY * 8
@@ -124,6 +139,13 @@ class Player(pygame.sprite.Sprite):
         self.y_vel = 0
         self.jump_count = 0
 
+    def hit_head(self):
+        current_time = time.time()
+        if current_time - self._last_called < 3:
+            return
+        self._last_called = current_time
+        self.lives.lives -= 1
+
     def update_sprite(self):
         sprite_sheet = "idle"
 
@@ -147,13 +169,15 @@ class Player(pygame.sprite.Sprite):
     def update(self):
         self.rect = self.sprite.get_rect(topleft = (self.rect.x,self.rect.y))
         self.mask = pygame.mask.from_surface(self.sprite)
+        if self.lives.lives <= 0:
+            self.die()
 
     def draw(self,window,offset_x):
         window.blit(self.sprite,(self.rect.x - offset_x,self.rect.y))
 class Object(pygame.sprite.Sprite):
     def __init__(self,x,y,width,height,name=None):
         super().__init__()
-        self.rect = pygame.Rect(x,y,width,height)
+        self.rect = pygame.Rect(int(x),int(y),int(width),int(height))
         self.image = pygame.Surface((width,height),pygame.SRCALPHA)
         self.width = width
         self.height = height
@@ -162,14 +186,37 @@ class Object(pygame.sprite.Sprite):
     def draw(self,window,offset_x):
         window.blit(self.image,(self.rect.x - offset_x,self.rect.y))
 
-class Coin(pygame.sprite.Sprite):
-    def __init__(self, x, y):
-        super().__init__()
-        self.image = pygame.image.load('./assets/colectibles/coin_0.png') 
-        self.rect = self.image.get_rect()
-        self.rect.x = x
-        self.rect.y = y
+class Lives:
+    def __init__(self):
+        self.observers = []
+        self._lives = 3
 
+    def attach(self, observer):
+        self.observers.append(observer)
+
+    def detach(self, observer):
+        self.observers.remove(observer)
+
+    def notify(self):
+        for observer in self.observers:
+            observer.update(self)
+
+    @property
+    def lives(self):
+        return self._lives
+
+    @lives.setter
+    def lives(self, value):
+        self._lives = value
+        self.notify()
+
+class Coin(Object):
+    def __init__(self, x, y, size):
+        super().__init__(x,y,size,size)
+        block = get_coin(size)
+        self.image.blit(block,(0,0))
+        self.mask = pygame.mask.from_surface(self.image)
+        
 class Block(Object):
     def __init__(self,x,y,size):
         super().__init__(x,y,size,size)
@@ -183,8 +230,8 @@ class Platform(Object):
         block = get_platform(size)
         self.image.blit(block,(0,0))
         self.mask = pygame.mask.from_surface(self.image)
-        
-        
+
+
 def get_background(name):
     image = pygame.image.load(join("assets","Background",name))
     _,_,width,height = image.get_rect()
@@ -205,6 +252,7 @@ def draw(window,background,bg_image,player,objects,offset_x):
         obj.draw(window,offset_x)
 
     player.draw(window,offset_x)
+    draw_lives_bar(player.lives.lives)
 
     pygame.display.update()
     
@@ -265,6 +313,14 @@ def handle_move(player,objects):
     vertical_collide = handle_vertical_colission(player,objects,player.y_vel)
     to_check = [*vertical_collide]
         
+def draw_lives_bar(lives):
+    heart_image = pygame.image.load("assets/colectibles/heart.png")  # Replace "heart.png" with the path to your heart image
+    heart_image = pygame.transform.scale(heart_image, (30, 30))
+    for i in range(lives):
+        SCREEN.blit(heart_image, (50 + i * 35, 45))
+    #lives_text = get_font(50).render(str(lives), True, (255, 255, 255))
+    #SCREEN.blit(lives_text, (200, 45))
+
 
 def options(window):
 
@@ -337,11 +393,14 @@ def options(window):
         pygame.display.update()
 
 
+
+
 def play(window):
     clock = pygame.time.Clock()
     background,bg_image = get_background("Blue.png")
+    lives = Lives()
 
-    player = Player(400,400,50,50)
+    player = Player(400,400,50,50, lives)
     
     block_size = 96
     plat_size = 100
@@ -359,22 +418,17 @@ def play(window):
     plat4 = [Platform(2*i*block_size + 700,HEIGHT - block_size - 450, plat_size)for i in range(0,3)]
     plat5 = [Platform(i*block_size + 400,HEIGHT - block_size - 625, plat_size)for i in range(0,1)]
     plat6 = [Platform(i*block_size + 2050,HEIGHT - block_size - 150, plat_size)for i in range(0,2)]
-    
-    
-    objects = [*floor,*floor2,*plat1,*plat2,*plat3,*plat4,*plat5,*plat6]
-   
 
-    coins = pygame.sprite.Group()
-    for i in range(10):
-        x = random.randint(0, 100)
-        y = random.randint(0, 100)
-    coin = Coin(x, y)
-    coins.add(coin)
-
+    coin_size = 5
+    num_coins = 1
+    coins = [
+        Coin(random.randint(0, WIDTH - coin_size), random.randint(0, HEIGHT - coin_size), coin_size)
+        for _ in range(num_coins)
+    ]
+    objects = [*floor,*floor2,*plat1,*plat2,*plat3,*plat4,*plat5,*plat6, *coins]
 
     while run:
         clock.tick(FPS)
-
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
@@ -387,7 +441,7 @@ def play(window):
         player.loop(FPS)
         handle_move(player,objects)
         draw(window,background,bg_image,player,objects,offset_x)
-
+        
         if((player.rect.right - offset_x >= WIDTH - scroll_area_width) and player.x_vel > 0) or (
             (player.rect.left - offset_x <= scroll_area_width) and player.x_vel < 0):
                 offset_x += player.x_vel 
