@@ -73,13 +73,6 @@ def get_platform(size):
 
     return pygame.transform.scale2x(surface)
 
-def get_coin(size):
-    path = join("assets","colectibles","coin_0.png")
-    image = pygame.image.load(path).convert_alpha()
-    surface = pygame.Surface((size,size),pygame.SRCALPHA,32)
-    rect = pygame.Rect(270,0,size,10)
-    surface.blit(image,(0,0),rect)
-    return pygame.transform.scale2x(surface)
 
 class Player(pygame.sprite.Sprite):
     COLOR = (255,0,0)
@@ -145,6 +138,8 @@ class Player(pygame.sprite.Sprite):
             return
         self._last_called = current_time
         self.lives.lives -= 1
+    def collect_coin(self):
+        self.coins += 1  # Increment the coin counter
 
     def update_sprite(self):
         sprite_sheet = "idle"
@@ -210,18 +205,32 @@ class Lives:
         self._lives = value
         self.notify()
 
-class Coin(Object):
+class Coin(pygame.sprite.Sprite):
     def __init__(self, x, y, size):
-        super().__init__(x,y,size,size)
-        block = get_coin(size)
-        self.image.blit(block,(0,0))
-        self.mask = pygame.mask.from_surface(self.image)
-        
+        super().__init__()
+        self.images = [pygame.transform.scale(pygame.image.load(f'assets/Collectibles/coin_{i}.png'), (size, size)) for i in range(6)]
+        self.index = 0
+        self.image = self.images[self.index]
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.frame_count = 0 
+
+    def update(self):
+        self.frame_count += 1 
+        if self.frame_count >= 5:
+            self.frame_count = 0
+            self.index = (self.index + 1) % len(self.images)
+            self.image = self.images[self.index]
+
+    def draw(self,window,offset_x):
+        window.blit(self.image,(self.rect.x - offset_x,self.rect.y))
+
 class Block(Object):
-    def __init__(self,x,y,size):
-        super().__init__(x,y,size,size)
+    def __init__(self, x, y, size):
+        super().__init__(x, y, size, size)
         block = get_block(size)
-        self.image.blit(block,(0,0))
+        self.image.blit(block, (0, 0))
         self.mask = pygame.mask.from_surface(self.image)
         
 class Platform(Object):
@@ -244,7 +253,7 @@ def get_background(name):
 
     return tiles,image
 
-def draw(window,background,bg_image,player,objects,offset_x):
+def draw(window,background,bg_image,heart_image, coin_image, player,objects,coins, offset_x):
     for tile in background:
         window.blit(bg_image,tile)
         
@@ -252,8 +261,11 @@ def draw(window,background,bg_image,player,objects,offset_x):
         obj.draw(window,offset_x)
 
     player.draw(window,offset_x)
-    draw_lives_bar(player.lives.lives)
-
+    draw_bar(player.lives.lives, player.coins, heart_image, coin_image)
+    for coin in coins:
+        coin.update()
+        coin.draw(window, offset_x)
+        
     pygame.display.update()
     
 def handle_vertical_colission(player,objects,dy):
@@ -313,13 +325,14 @@ def handle_move(player,objects):
     vertical_collide = handle_vertical_colission(player,objects,player.y_vel)
     to_check = [*vertical_collide]
         
-def draw_lives_bar(lives):
-    heart_image = pygame.image.load("assets/colectibles/heart.png")  # Replace "heart.png" with the path to your heart image
-    heart_image = pygame.transform.scale(heart_image, (30, 30))
+def draw_bar(lives, coins, heart_image, coin_image):
     for i in range(lives):
         SCREEN.blit(heart_image, (50 + i * 35, 45))
-    #lives_text = get_font(50).render(str(lives), True, (255, 255, 255))
-    #SCREEN.blit(lives_text, (200, 45))
+    SCREEN.blit(coin_image, (50, 90)) 
+
+    coins_text = get_font(20).render(str(coins), True, (0, 0, 0))
+    SCREEN.blit(coins_text, (86, 93)) 
+
 
 
 def options(window):
@@ -398,6 +411,8 @@ def options(window):
 def play(window):
     clock = pygame.time.Clock()
     background,bg_image = get_background("Blue.png")
+    heart_image, coin_image = pygame.image.load("assets/Collectibles/heart.png"), pygame.image.load("assets/Collectibles/coin_0.png")
+
     lives = Lives()
 
     player = Player(400,400,50,50, lives)
@@ -419,13 +434,15 @@ def play(window):
     plat5 = [Platform(i*block_size + 400,HEIGHT - block_size - 625, plat_size)for i in range(0,1)]
     plat6 = [Platform(i*block_size + 2050,HEIGHT - block_size - 150, plat_size)for i in range(0,2)]
 
-    coin_size = 5
-    num_coins = 1
+    coin_size = 40
+    num_coins = 10
     coins = [
-        Coin(random.randint(0, WIDTH - coin_size), random.randint(0, HEIGHT - coin_size), coin_size)
+        Coin(random.randint(0, WIDTH - coin_size), random.randint(100, 650), coin_size)
         for _ in range(num_coins)
     ]
-    objects = [*floor,*floor2,*plat1,*plat2,*plat3,*plat4,*plat5,*plat6, *coins]
+    coins = pygame.sprite.Group(coins)
+
+    objects = [*floor,*floor2,*plat1,*plat2,*plat3,*plat4,*plat5,*plat6]
 
     while run:
         clock.tick(FPS)
@@ -440,8 +457,12 @@ def play(window):
 
         player.loop(FPS)
         handle_move(player,objects)
-        draw(window,background,bg_image,player,objects,offset_x)
-        
+        draw(window,background,bg_image,heart_image, coin_image, player,objects,coins,offset_x)
+
+        if pygame.sprite.spritecollideany(player, coins): 
+            for _ in pygame.sprite.spritecollide(player, coins, True):
+                player.collect_coin()  # Increment the player's coin counter 
+
         if((player.rect.right - offset_x >= WIDTH - scroll_area_width) and player.x_vel > 0) or (
             (player.rect.left - offset_x <= scroll_area_width) and player.x_vel < 0):
                 offset_x += player.x_vel 
