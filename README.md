@@ -4,18 +4,17 @@
 |  | Opciones (volumen, tamaño...) |  |  |
 | Movimiento personaje |  |  |  |
 | resource manager
-| Contadores |  |  |  |
+|  |  | Contadores |  |
 | Diseño nivel basico |  |  |  |
 | Enemigos nivel1 |  |  |  |
-| factorizar en varios archivos | | |  |
 | Boss nivel1 |  |  |  |
 | Ataque espada |  |  |  |
 | Checkpoints |  |  |  |
 | Cambio de fase |  |  |  |
 | Mercader |  |  |  |
 | Decoracion |  |  |  |
-| Monedas y Coleccionables |  |  |  |
-| Vidas |  |  |  |
+|  |  | Monedas y Coleccionables |  |
+|  |  | Vidas |  |
 | Musica/efecos de sonido |  |  |  |
 | Menu de pausa (?)|  |  |  |
 

@@ -79,19 +79,25 @@ class Player(pygame.sprite.Sprite):
     GRAVITY = 1
     SPRITES = load_sprite_sheets("MainCharacters","MaskDude",32,32,True)
     ANIMATION_DELAY = 3
+    MELEE_COOLDOWN = 1.0
+    MELEE_DURATION = 0.5
 
     def __init__(self,x,y,width,height, lives):
-       self.rect = pygame.Rect(x,y,width,height)
-       self.x_vel = 0
-       self.y_vel = 0
-       self.mask = None
-       self.direction = "left"
-       self.animation_count = 0
-       self.fall_count = 0
-       self.jump_count = 0
-       self.coins = 0
-       self.lives = lives
-       self._last_called = 0
+        self.rect = pygame.Rect(x,y,width,height)
+        self.x_vel = 0
+        self.y_vel = 0
+        self.mask = None
+        self.direction = "left"
+        self.animation_count = 0
+        self.fall_count = 0
+        self.jump_count = 0
+        self.coins = 0
+        self.lives = lives
+        self._last_called = 0
+
+        self.last_melee_time = 0
+        self.melee_active = False
+        self.melee_start_time = 0
 
 
     def jump(self):
@@ -141,6 +147,27 @@ class Player(pygame.sprite.Sprite):
     def collect_coin(self):
         self.coins += 1  # Increment the coin counter
 
+
+    def melee_attack(self):
+        current_time = time.time()
+        if current_time - self.last_melee_time < self.MELEE_COOLDOWN:
+            return
+        self.melee_active = True
+        self.melee_start_time = current_time
+        self.last_melee_time = current_time
+    def update_melee_attack(self):
+        if self.melee_active and (time.time() - self.melee_start_time > self.MELEE_DURATION):
+            self.melee_active = False
+    def get_melee_hitbox(self):
+        melee_hitbox_size = (32, 32)
+        offset_x = self.rect.width if self.direction == "right" else -melee_hitbox_size[0]
+        melee_hitbox = pygame.Rect(self.rect.x + offset_x, self.rect.y, *melee_hitbox_size)
+        #melee_hitbox.x -= self.x_vel
+
+        return melee_hitbox
+
+
+
     def update_sprite(self):
         sprite_sheet = "idle"
 
@@ -159,6 +186,8 @@ class Player(pygame.sprite.Sprite):
         sprite_index = (self.animation_count // self.ANIMATION_DELAY) % len(sprites)
         self.sprite = sprites[sprite_index]
         self.animation_count +=1
+        self.update_melee_attack()
+
         self.update()
 
     def update(self):
@@ -168,6 +197,10 @@ class Player(pygame.sprite.Sprite):
             self.die()
 
     def draw(self,window,offset_x):
+        if self.melee_active:
+            melee_hitbox = self.get_melee_hitbox()
+            pygame.draw.rect(window, (0, 255, 0), melee_hitbox, 2)
+        pygame.draw.rect(window, (0, 255, 0), self.rect, 2)
         window.blit(self.sprite,(self.rect.x - offset_x,self.rect.y))
 class Object(pygame.sprite.Sprite):
     def __init__(self,x,y,width,height,name=None):
@@ -313,10 +346,8 @@ def handle_move(player,objects):
 
     collide_left = collide(player,objects,-PLAYER_VEL * 2)
     collide_right = collide(player,objects,PLAYER_VEL * 2)
-
-    
-
-
+    if keys[pygame.K_p]:
+        player.melee_attack()
     if keys[pygame.K_a] and not collide_left:
         player.move_left(PLAYER_VEL)
     if keys[pygame.K_d] and not collide_right:
