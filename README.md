@@ -2,7 +2,7 @@
 |---|---|---|---|
 |  |  |  | pantalla inicial (jugar y opciones) |
 |  | Opciones (volumen, tamaño...) |  |  |
-| Movimiento personaje |  |  |  |
+|  | Movimiento personaje |  |  |
 | resource manager
 |  |  | Contadores |  |
 | Diseño nivel basico |  |  |  |
