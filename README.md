@@ -5,14 +5,14 @@
 |  | Movimiento personaje |  |  |
 | resource manager
 |  |  | Contadores |  |
-| Diseño nivel basico |  |  |  |
+|  | Diseño nivel basico |  |  |
 | Enemigos nivel1 |  |  |  |
 | Boss nivel1 |  |  |  |
 | Ataque espada |  |  |  |
 | Checkpoints |  |  |  |
 | Cambio de fase |  |  |  |
 | Mercader |  |  |  |
-| Decoracion |  |  |  |
+|  | Decoracion |  |  |
 |  |  | Monedas y Coleccionables |  |
 |  |  | Vidas |  |
 | Musica/efecos de sonido |  |  |  |
