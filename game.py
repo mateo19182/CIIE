@@ -80,20 +80,24 @@ def load_new_sprite_sheets(dir1,width,height,direction = False):
     return all_sprites
 
 def get_block(size):
-    path = join("assets","Terrain","Terrain.png")
+    #path = join("assets","Terrain","Terrain.png")
+    path = join("assets","LV1_Build.png")
     image = pygame.image.load(path).convert_alpha()
     surface = pygame.Surface((size,size),pygame.SRCALPHA,32)
-    rect = pygame.Rect(96,0,size,size)
+    rect = pygame.Rect(96,205,size,size)
     surface.blit(image,(0,0),rect)
 
     return pygame.transform.scale2x(surface)
 
 
+
+
 def get_platform(size):
-    path = join("assets","Terrain","Terrain.png")
+    #path = join("assets","Terrain","Terrain.png")
+    path = join("assets","LV1_Build.png")
     image = pygame.image.load(path).convert_alpha()
     surface = pygame.Surface((size,size),pygame.SRCALPHA,32)
-    rect = pygame.Rect(270,0,size,10)
+    rect = pygame.Rect(96,125,size,20)
     surface.blit(image,(0,0),rect)
 
     return pygame.transform.scale2x(surface)
@@ -468,7 +472,8 @@ def options(window):
 
 def play(window):
     clock = pygame.time.Clock()
-    background,bg_image = get_background("Blue.png")
+    #background,bg_image = get_background("Blue.png")
+    background,bg_image = get_background("Night.png")
     heart_image, coin_image = pygame.image.load("assets/Collectibles/heart.png"), pygame.image.load("assets/Collectibles/coin_0.png")
 
     lives = Lives()
@@ -485,12 +490,21 @@ def play(window):
     
     floor = [Block(i*block_size,HEIGHT - block_size ,block_size)for i in range(-WIDTH // block_size,WIDTH*2 // block_size)]
     floor2 = [Block(i*block_size,HEIGHT - block_size ,block_size)for i in range(5 + WIDTH*2 // block_size,WIDTH*4 // block_size)]
+
+    column = [Block(block_size + 3000,HEIGHT - block_size - (100*i),block_size)for i in range(1,7)]
+
     plat1 = [Platform(i*block_size + 800,HEIGHT - block_size - 125, plat_size)for i in range(0,4)]
     plat2 = [Platform(i*block_size + 1300,HEIGHT - block_size - 300, plat_size)for i in range(0,2)]
     plat3 = [Platform(4*i*block_size + 1600,HEIGHT - block_size - 500, plat_size)for i in range(0,2)]
     plat4 = [Platform(2*i*block_size + 700,HEIGHT - block_size - 450, plat_size)for i in range(0,3)]
     plat5 = [Platform(i*block_size + 400,HEIGHT - block_size - 625, plat_size)for i in range(0,1)]
     plat6 = [Platform(i*block_size + 2050,HEIGHT - block_size - 150, plat_size)for i in range(0,2)]
+
+    plat7 = [Platform(i*block_size + 2500,HEIGHT - block_size - 150 - (300*i), plat_size)for i in range(0,2)]
+    plat8 = [Platform(i*block_size + 2825,HEIGHT - block_size - 250 - (300*i), plat_size)for i in range(0,2)]
+
+    plat9 = [Platform(3*i*block_size + 3400,HEIGHT - block_size - 300 - (200*i), plat_size)for i in range(0,2)]
+    
 
     coin_size = 40
     num_coins = 10
@@ -500,7 +514,7 @@ def play(window):
     ]
     coins = pygame.sprite.Group(coins)
 
-    objects = [*floor,*floor2,*plat1,*plat2,*plat3,*plat4,*plat5,*plat6]
+    objects = [*floor,*floor2,*column,*plat1,*plat2,*plat3,*plat4,*plat5,*plat6,*plat7,*plat8,*plat9]
 
     while run:
         clock.tick(FPS)
