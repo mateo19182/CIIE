@@ -231,7 +231,6 @@ class Player(pygame.sprite.Sprite):
         if self.melee_active:
             melee_hitbox = self.get_melee_hitbox()
             pygame.draw.rect(window, (0, 255, 0), melee_hitbox, 2)
-        pygame.draw.rect(window, (0, 255, 0), self.rect, 2)
         window.blit(self.sprite,(self.rect.x - offset_x,self.rect.y))
 class Object(pygame.sprite.Sprite):
     def __init__(self,x,y,width,height,name=None):
@@ -336,7 +335,7 @@ class Enemies(pygame.sprite.Sprite):
 
     def shoot_arrow(self,offset_x):
         enemy_rect = self.rect.move(-offset_x,0)
-        arrow = Arrow(enemy_rect,self.orientation)
+        arrow = Arrow(self.rect,self.orientation)
         self.arrows.append(arrow)
 
     def update_sprite(self,player):
@@ -366,7 +365,7 @@ class Enemies(pygame.sprite.Sprite):
 
     def draw(self,window,offset_x):
         for arrow in self.arrows:
-            arrow.draw(window)
+            arrow.draw(window,offset_x)
         window.blit(self.sprite,(self.rect.x - offset_x,self.rect.y))
 
 class Arrow(pygame.sprite.Sprite):
@@ -381,15 +380,16 @@ class Arrow(pygame.sprite.Sprite):
             self.image = pygame.transform.flip(self.image,True,False)
             self.rect = self.image.get_rect(midleft=(enemy_rect.midright[0] - 90, enemy_rect.centery + 10))  # Posiciona la flecha al lado derecho y un poco más abajo del centro del enemigo
             self.velocity = (-3, 0)  # Ajusta la velocidad de la flecha
+            
+    def is_offscreen(self,offset_x):
+        return self.rect.right - offset_x < 0 or self.rect.left - offset_x > WIDTH or self.rect.bottom < 0 or self.rect.top > HEIGHT
 
     def update(self):
         self.rect.move_ip(self.velocity)
 
-    def draw(self, screen):
-        screen.blit(self.image, self.rect)
-
-
-
+    def draw(self, screen,offset_x):
+        screen.blit(self.image, (self.rect.x - offset_x, self.rect.y))
+    
 def get_background(name):
     image = pygame.image.load(join("assets","Background",name))
     _,_,width,height = image.get_rect()
@@ -566,7 +566,7 @@ def play(window):
     lives = Lives()
 
     player = Player(400,400,50,50, lives)
-    enemie = Enemies(800,500,100,100)
+    enemie = Enemies(900,500,100,100)
 
     block_size = 96
     plat_size = 100
@@ -619,6 +619,8 @@ def play(window):
         enemie.loop(player,offset_x)
         handle_move(player,objects)
         draw(window,background,bg_image,heart_image, coin_image, player,objects,coins,enemie,offset_x)
+        
+        enemie.arrows = [arrow for arrow in enemie.arrows if not arrow.is_offscreen(offset_x)]
 
         if pygame.sprite.spritecollideany(player, coins): 
             for _ in pygame.sprite.spritecollide(player, coins, True):
