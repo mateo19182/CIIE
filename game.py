@@ -305,6 +305,91 @@ class Platform(Object):
         self.mask = pygame.mask.from_surface(self.image)
 
 
+class Enemies(pygame.sprite.Sprite):
+    SPRITES = load_sprite_sheets("Enemies","HalflingRanger",16,16,False)
+    ANIMATION_DELAY = 4
+    ARROW_FRAME = 25
+
+    def __init__(self,x,y,width,height):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.animation_count = 0
+        self.frame_count = 0
+        self.rect = pygame.Rect(x,y,width,height)
+        self.mask = None
+        self.sprite = None
+        self.arrows = []
+        self.orientation = "left"
+
+    def loop(self,player,offset_x):
+        self.frame_count += 1
+
+        if self.frame_count == self.ARROW_FRAME:
+            self.shoot_arrow(offset_x)
+
+        for arrow in self.arrows:
+            arrow.update()
+
+        self.update_sprite(player)
+
+    def shoot_arrow(self,offset_x):
+        enemy_rect = self.rect.move(-offset_x,0)
+        arrow = Arrow(enemy_rect,self.orientation)
+        self.arrows.append(arrow)
+
+    def update_sprite(self,player):
+        sprites = self.SPRITES["HalflingRangerIdleSide_3"]
+        sprite_index = (self.animation_count // self.ANIMATION_DELAY) % len(sprites)
+        self.sprite = sprites[sprite_index]
+        self.sprite = pygame.transform.scale(self.sprite,(16 * 5, 16 * 5))
+        self.animation_count += 1
+
+        if(sprite_index == 0):
+            self.frame_count = 0
+
+        dx = player.rect.x - self.x
+
+        if dx < 0:
+            self.orientation = "left"
+            self.sprite = pygame.transform.flip(self.sprite,True,False)
+        elif dx > 0:
+            self.orientation = "right"
+            self.sprite = pygame.transform.flip(self.sprite,False,False)
+
+        self.update()
+
+    def update(self):
+        self.rect = self.sprite.get_rect(topleft = (self.rect.x,self.rect.y))
+        self.mask = pygame.mask.from_surface(self.sprite)
+
+    def draw(self,window,offset_x):
+        for arrow in self.arrows:
+            arrow.draw(window)
+        window.blit(self.sprite,(self.rect.x - offset_x,self.rect.y))
+
+class Arrow(pygame.sprite.Sprite):
+    def __init__(self, enemy_rect,orientation):
+        self.image = pygame.image.load("assets/Items/Arrow/Arrow.png")
+        self.image = pygame.transform.scale(self.image, (16 * 5, 16 * 5))  # Ajusta el tamaño aquí
+
+        if(orientation == "right"):
+            self.rect = self.image.get_rect(midleft=(enemy_rect.midright[0] - 70, enemy_rect.centery + 10))  # Posiciona la flecha al lado derecho y un poco más abajo del centro del enemigo
+            self.velocity = (3, 0)  # Ajusta la velocidad de la flecha
+        else:
+            self.image = pygame.transform.flip(self.image,True,False)
+            self.rect = self.image.get_rect(midleft=(enemy_rect.midright[0] - 90, enemy_rect.centery + 10))  # Posiciona la flecha al lado derecho y un poco más abajo del centro del enemigo
+            self.velocity = (-3, 0)  # Ajusta la velocidad de la flecha
+
+    def update(self):
+        self.rect.move_ip(self.velocity)
+
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
+
+
+
 def get_background(name):
     image = pygame.image.load(join("assets","Background",name))
     _,_,width,height = image.get_rect()
@@ -317,7 +402,7 @@ def get_background(name):
 
     return tiles,image
 
-def draw(window,background,bg_image,heart_image, coin_image, player,objects,coins, offset_x):
+def draw(window,background,bg_image,heart_image, coin_image, player,objects,coins,enemie, offset_x):
     for tile in background:
         window.blit(bg_image,tile)
         
@@ -325,6 +410,8 @@ def draw(window,background,bg_image,heart_image, coin_image, player,objects,coin
         obj.draw(window,offset_x)
 
     player.draw(window,offset_x)
+    enemie.draw(window,offset_x)
+
     draw_bar(player.lives.lives, player.coins, heart_image, coin_image)
     for coin in coins:
         coin.update()
@@ -479,7 +566,8 @@ def play(window):
     lives = Lives()
 
     player = Player(400,400,50,50, lives)
-    
+    enemie = Enemies(800,500,100,100)
+
     block_size = 96
     plat_size = 100
 
@@ -528,8 +616,9 @@ def play(window):
                     player.jump()  
 
         player.loop(FPS)
+        enemie.loop(player,offset_x)
         handle_move(player,objects)
-        draw(window,background,bg_image,heart_image, coin_image, player,objects,coins,offset_x)
+        draw(window,background,bg_image,heart_image, coin_image, player,objects,coins,enemie,offset_x)
 
         if pygame.sprite.spritecollideany(player, coins): 
             for _ in pygame.sprite.spritecollide(player, coins, True):
