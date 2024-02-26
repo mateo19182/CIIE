@@ -25,3 +25,5 @@ contador de vidas con observer, inventario, monedas
 menu composite, 
 
 cambiar a sincronizacion x tiempo perosnaje y enemigos?¿
+
+Meter scroll vertical
