@@ -89,9 +89,6 @@ def get_block(size):
 
     return pygame.transform.scale2x(surface)
 
-
-
-
 def get_platform(size):
     #path = join("assets","Terrain","Terrain.png")
     path = join("assets","LV1_Build.png")
@@ -109,7 +106,7 @@ class Player(pygame.sprite.Sprite):
     #SPRITES = load_sprite_sheets("MainCharacters","MaskDude",32,32,True)
     SPRITES = load_sprite_sheets("main", "",32,32,True)
 
-    ANIMATION_DELAY = 3
+    ANIMATION_DELAY = 7
     MELEE_COOLDOWN = 1.0
     MELEE_DURATION = 0.5
 
@@ -125,7 +122,6 @@ class Player(pygame.sprite.Sprite):
         self.coins = 0
         self.lives = lives
         self._last_called = 0
-
         self.last_melee_time = 0
         self.melee_active = False
         self.melee_start_time = 0
@@ -141,8 +137,8 @@ class Player(pygame.sprite.Sprite):
             self.fall_count = 0
 
     def move(self,dx,dy):
-       self.rect.x += dx
-       self.rect.y += dy
+        self.rect.x += dx
+        self.rect.y += dy
 
     def move_left(self,vel):
         self.x_vel = -vel
@@ -231,6 +227,7 @@ class Player(pygame.sprite.Sprite):
         if self.melee_active:
             melee_hitbox = self.get_melee_hitbox()
             pygame.draw.rect(window, (0, 255, 0), melee_hitbox, 2)
+        pygame.draw.rect(window,(0,255,0),self.rect,2)
         window.blit(self.sprite,(self.rect.x - offset_x,self.rect.y))
 class Object(pygame.sprite.Sprite):
     def __init__(self,x,y,width,height,name=None):
@@ -306,8 +303,8 @@ class Platform(Object):
 
 class Enemies(pygame.sprite.Sprite):
     SPRITES = load_sprite_sheets("Enemies","HalflingRanger",16,16,False)
-    ANIMATION_DELAY = 4
-    ARROW_FRAME = 25
+    ANIMATION_DELAY = 7
+    ARROW_FRAME = 53
 
     def __init__(self,x,y,width,height):
         self.x = x
@@ -455,6 +452,18 @@ def collide(player,objects,dx):
 
     
     return collided_object
+
+def collide_arrow(player,arrows,objects):
+    
+    collided_object = None
+
+    for arrow in arrows:
+        if pygame.sprite.collide_mask(player,arrow):
+            arrows.remove(arrow)
+        for obj in objects:
+            if pygame.sprite.collide_mask(arrow,obj):
+                arrows.remove(arrow)
+    player.update()
     
     
 def handle_move(player,objects):
@@ -621,6 +630,8 @@ def play(window):
         draw(window,background,bg_image,heart_image, coin_image, player,objects,coins,enemie,offset_x)
         
         enemie.arrows = [arrow for arrow in enemie.arrows if not arrow.is_offscreen(offset_x)]
+
+        collide_arrow(player,enemie.arrows,objects)
 
         if pygame.sprite.spritecollideany(player, coins): 
             for _ in pygame.sprite.spritecollide(player, coins, True):
