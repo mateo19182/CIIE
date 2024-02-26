@@ -464,15 +464,27 @@ def collide(player,objects,dx):
 
     
     return collided_object
+
+def collide_arrow(player,arrows,objects):
     
+    for arrow in arrows:
+        if pygame.sprite.collide_mask(player,arrow):
+            arrows.remove(arrow)
+            player.lives.lives -= 1
+            
+        for obj in objects:
+            if pygame.sprite.collide_mask(arrow,obj):
+                arrows.remove(arrow)
+    player.update()
     
-def handle_move(player,objects):
+def handle_move(player,arrows,objects):
     keys = pygame.key.get_pressed()
     if player.lives.lives > 0:
         player.x_vel = 0
         #por timer
         collide_left = collide(player,objects,-PLAYER_VEL * 2)
         collide_right = collide(player,objects,PLAYER_VEL * 2)
+        collide_arrow(player,arrows,objects)
         if keys[pygame.K_p]:
             player.melee_attack()
         if keys[pygame.K_a] and not collide_left:
@@ -489,7 +501,6 @@ def draw_bar(lives, coins, heart_image, coin_image):
 
     coins_text = get_font(20).render(str(coins), True, (0, 0, 0))
     SCREEN.blit(coins_text, (86, 93)) 
-
 
 
 def options(window):
@@ -627,7 +638,7 @@ def play(window):
         player.loop(FPS)
         #timer
         enemie.loop(player,offset_x)
-        handle_move(player,objects)
+        handle_move(player,enemie.arrows,objects)
         draw(window,background,bg_image,heart_image, coin_image, player,objects,coins,enemie,offset_x)
         
         enemie.arrows = [arrow for arrow in enemie.arrows if not arrow.is_offscreen(offset_x)]
