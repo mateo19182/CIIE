@@ -313,7 +313,7 @@ class Platform(Object):
         self.mask = pygame.mask.from_surface(self.image)
 
 
-class Enemies(pygame.sprite.Sprite):
+class RangedEnemies(pygame.sprite.Sprite):
     SPRITES = load_sprite_sheets("Enemies","HalflingRanger",16,16,False)
     ANIMATION_DELAY = 4
     ARROW_FRAME = 25
@@ -376,6 +376,56 @@ class Enemies(pygame.sprite.Sprite):
         for arrow in self.arrows:
             arrow.draw(window,offset_x)
         window.blit(self.sprite,(self.rect.x - offset_x,self.rect.y))
+        
+class MeleeEnemie(pygame.sprite.Sprite):
+    SPRITES = load_sprite_sheets("Enemies","HalflingRogue",16,16,False)
+    ANIMATION_DELAY = 20
+    
+    def __init__(self,x,y,width,height):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.animation_count = 0
+        self.frame_count = 0
+        self.rect = pygame.Rect(x,y,width,height)
+        self.mask = None
+        self.sprite = None
+        self.orientation = "left"
+        
+    def loop(self,player,offset_x):
+        self.frame_count += 1
+        self.update_sprite(player)
+        
+    def update_sprite(self,player):
+        sprites = self.SPRITES["HalflingRogueIdleSide"]
+        sprite_index = (self.animation_count // self.ANIMATION_DELAY) % len(sprites)
+        self.sprite = sprites[sprite_index]
+        self.sprite = pygame.transform.scale(self.sprite,(16 * 5, 16 * 5))
+        self.animation_count += 1
+
+        if(sprite_index == 0):
+            self.frame_count = 0
+
+        dx = player.rect.x - self.x
+
+        if dx < 0:
+            self.orientation = "left"
+            self.sprite = pygame.transform.flip(self.sprite,True,False)
+        elif dx > 0:
+            self.orientation = "right"
+            self.sprite = pygame.transform.flip(self.sprite,False,False)
+
+        self.update()
+        
+        
+    def update(self):
+        self.rect = self.sprite.get_rect(topleft = (self.rect.x,self.rect.y))
+        self.mask = pygame.mask.from_surface(self.sprite)
+        
+    def draw(self,window,offset_x):
+        window.blit(self.sprite,(self.rect.x - offset_x,self.rect.y))
+    
 
 class Arrow(pygame.sprite.Sprite):
     def __init__(self, enemy_rect,orientation):
@@ -411,7 +461,7 @@ def get_background(name):
 
     return tiles,image
 
-def draw(window,background,bg_image,heart_image, coin_image, player,objects,coins,enemie, offset_x):
+def draw(window,background,bg_image,heart_image, coin_image, player,objects,coins,enemie,meleeEnemie,offset_x):
     for tile in background:
         window.blit(bg_image,tile)
         
@@ -420,6 +470,7 @@ def draw(window,background,bg_image,heart_image, coin_image, player,objects,coin
 
     player.draw(window,offset_x)
     enemie.draw(window,offset_x)
+    meleeEnemie.draw(window,offset_x)
 
     draw_bar(player.lives.lives, player.coins, heart_image, coin_image)
     for coin in coins:
@@ -477,7 +528,15 @@ def collide_arrow(player,arrows,objects):
                 arrows.remove(arrow)
     player.update()
     
-def handle_move(player,arrows,objects):
+def collide_enemie(player,enemie,object):
+    
+    if(pygame.sprite.collide_mask(player,enemie)):
+        if enemie.frame_count == 4:
+            player.lives.lives -= 1
+        
+    player.update()
+    
+def handle_move(player,arrows,enemie,objects):
     keys = pygame.key.get_pressed()
     if player.lives.lives > 0:
         player.x_vel = 0
@@ -485,6 +544,8 @@ def handle_move(player,arrows,objects):
         collide_left = collide(player,objects,-PLAYER_VEL * 2)
         collide_right = collide(player,objects,PLAYER_VEL * 2)
         collide_arrow(player,arrows,objects)
+        collide_enemie(player,enemie,object)
+        
         if keys[pygame.K_p]:
             player.melee_attack()
         if keys[pygame.K_a] and not collide_left:
@@ -494,6 +555,7 @@ def handle_move(player,arrows,objects):
 
     vertical_collide = handle_vertical_colission(player,objects,player.y_vel)
     #to_check = [*vertical_collide]
+    
 def draw_bar(lives, coins, heart_image, coin_image):
     for i in range(lives):
         SCREEN.blit(heart_image, (50 + i * 35, 45))
@@ -501,7 +563,6 @@ def draw_bar(lives, coins, heart_image, coin_image):
 
     coins_text = get_font(20).render(str(coins), True, (0, 0, 0))
     SCREEN.blit(coins_text, (86, 93)) 
-
 
 def options(window):
 
@@ -585,7 +646,8 @@ def play(window):
     lives = Lives()
 
     player = Player(400,400,50,50, lives)
-    enemie = Enemies(900,500,100,100)
+    enemie = RangedEnemies(900,500,100,100)
+    meleeEnemie = MeleeEnemie(700,625,100,100)
 
     block_size = 96
     plat_size = 100
@@ -638,8 +700,9 @@ def play(window):
         player.loop(FPS)
         #timer
         enemie.loop(player,offset_x)
-        handle_move(player,enemie.arrows,objects)
-        draw(window,background,bg_image,heart_image, coin_image, player,objects,coins,enemie,offset_x)
+        meleeEnemie.loop(player,offset_x)
+        handle_move(player,enemie.arrows,meleeEnemie,objects)
+        draw(window,background,bg_image,heart_image, coin_image, player,objects,coins,enemie,meleeEnemie,offset_x)
         
         enemie.arrows = [arrow for arrow in enemie.arrows if not arrow.is_offscreen(offset_x)]
 
