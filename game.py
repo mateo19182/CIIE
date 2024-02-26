@@ -10,13 +10,11 @@ pygame.init()
 SCREEN = pygame.display.set_mode((1000, 800))
 pygame.display.set_caption("Platformer")
 
-BG = pygame.image.load("assets/Background.png")
-YL = pygame.image.load("assets/Background/Yellow.png")
-BG_COLOR = (255,255,255)
 WIDTH, HEIGHT = 1000, 800
 FPS = 60
 PLAYER_VEL = 5
 VOLUME =  0.5
+TIMER = 0
 LEVEL = 1
 BAR_WIDTH = 300
 BAR_HEIGHT = 20
@@ -106,7 +104,7 @@ class Player(pygame.sprite.Sprite):
     #SPRITES = load_sprite_sheets("MainCharacters","MaskDude",32,32,True)
     SPRITES = load_sprite_sheets("main", "",32,32,True)
 
-    ANIMATION_DELAY = 7
+    ANIMATION_DELAY = 5
     MELEE_COOLDOWN = 1.0
     MELEE_DURATION = 0.5
 
@@ -122,6 +120,7 @@ class Player(pygame.sprite.Sprite):
         self.coins = 0
         self.lives = lives
         self._last_called = 0
+        self.hit = False
         self.last_melee_time = 0
         self.melee_active = False
         self.melee_start_time = 0
@@ -165,12 +164,20 @@ class Player(pygame.sprite.Sprite):
         self.y_vel = 0
         self.jump_count = 0
 
-    def hit_head(self):
+    def get_hit(self):
         current_time = time.time()
         if current_time - self._last_called < 3:
             return
         self._last_called = current_time
+        self.hit=True
+        self.update_sprite()
         self.lives.lives -= 1
+        self.animation_count = 0
+
+    def hit_head(self):
+        self.y_vel = 0
+        self.get_hit()
+        
     def collect_coin(self):
         self.coins += 1  # Increment the coin counter
 
@@ -190,44 +197,49 @@ class Player(pygame.sprite.Sprite):
         offset_x = self.rect.width if self.direction == "right" else -melee_hitbox_size[0]
         melee_hitbox = pygame.Rect(self.rect.x + offset_x, self.rect.y, *melee_hitbox_size)
         #melee_hitbox.x -= self.x_vel
-
         return melee_hitbox
-
-
-
+    def die(self):
+        self.update_sprite()
+        self.animation_count = 0
+        #pantalla de game over
     def update_sprite(self):
         sprite_sheet = "idle"
 
+        if self.lives.lives <= 0:
+            sprite_sheet = "die"
         if self.y_vel < 0:
             if self.jump_count == 1:
                 sprite_sheet = "jump"
             elif self.jump_count == 2:
                 sprite_sheet = "double_jump"
+        elif self.hit:
+            sprite_sheet = "hit"
         elif self.y_vel > self.GRAVITY * 2:
             sprite_sheet = "fall"
         elif self.x_vel !=0:
             sprite_sheet = "run"
-
+        elif self.melee_active:
+            sprite_sheet = "melee"
         sprite_sheet_name = sprite_sheet + "_" + self.direction
         sprites = self.SPRITES[sprite_sheet_name]
         sprite_index = (self.animation_count // self.ANIMATION_DELAY) % len(sprites)
+        if sprite_sheet == "die": 
+            sprite_index = len(sprites) - 1        
         self.sprite = sprites[sprite_index]
         self.animation_count +=1
-        self.update_melee_attack()
-
+        if sprite_sheet == "hit" and self.animation_count == 4:
+            self.hit = False
+        self.update_melee_attack()            
         self.update()
 
     def update(self):
         self.rect = self.sprite.get_rect(topleft = (self.rect.x,self.rect.y))
         self.mask = pygame.mask.from_surface(self.sprite)
-        if self.lives.lives <= 0:
-            self.die()
 
     def draw(self,window,offset_x):
         if self.melee_active:
             melee_hitbox = self.get_melee_hitbox()
             pygame.draw.rect(window, (0, 255, 0), melee_hitbox, 2)
-        pygame.draw.rect(window,(0,255,0),self.rect,2)
         window.blit(self.sprite,(self.rect.x - offset_x,self.rect.y))
 class Object(pygame.sprite.Sprite):
     def __init__(self,x,y,width,height,name=None):
@@ -303,8 +315,8 @@ class Platform(Object):
 
 class Enemies(pygame.sprite.Sprite):
     SPRITES = load_sprite_sheets("Enemies","HalflingRanger",16,16,False)
-    ANIMATION_DELAY = 7
-    ARROW_FRAME = 53
+    ANIMATION_DELAY = 4
+    ARROW_FRAME = 25
 
     def __init__(self,x,y,width,height):
         self.x = x
@@ -452,37 +464,24 @@ def collide(player,objects,dx):
 
     
     return collided_object
-
-def collide_arrow(player,arrows,objects):
-    
-    collided_object = None
-
-    for arrow in arrows:
-        if pygame.sprite.collide_mask(player,arrow):
-            arrows.remove(arrow)
-        for obj in objects:
-            if pygame.sprite.collide_mask(arrow,obj):
-                arrows.remove(arrow)
-    player.update()
     
     
 def handle_move(player,objects):
     keys = pygame.key.get_pressed()
-
-    player.x_vel = 0
-
-    collide_left = collide(player,objects,-PLAYER_VEL * 2)
-    collide_right = collide(player,objects,PLAYER_VEL * 2)
-    if keys[pygame.K_p]:
-        player.melee_attack()
-    if keys[pygame.K_a] and not collide_left:
-        player.move_left(PLAYER_VEL)
-    if keys[pygame.K_d] and not collide_right:
-        player.move_right(PLAYER_VEL)
+    if player.lives.lives > 0:
+        player.x_vel = 0
+        #por timer
+        collide_left = collide(player,objects,-PLAYER_VEL * 2)
+        collide_right = collide(player,objects,PLAYER_VEL * 2)
+        if keys[pygame.K_p]:
+            player.melee_attack()
+        if keys[pygame.K_a] and not collide_left:
+            player.move_left(PLAYER_VEL)
+        if keys[pygame.K_d] and not collide_right:
+            player.move_right(PLAYER_VEL)
 
     vertical_collide = handle_vertical_colission(player,objects,player.y_vel)
-    to_check = [*vertical_collide]
-        
+    #to_check = [*vertical_collide]
 def draw_bar(lives, coins, heart_image, coin_image):
     for i in range(lives):
         SCREEN.blit(heart_image, (50 + i * 35, 45))
@@ -615,6 +614,7 @@ def play(window):
 
     while run:
         clock.tick(FPS)
+        #timer
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
@@ -625,13 +625,12 @@ def play(window):
                     player.jump()  
 
         player.loop(FPS)
+        #timer
         enemie.loop(player,offset_x)
         handle_move(player,objects)
         draw(window,background,bg_image,heart_image, coin_image, player,objects,coins,enemie,offset_x)
         
         enemie.arrows = [arrow for arrow in enemie.arrows if not arrow.is_offscreen(offset_x)]
-
-        collide_arrow(player,enemie.arrows,objects)
 
         if pygame.sprite.spritecollideany(player, coins): 
             for _ in pygame.sprite.spritecollide(player, coins, True):
