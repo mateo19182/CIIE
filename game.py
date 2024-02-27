@@ -1,5 +1,6 @@
 import random
 import time
+import math
 import pygame, sys, pickle
 from os import listdir
 from os.path import isfile, join
@@ -104,7 +105,7 @@ class Player(pygame.sprite.Sprite):
     #SPRITES = load_sprite_sheets("MainCharacters","MaskDude",32,32,True)
     SPRITES = load_sprite_sheets("main", "",32,32,True)
 
-    ANIMATION_DELAY = 5
+    ANIMATION_DELAY = 8
     MELEE_COOLDOWN = 1.0
     MELEE_DURATION = 0.5
 
@@ -124,7 +125,6 @@ class Player(pygame.sprite.Sprite):
         self.last_melee_time = 0
         self.melee_active = False
         self.melee_start_time = 0
-
 
     def jump(self):
         self.y_vel = -self.GRAVITY * 8
@@ -180,7 +180,6 @@ class Player(pygame.sprite.Sprite):
         
     def collect_coin(self):
         self.coins += 1  # Increment the coin counter
-
 
     def melee_attack(self):
         current_time = time.time()
@@ -241,6 +240,7 @@ class Player(pygame.sprite.Sprite):
             melee_hitbox = self.get_melee_hitbox()
             pygame.draw.rect(window, (0, 255, 0), melee_hitbox, 2)
         window.blit(self.sprite,(self.rect.x - offset_x,self.rect.y))
+        
 class Object(pygame.sprite.Sprite):
     def __init__(self,x,y,width,height,name=None):
         super().__init__()
@@ -317,6 +317,8 @@ class RangedEnemies(pygame.sprite.Sprite):
     SPRITES = load_sprite_sheets("Enemies","HalflingRanger",16,16,False)
     ANIMATION_DELAY = 4
     ARROW_FRAME = 25
+    SHOOT_DISTANCE = 300
+    SHOOT_HEIGHT_THRESHOLD = 20
 
     def __init__(self,x,y,width,height):
         self.x = x
@@ -330,17 +332,27 @@ class RangedEnemies(pygame.sprite.Sprite):
         self.sprite = None
         self.arrows = []
         self.orientation = "left"
+        self.shoot = False
 
     def loop(self,player,offset_x):
         self.frame_count += 1
 
-        if self.frame_count == self.ARROW_FRAME:
-            self.shoot_arrow(offset_x)
+        if self.should_shoot(player):
+            self.shoot = True
+            if self.frame_count == self.ARROW_FRAME:
+                self.shoot_arrow(offset_x)
 
         for arrow in self.arrows:
             arrow.update()
 
         self.update_sprite(player)
+        
+    def should_shoot(self, player):
+        dx = player.rect.x - self.rect.x
+        dy = player.rect.y - self.rect.y
+        distance = math.sqrt(dx ** 2 + dy ** 2)
+
+        return distance < self.SHOOT_DISTANCE and abs(dy) <= self.SHOOT_HEIGHT_THRESHOLD
 
     def shoot_arrow(self,offset_x):
         enemy_rect = self.rect.move(-offset_x,0)
@@ -348,7 +360,16 @@ class RangedEnemies(pygame.sprite.Sprite):
         self.arrows.append(arrow)
 
     def update_sprite(self,player):
-        sprites = self.SPRITES["HalflingRangerIdleSide_3"]
+        
+        if self.shoot:
+            sprite_sheet = "shoot"
+            self.shoot = False
+            self.ANIMATION_DELAY = 4
+        else: 
+            sprite_sheet = "idle"
+            self.ANIMATION_DELAY = 9
+        
+        sprites = self.SPRITES[sprite_sheet]
         sprite_index = (self.animation_count // self.ANIMATION_DELAY) % len(sprites)
         self.sprite = sprites[sprite_index]
         self.sprite = pygame.transform.scale(self.sprite,(16 * 5, 16 * 5))
@@ -380,6 +401,8 @@ class RangedEnemies(pygame.sprite.Sprite):
 class MeleeEnemie(pygame.sprite.Sprite):
     SPRITES = load_sprite_sheets("Enemies","HalflingRogue",16,16,False)
     ANIMATION_DELAY = 20
+    ENEMY_VELOCITY = 2
+    GRAVITY = 1
     
     def __init__(self,x,y,width,height):
         self.x = x
@@ -392,9 +415,33 @@ class MeleeEnemie(pygame.sprite.Sprite):
         self.mask = None
         self.sprite = None
         self.orientation = "left"
+        self.x_vel = 0
+        self.y_vel = 0
+        self.fall = False
+        self.fall_count = 0
         
-    def loop(self,player,offset_x):
+    def loop(self,player,fps):
         self.frame_count += 1
+        
+        dx = player.rect.x - self.rect.x
+        dy = player.rect.y - self.rect.y
+        distance = math.sqrt(dx**2 + dy**2)
+        
+        max_velocity = 4
+    
+        if distance < 300:
+            ratio = min(1, distance / 300)
+            self.x_vel = ratio * max_velocity * (dx / distance)
+        else:
+            self.x_vel = 0
+    
+        self.rect.x += self.x_vel
+        self.fall_count += 1
+         
+        if self.fall:
+           self.y_vel += min(1,(self.fall_count / fps) * self.GRAVITY)
+           self.rect.y = self.y_vel
+            
         self.update_sprite(player)
         
     def update_sprite(self,player):
@@ -407,7 +454,7 @@ class MeleeEnemie(pygame.sprite.Sprite):
         if(sprite_index == 0):
             self.frame_count = 0
 
-        dx = player.rect.x - self.x
+        dx = player.rect.x - self.rect.x
 
         if dx < 0:
             self.orientation = "left"
@@ -418,8 +465,14 @@ class MeleeEnemie(pygame.sprite.Sprite):
 
         self.update()
         
-        
+    def move_left(self, vel):
+        self.x_vel = -vel
+
+    def move_right(self, vel):
+        self.x_vel = vel
+             
     def update(self):
+        self.rect.x += self.x_vel
         self.rect = self.sprite.get_rect(topleft = (self.rect.x,self.rect.y))
         self.mask = pygame.mask.from_surface(self.sprite)
         
@@ -528,12 +581,23 @@ def collide_arrow(player,arrows,objects):
                 arrows.remove(arrow)
     player.update()
     
-def collide_enemie(player,enemie,object):
+def collide_enemie(player,enemie,objects):
+    cnt = 0
     
     if(pygame.sprite.collide_mask(player,enemie)):
         if enemie.frame_count == 4:
             player.lives.lives -= 1
-        
+            
+    for obj in objects:
+        if(pygame.sprite.collide_mask(enemie,obj)):
+            cnt +=1
+            
+    if cnt == 0:
+        fall = True
+    else:
+        fall = False  
+            
+    enemie.fall = fall
     player.update()
     
 def handle_move(player,arrows,enemie,objects):
@@ -544,7 +608,7 @@ def handle_move(player,arrows,enemie,objects):
         collide_left = collide(player,objects,-PLAYER_VEL * 2)
         collide_right = collide(player,objects,PLAYER_VEL * 2)
         collide_arrow(player,arrows,objects)
-        collide_enemie(player,enemie,object)
+        collide_enemie(player,enemie,objects)
         
         if keys[pygame.K_p]:
             player.melee_attack()
@@ -555,7 +619,6 @@ def handle_move(player,arrows,enemie,objects):
 
     vertical_collide = handle_vertical_colission(player,objects,player.y_vel)
     #to_check = [*vertical_collide]
-    
 def draw_bar(lives, coins, heart_image, coin_image):
     for i in range(lives):
         SCREEN.blit(heart_image, (50 + i * 35, 45))
@@ -635,8 +698,6 @@ def options(window):
         pygame.display.update()
 
 
-
-
 def play(window):
     clock = pygame.time.Clock()
     #background,bg_image = get_background("Blue.png")
@@ -700,7 +761,7 @@ def play(window):
         player.loop(FPS)
         #timer
         enemie.loop(player,offset_x)
-        meleeEnemie.loop(player,offset_x)
+        meleeEnemie.loop(player,FPS)
         handle_move(player,enemie.arrows,meleeEnemie,objects)
         draw(window,background,bg_image,heart_image, coin_image, player,objects,coins,enemie,meleeEnemie,offset_x)
         
