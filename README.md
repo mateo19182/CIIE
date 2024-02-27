@@ -11,7 +11,7 @@
 | Ataque espada |  |  |  |
 | Checkpoints |  |  |  |
 | Cambio de fase |  |  |  |
-| Mercader |  |  |  |
+|  | Mercader |  |  |
 |  | Decoracion |  |  |
 |  |  | Monedas y Coleccionables |  |
 |  |  | Vidas |  |
