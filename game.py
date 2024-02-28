@@ -331,7 +331,7 @@ class MeleeEnemie(pygame.sprite.Sprite):
     SPRITES = resource_manager.load_sprite_sheets("Enemies","HalflingRogue",16,16,False)
     ANIMATION_DELAY = 20
     ENEMY_VELOCITY = 2
-    GRAVITY = 1
+    GRAVITY = 5
     
     def __init__(self,x,y,width,height):
         self.x = x
@@ -345,9 +345,7 @@ class MeleeEnemie(pygame.sprite.Sprite):
         self.sprite = None
         self.orientation = "left"
         self.x_vel = 0
-        self.y_vel = 0
         self.fall = False
-        self.fall_count = 0
         
     def loop(self,player,fps):
         self.frame_count += 1
@@ -365,11 +363,6 @@ class MeleeEnemie(pygame.sprite.Sprite):
             self.x_vel = 0
     
         self.rect.x += self.x_vel
-        self.fall_count += 1
-
-        if self.fall:
-            self.y_vel += min(1,(self.fall_count / fps) * self.GRAVITY)
-            self.rect.y = self.y_vel
             
         self.update_sprite(player)
         
@@ -590,14 +583,14 @@ def collide_enemie(player,enemie,objects):
             
     for obj in objects:
         if(pygame.sprite.collide_mask(enemie,obj)):
-            cnt +=1
+            enemie.fall = False
+            return
             
-    if cnt == 0:
-        fall = True
-    else:
-        fall = False  
-            
-    enemie.fall = fall
+    enemie.fall = True
+
+    enemie.y += enemie.GRAVITY
+    enemie.rect.y = enemie.y
+
     player.update()
     
 def handle_move(player,arrows,enemie,objects):
