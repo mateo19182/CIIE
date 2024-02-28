@@ -2,9 +2,13 @@ import random
 import time
 import math
 import pygame, sys, pickle
+
+import resource_manager
+
 from os import listdir
 from os.path import isfile, join
 from button import Button
+
 
 pygame.init()
 
@@ -20,8 +24,6 @@ LEVEL = 1
 BAR_WIDTH = 300
 BAR_HEIGHT = 20
 
-def get_font(size): # Returns Press-Start-2P in the desired size
-    return pygame.font.Font("assets/font.ttf", size)
 
 window = pygame.display.set_mode((WIDTH,HEIGHT))
 
@@ -166,7 +168,7 @@ class Player(pygame.sprite.Sprite):
 
     def get_hit(self):
         current_time = time.time()
-        if current_time - self._last_called < 3:
+        if current_time - self._last_called < 1:
             return
         self._last_called = current_time
         self.hit=True
@@ -176,10 +178,9 @@ class Player(pygame.sprite.Sprite):
 
     def hit_head(self):
         self.y_vel = 0
-        self.get_hit()
         
     def collect_coin(self):
-        self.coins += 1  # Increment the coin counter
+        self.coins += 1 
 
     def melee_attack(self):
         current_time = time.time()
@@ -199,7 +200,10 @@ class Player(pygame.sprite.Sprite):
         return melee_hitbox
     def die(self):
         self.update_sprite()
-        self.animation_count = 0
+        self.x_vel = 0
+        self.y_vel = 0
+        self.jump_count = 3
+
         #pantalla de game over
     def update_sprite(self):
         sprite_sheet = "idle"
@@ -470,7 +474,7 @@ class MeleeEnemie(pygame.sprite.Sprite):
 
     def move_right(self, vel):
         self.x_vel = vel
-             
+
     def update(self):
         self.rect.x += self.x_vel
         self.rect = self.sprite.get_rect(topleft = (self.rect.x,self.rect.y))
@@ -502,17 +506,7 @@ class Arrow(pygame.sprite.Sprite):
     def draw(self, screen,offset_x):
         screen.blit(self.image, (self.rect.x - offset_x, self.rect.y))
     
-def get_background(name):
-    image = pygame.image.load(join("assets","Background",name))
-    _,_,width,height = image.get_rect()
-    tiles = []
 
-    for i in range(WIDTH // width+1):
-        for j in range(HEIGHT // height+1):
-            pos = (i*width,j*height)
-            tiles.append(pos)
-
-    return tiles,image
 
 def draw(window,background,bg_image,heart_image, coin_image, player,objects,coins,enemie,meleeEnemie,offset_x):
     for tile in background:
@@ -570,11 +564,10 @@ def collide(player,objects,dx):
     return collided_object
 
 def collide_arrow(player,arrows,objects):
-    
     for arrow in arrows:
         if pygame.sprite.collide_mask(player,arrow):
             arrows.remove(arrow)
-            player.lives.lives -= 1
+            player.get_hit()
             
         for obj in objects:
             if pygame.sprite.collide_mask(arrow,obj):
@@ -585,8 +578,7 @@ def collide_enemie(player,enemie,objects):
     cnt = 0
     
     if(pygame.sprite.collide_mask(player,enemie)):
-        if enemie.frame_count == 4:
-            player.lives.lives -= 1
+        player.get_hit()
             
     for obj in objects:
         if(pygame.sprite.collide_mask(enemie,obj)):
@@ -601,34 +593,35 @@ def collide_enemie(player,enemie,objects):
     player.update()
     
 def handle_move(player,arrows,enemie,objects):
-    keys = pygame.key.get_pressed()
-    if player.lives.lives > 0:
-        player.x_vel = 0
-        #por timer
-        collide_left = collide(player,objects,-PLAYER_VEL * 2)
-        collide_right = collide(player,objects,PLAYER_VEL * 2)
-        collide_arrow(player,arrows,objects)
-        collide_enemie(player,enemie,objects)
-        
-        if keys[pygame.K_p]:
-            player.melee_attack()
-        if keys[pygame.K_a] and not collide_left:
-            player.move_left(PLAYER_VEL)
-        if keys[pygame.K_d] and not collide_right:
-            player.move_right(PLAYER_VEL)
-
     vertical_collide = handle_vertical_colission(player,objects,player.y_vel)
+    if player.lives.lives <= 0:
+        player.die()
+        return 
+    keys = pygame.key.get_pressed()
+    player.x_vel = 0
+    #por timer
+    collide_left = collide(player,objects,-PLAYER_VEL * 2)
+    collide_right = collide(player,objects,PLAYER_VEL * 2)
+    collide_arrow(player,arrows,objects)
+    collide_enemie(player,enemie,objects)
+        
+    if keys[pygame.K_p]:
+        player.melee_attack()
+    if keys[pygame.K_a] and not collide_left:
+        player.move_left(PLAYER_VEL)
+    if keys[pygame.K_d] and not collide_right:
+        player.move_right(PLAYER_VEL)
+
     #to_check = [*vertical_collide]
 def draw_bar(lives, coins, heart_image, coin_image):
     for i in range(lives):
         SCREEN.blit(heart_image, (50 + i * 35, 45))
     SCREEN.blit(coin_image, (50, 90)) 
 
-    coins_text = get_font(20).render(str(coins), True, (0, 0, 0))
+    coins_text = resource_manager.get_font(20).render(str(coins), True, (0, 0, 0))
     SCREEN.blit(coins_text, (86, 93)) 
 
 def options(window):
-
     try:
         with open('volumen.pkl', 'rb') as f:
             volume = pickle.load(f)
@@ -641,7 +634,7 @@ def options(window):
 
         SCREEN.fill("white")
 
-        VOLUME_TEXT = get_font(75).render("VOLUME", True, "#b68f40")
+        VOLUME_TEXT = resource_manager.get_font(75).render("VOLUME", True, "#b68f40")
         VOLUME_RECT = VOLUME_TEXT.get_rect(center=(400, 300))
         SCREEN.blit(VOLUME_TEXT, VOLUME_RECT)
 
@@ -660,7 +653,7 @@ def options(window):
         window.blit(scroll_bar, scroll_bar_rect.topleft)
 
         OPTIONS_BACK = Button(image=None, pos=(515, 550), 
-                            text_input="BACK", font=get_font(75), base_color="Black", hovering_color="Green")
+                            text_input="BACK", font=resource_manager.get_font(75), base_color="Black", hovering_color="Green")
 
         OPTIONS_BACK.changeColor(OPTIONS_MOUSE_POS)
         OPTIONS_BACK.update(SCREEN)
@@ -700,8 +693,7 @@ def options(window):
 
 def play(window):
     clock = pygame.time.Clock()
-    #background,bg_image = get_background("Blue.png")
-    background,bg_image = get_background("Night.png")
+    background,bg_image = resource_manager.get_background("Night.png")
     heart_image, coin_image = pygame.image.load("assets/Collectibles/heart.png"), pygame.image.load("assets/Collectibles/coin_0.png")
 
     lives = Lives()
@@ -769,7 +761,7 @@ def play(window):
 
         if pygame.sprite.spritecollideany(player, coins): 
             for _ in pygame.sprite.spritecollide(player, coins, True):
-                player.collect_coin()  # Increment the player's coin counter 
+                player.collect_coin() 
 
         if((player.rect.right - offset_x >= WIDTH - scroll_area_width) and player.x_vel > 0) or (
             (player.rect.left - offset_x <= scroll_area_width) and player.x_vel < 0):
@@ -786,15 +778,15 @@ def main_menu(window):
 
         MENU_MOUSE_POS = pygame.mouse.get_pos()
 
-        MENU_TEXT = get_font(75).render("DRAGON KILL?", True, "#b68f40")
+        MENU_TEXT = resource_manager.get_font(75).render("DRAGON KILL?", True, "#b68f40")
         MENU_RECT = MENU_TEXT.get_rect(center=(515, 120))
 
         PLAY_BUTTON = Button(image=pygame.image.load("assets/Play Rect.png"), pos=(515, 300), 
-                            text_input="PLAY", font=get_font(75), base_color="#d7fcd4", hovering_color="White")
+                            text_input="PLAY", font=resource_manager.get_font(75), base_color="#d7fcd4", hovering_color="White")
         OPTIONS_BUTTON = Button(image=pygame.image.load("assets/Options Rect.png"), pos=(515, 475), 
-                            text_input="OPTIONS", font=get_font(75), base_color="#d7fcd4", hovering_color="White")
+                            text_input="OPTIONS", font=resource_manager.get_font(75), base_color="#d7fcd4", hovering_color="White")
         QUIT_BUTTON = Button(image=pygame.image.load("assets/Quit Rect.png"), pos=(515, 650), 
-                            text_input="QUIT", font=get_font(75), base_color="#d7fcd4", hovering_color="White")
+                            text_input="QUIT", font=resource_manager.get_font(75), base_color="#d7fcd4", hovering_color="White")
 
         SCREEN.blit(MENU_TEXT, MENU_RECT)
 
