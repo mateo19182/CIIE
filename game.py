@@ -27,85 +27,10 @@ BAR_HEIGHT = 20
 
 window = pygame.display.set_mode((WIDTH,HEIGHT))
 
-def flip(sprites):
-    return[pygame.transform.flip(sprite,True,False) for sprite in sprites]
-
-def load_sprite_sheets(dir1,dir2,width,height,direction = False):
-    path = join("assets",dir1,dir2)
-    images = [f for f in listdir(path) if isfile(join(path,f))]
-
-    all_sprites = {}
-
-    for image in images:
-        sprite_sheet = pygame.image.load(join(path,image)).convert_alpha()
-
-        sprites = []
-
-        for i in range(sprite_sheet.get_width() // width):
-            surface = pygame.Surface((width,height),pygame.SRCALPHA,32)
-            rect = pygame.Rect(i * width,0,width,height)
-            surface.blit(sprite_sheet,(0,0),rect)
-            sprites.append(pygame.transform.scale2x(surface))
-
-        if direction:
-            all_sprites[image.replace(".png","" + "_right")] = sprites
-            all_sprites[image.replace(".png","" + "_left")] = flip(sprites)
-        else:
-            all_sprites[image.replace(".png","")] = sprites
-        
-    return all_sprites
-
-def load_new_sprite_sheets(dir1,width,height,direction = False):
-    path = join("assets",dir1)
-    images = [f for f in listdir(path) if isfile(join(path,f))]
-
-    all_sprites = {}
-
-    for image in images:
-        sprite_sheet = pygame.image.load(join(path,image)).convert_alpha()
-
-        sprites = []
-
-        for i in range(sprite_sheet.get_width() // width):
-            surface = pygame.Surface((width,height),pygame.SRCALPHA,32)
-            rect = pygame.Rect(i * width,0,width,height)
-            surface.blit(sprite_sheet,(0,0),rect)
-            sprites.append((surface))
-
-        if direction:
-            all_sprites[image.replace(".png","" + "_right")] = sprites
-            all_sprites[image.replace(".png","" + "_left")] = flip(sprites)
-        else:
-            all_sprites[image.replace(".png","")] = sprites
-        
-    return all_sprites
-
-def get_block(size):
-    #path = join("assets","Terrain","Terrain.png")
-    path = join("assets","LV1_Build.png")
-    image = pygame.image.load(path).convert_alpha()
-    surface = pygame.Surface((size,size),pygame.SRCALPHA,32)
-    rect = pygame.Rect(96,205,size,size)
-    surface.blit(image,(0,0),rect)
-
-    return pygame.transform.scale2x(surface)
-
-def get_platform(size):
-    #path = join("assets","Terrain","Terrain.png")
-    path = join("assets","LV1_Build.png")
-    image = pygame.image.load(path).convert_alpha()
-    surface = pygame.Surface((size,size),pygame.SRCALPHA,32)
-    rect = pygame.Rect(96,125,size,20)
-    surface.blit(image,(0,0),rect)
-
-    return pygame.transform.scale2x(surface)
-
-
 class Player(pygame.sprite.Sprite):
     COLOR = (255,0,0)
     GRAVITY = 1
-    #SPRITES = load_sprite_sheets("MainCharacters","MaskDude",32,32,True)
-    SPRITES = load_sprite_sheets("main", "",32,32,True)
+    SPRITES = resource_manager.load_sprite_sheets("main", "",32,32,True)
 
     ANIMATION_DELAY = 8
     MELEE_COOLDOWN = 1.0
@@ -193,7 +118,7 @@ class Player(pygame.sprite.Sprite):
         if self.melee_active and (time.time() - self.melee_start_time > self.MELEE_DURATION):
             self.melee_active = False
     def get_melee_hitbox(self):
-        melee_hitbox_size = (32, 32)
+        melee_hitbox_size = (64, 64)
         offset_x = self.rect.width if self.direction == "right" else -melee_hitbox_size[0]
         melee_hitbox = pygame.Rect(self.rect.x + offset_x, self.rect.y, *melee_hitbox_size)
         #melee_hitbox.x -= self.x_vel
@@ -305,20 +230,20 @@ class Coin(pygame.sprite.Sprite):
 class Block(Object):
     def __init__(self, x, y, size):
         super().__init__(x, y, size, size)
-        block = get_block(size)
+        block = resource_manager.get_block(size)
         self.image.blit(block, (0, 0))
         self.mask = pygame.mask.from_surface(self.image)
         
 class Platform(Object):
     def __init__(self,x,y,size):
         super().__init__(x,y,size,size)
-        block = get_platform(size)
+        block = resource_manager.get_platform(size)
         self.image.blit(block,(0,0))
         self.mask = pygame.mask.from_surface(self.image)
 
 
 class RangedEnemies(pygame.sprite.Sprite):
-    SPRITES = load_sprite_sheets("Enemies","HalflingRanger",16,16,False)
+    SPRITES = resource_manager.load_sprite_sheets("Enemies","HalflingRanger",16,16,False)
     ANIMATION_DELAY = 4
     ARROW_FRAME = 25
     SHOOT_DISTANCE = 300
@@ -403,7 +328,7 @@ class RangedEnemies(pygame.sprite.Sprite):
         window.blit(self.sprite,(self.rect.x - offset_x,self.rect.y))
         
 class MeleeEnemie(pygame.sprite.Sprite):
-    SPRITES = load_sprite_sheets("Enemies","HalflingRogue",16,16,False)
+    SPRITES = resource_manager.load_sprite_sheets("Enemies","HalflingRogue",16,16,False)
     ANIMATION_DELAY = 20
     ENEMY_VELOCITY = 2
     GRAVITY = 1
@@ -441,10 +366,10 @@ class MeleeEnemie(pygame.sprite.Sprite):
     
         self.rect.x += self.x_vel
         self.fall_count += 1
-         
+
         if self.fall:
-           self.y_vel += min(1,(self.fall_count / fps) * self.GRAVITY)
-           self.rect.y = self.y_vel
+            self.y_vel += min(1,(self.fall_count / fps) * self.GRAVITY)
+            self.rect.y = self.y_vel
             
         self.update_sprite(player)
         
@@ -485,7 +410,7 @@ class MeleeEnemie(pygame.sprite.Sprite):
     
 
 class Mercader(pygame.sprite.Sprite):
-    SPRITES = load_sprite_sheets("Mercader","Mercader",16,16,False)
+    SPRITES = resource_manager.load_sprite_sheets("Mercader","Mercader",16,16,False)
     ANIMATION_DELAY = 10
 
     def __init__(self,x,y,width,height):
@@ -791,8 +716,7 @@ def options(window):
 
 def play(window):
     clock = pygame.time.Clock()
-    background,bg_image = resource_manager.get_background("Night.png")
-    heart_image, coin_image = pygame.image.load("assets/Collectibles/heart.png"), pygame.image.load("assets/Collectibles/coin_0.png")
+    background,bg_image, heart_image, coin_image = resource_manager.get_background("Night.png")
 
     lives = Lives()
 
