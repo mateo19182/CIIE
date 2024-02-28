@@ -366,10 +366,10 @@ class MeleeEnemie(pygame.sprite.Sprite):
         dy = player.rect.y - self.rect.y
         distance = math.sqrt(dx**2 + dy**2)
         
-        max_velocity = 4
+        max_velocity = 2
     
         if distance < 300:
-            ratio = min(1, distance / 300)
+            ratio = min(1, distance / 150)
             self.x_vel = ratio * max_velocity * (dx / distance)
         else:
             self.x_vel = 0
