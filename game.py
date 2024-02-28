@@ -8,6 +8,7 @@ import resource_manager
 from os import listdir
 from os.path import isfile, join
 from button import Button
+from pygame import mixer
 
 
 pygame.init()
@@ -62,6 +63,9 @@ class Player(pygame.sprite.Sprite):
         if self.jump_count == 1:
             self.fall_count = 0
 
+        jump_sound = mixer.Sound(resource_manager.get_sound("jump"))
+        jump_sound.play()    
+
     def move(self,dx,dy):
         self.rect.x += dx
         self.rect.y += dy
@@ -100,12 +104,16 @@ class Player(pygame.sprite.Sprite):
         self.update_sprite()
         self.lives.lives -= 1
         self.animation_count = 0
+        hit_sound = mixer.Sound(resource_manager.get_sound("hit"))
+        hit_sound.play()
 
     def hit_head(self):
         self.y_vel = 0
         
     def collect_coin(self):
         self.coins += 1 
+        coin_sound = mixer.Sound(resource_manager.get_sound("coin"))
+        coin_sound.play()
 
     def melee_attack(self):
         current_time = time.time()
@@ -128,6 +136,8 @@ class Player(pygame.sprite.Sprite):
         self.x_vel = 0
         self.y_vel = 0
         self.jump_count = 3
+        death_sound = mixer.Sound(resource_manager.get_sound("death"))
+        death_sound.play()
 
         #pantalla de game over
     def update_sprite(self):
@@ -287,6 +297,8 @@ class RangedEnemies(pygame.sprite.Sprite):
         enemy_rect = self.rect.move(-offset_x,0)
         arrow = Arrow(self.rect,self.orientation)
         self.arrows.append(arrow)
+        arrow_sound = mixer.Sound(resource_manager.get_sound("arrow"))
+        arrow_sound.play()
 
     def update_sprite(self,player):
         
@@ -627,11 +639,15 @@ def negociation1(player):
     if player.coins >= 10 and player.lives.lives < 3 :
         player.coins -= 10
         player.lives.lives += 1
+        deal_sound = mixer.Sound(resource_manager.get_sound("done_deal"))
+        deal_sound.play()
 
 def negociation2(player):
     if player.coins >= 15 and player.lives.lives < 2 :
         player.coins -= 15
         player.lives.lives += 2
+        deal_sound = mixer.Sound(resource_manager.get_sound("done_deal"))
+        deal_sound.play()
 
 def negociation3(player):
     text = "En proceso"    
@@ -697,6 +713,8 @@ def options(window):
                         pickle.dump(volume, f)
                     last_mouse_y = event.pos[1]
 
+                    mixer.music.set_volume(volume)
+
                     # Update the thumb position
                     thumb_height = int(volume * scroll_bar_height)
                     thumb = pygame.Surface((scroll_bar_width, thumb_height))
@@ -708,6 +726,10 @@ def options(window):
 
 
 def play(window):
+
+    mixer.music.load(resource_manager.get_sound("forest"))
+    mixer.music.play(-1)
+
     clock = pygame.time.Clock()
     background,bg_image, heart_image, coin_image = resource_manager.get_background("Night.png")
 
@@ -777,6 +799,8 @@ def play(window):
                     player.jump()  
                 if event.key == pygame.K_n and mercader.close:
                     mercader.negociating = True 
+                    negociate_sound = mixer.Sound(resource_manager.get_sound("negociate"))
+                    negociate_sound.play()
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if option1_mercader.checkForInput(MENU_MOUSE_POS):
@@ -810,6 +834,17 @@ def play(window):
 
 
 def main_menu(window):
+
+    if not pygame.mixer.music.get_busy():
+        try:
+            with open('volumen.pkl', 'rb') as f:
+                volume = pickle.load(f)
+        except FileNotFoundError:
+            volume =  0.5
+        mixer.music.set_volume(volume)
+        mixer.music.load(resource_manager.get_sound("menu"))
+        mixer.music.play(-1)
+        
     while True:
         #SCREEN.blit(BG, (0, 0))
         SCREEN.fill("black")

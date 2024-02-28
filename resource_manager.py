@@ -70,3 +70,7 @@ def get_platform(size):
     surface.blit(image,(0,0),rect)
 
     return pygame.transform.scale2x(surface)
+
+
+def get_sound(path):
+    return join("assets", "Sounds", path + ".mp3")
