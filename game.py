@@ -484,6 +484,88 @@ class MeleeEnemie(pygame.sprite.Sprite):
         window.blit(self.sprite,(self.rect.x - offset_x,self.rect.y))
     
 
+class Mercader(pygame.sprite.Sprite):
+    SPRITES = load_sprite_sheets("Mercader","Mercader",16,16,False)
+    ANIMATION_DELAY = 10
+
+    def __init__(self,x,y,width,height):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.animation_count = 0
+        self.frame_count = 0
+        self.rect = pygame.Rect(x,y,width,height)
+        self.mask = None
+        self.sprite = None
+        self.orientation = "left"
+        self.close = False
+        self.negociating = False
+
+    def loop(self,player,offset_x):
+        self.frame_count += 1
+
+        self.update_sprite(player)
+
+
+    def update_sprite(self,player):
+        sprites = self.SPRITES["OverworkedVillagerIdleSide"]
+        sprite_index = (self.animation_count // self.ANIMATION_DELAY) % len(sprites)
+        self.sprite = sprites[sprite_index]
+        self.sprite = pygame.transform.scale(self.sprite,(16 * 5, 16 * 5))
+        self.animation_count += 1
+
+        if(sprite_index == 0):
+            self.frame_count = 0
+
+        dx = player.rect.x - self.x
+
+        if dx < 0:
+            self.orientation = "left"
+            self.sprite = pygame.transform.flip(self.sprite,True,False)
+        elif dx > 0:
+            self.orientation = "right"
+            self.sprite = pygame.transform.flip(self.sprite,False,False)
+
+        if dx > -100:
+            if dx < 100:
+                self.close = True
+            else:
+                self.close = False
+                self.negociating = False
+        else:
+            self.close = False
+            self.negociating = False
+
+        self.update()
+
+    def update(self):
+        self.rect = self.sprite.get_rect(topleft = (self.rect.x,self.rect.y))
+        self.mask = pygame.mask.from_surface(self.sprite)
+
+    def show_dialog(self,window,offset_x):
+        dialog_surface = pygame.Surface((320, 20))
+        dialog_surface.set_alpha(128)
+        window.blit(dialog_surface, (self.rect.x - offset_x-90,self.rect.y-15))
+        text = pygame.font.Font("assets/font.ttf", 15).render("Press N to negociate", True, "#b68f40")
+        window.blit(text, (self.rect.x - offset_x-80,self.rect.y-10))
+
+    def show_dialog_negociating(self,window,offset_x,opt1,opt2,opt3):
+        dialog_surface = pygame.Surface((320, 20))
+        dialog_surface.set_alpha(128)
+        for button in [opt1, opt2, opt3]:
+            button.changeColor(pygame.mouse.get_pos())
+            button.update(window)
+
+    def draw(self,window,offset_x,opt1,opt2,opt3):
+        window.blit(self.sprite,(self.rect.x - offset_x,self.rect.y))
+        if self.close:
+            if self.negociating:
+                self.show_dialog_negociating(window,offset_x,opt1,opt2,opt3)
+            else:
+                self.show_dialog(window,offset_x)
+
+
 class Arrow(pygame.sprite.Sprite):
     def __init__(self, enemy_rect,orientation):
         self.image = pygame.image.load("assets/Items/Arrow/Arrow.png")
@@ -508,7 +590,7 @@ class Arrow(pygame.sprite.Sprite):
     
 
 
-def draw(window,background,bg_image,heart_image, coin_image, player,objects,coins,enemie,meleeEnemie,offset_x):
+def draw(window,background,bg_image,heart_image, coin_image, player,objects,coins,enemie,meleeEnemie,mercader,opt1,opt2,opt3,offset_x):
     for tile in background:
         window.blit(bg_image,tile)
         
@@ -518,6 +600,7 @@ def draw(window,background,bg_image,heart_image, coin_image, player,objects,coin
     player.draw(window,offset_x)
     enemie.draw(window,offset_x)
     meleeEnemie.draw(window,offset_x)
+    mercader.draw(window,offset_x,opt1,opt2,opt3)
 
     draw_bar(player.lives.lives, player.coins, heart_image, coin_image)
     for coin in coins:
@@ -621,6 +704,21 @@ def draw_bar(lives, coins, heart_image, coin_image):
     coins_text = resource_manager.get_font(20).render(str(coins), True, (0, 0, 0))
     SCREEN.blit(coins_text, (86, 93)) 
 
+
+def negociation1(player):
+    if player.coins >= 10 and player.lives.lives < 3 :
+        player.coins -= 10
+        player.lives.lives += 1
+
+def negociation2(player):
+    if player.coins >= 15 and player.lives.lives < 2 :
+        player.coins -= 15
+        player.lives.lives += 2
+
+def negociation3(player):
+    text = "En proceso"    
+
+
 def options(window):
     try:
         with open('volumen.pkl', 'rb') as f:
@@ -701,6 +799,7 @@ def play(window):
     player = Player(400,400,50,50, lives)
     enemie = RangedEnemies(900,500,100,100)
     meleeEnemie = MeleeEnemie(700,625,100,100)
+    mercader = Mercader(2700, 625, 100, 100) 
 
     block_size = 96
     plat_size = 100
@@ -739,6 +838,16 @@ def play(window):
     objects = [*floor,*floor2,*column,*plat1,*plat2,*plat3,*plat4,*plat5,*plat6,*plat7,*plat8,*plat9]
 
     while run:
+
+        MENU_MOUSE_POS = pygame.mouse.get_pos()
+
+        option1_mercader = Button(image=pygame.image.load("assets/OptionsMercader.png"), pos=(mercader.rect.x - offset_x+40,mercader.rect.y-50), 
+                        text_input="10 Coins -> 1 Life", font=pygame.font.Font("assets/font.ttf", 15), base_color="#d7fcd4", hovering_color="White")
+        option2_mercader = Button(image=pygame.image.load("assets/OptionsMercader.png"), pos=(mercader.rect.x - offset_x+40,mercader.rect.y-30), 
+                            text_input="15 Coins -> 2 Lifes", font=pygame.font.Font("assets/font.ttf", 15), base_color="#d7fcd4", hovering_color="White")
+        option3_mercader = Button(image=pygame.image.load("assets/OptionsMercader.png"), pos=(mercader.rect.x - offset_x+40,mercader.rect.y-10), 
+                            text_input="1 Gem -> New aspect", font=pygame.font.Font("assets/font.ttf", 15), base_color="#d7fcd4", hovering_color="White")
+
         clock.tick(FPS)
         #timer
         for event in pygame.event.get():
@@ -749,13 +858,25 @@ def play(window):
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE and player.jump_count < 2:
                     player.jump()  
+                if event.key == pygame.K_n and mercader.close:
+                    mercader.negociating = True 
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if option1_mercader.checkForInput(MENU_MOUSE_POS):
+                    negociation1(player)
+                if option2_mercader.checkForInput(MENU_MOUSE_POS):
+                    negociation2(player)
+                if option3_mercader.checkForInput(MENU_MOUSE_POS):
+                    negociation3(player)  
+
 
         player.loop(FPS)
         #timer
         enemie.loop(player,offset_x)
         meleeEnemie.loop(player,FPS)
+        mercader.loop(player,offset_x)
         handle_move(player,enemie.arrows,meleeEnemie,objects)
-        draw(window,background,bg_image,heart_image, coin_image, player,objects,coins,enemie,meleeEnemie,offset_x)
+        draw(window,background,bg_image,heart_image, coin_image, player,objects,coins,enemie,meleeEnemie,mercader,option1_mercader,option2_mercader,option3_mercader,offset_x)
         
         enemie.arrows = [arrow for arrow in enemie.arrows if not arrow.is_offscreen(offset_x)]
 
