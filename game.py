@@ -253,13 +253,12 @@ class Platform(Object):
 
 
 class RangedEnemies(pygame.sprite.Sprite):
-    SPRITES = resource_manager.load_sprite_sheets("Enemies","HalflingRanger",16,16,False)
     ANIMATION_DELAY = 4
     ARROW_FRAME = 25
     SHOOT_DISTANCE = 300
     SHOOT_HEIGHT_THRESHOLD = 20
 
-    def __init__(self,x,y,width,height):
+    def __init__(self,x,y,width,height,sprite_sheet_name):
         self.x = x
         self.y = y
         self.width = width
@@ -272,19 +271,20 @@ class RangedEnemies(pygame.sprite.Sprite):
         self.arrows = []
         self.orientation = "left"
         self.shoot = False
+        self.sprite_sheet_name = sprite_sheet_name
 
     def loop(self,player,offset_x):
-        self.frame_count += 1
+            self.frame_count += 1
 
-        if self.should_shoot(player):
-            self.shoot = True
-            if self.frame_count == self.ARROW_FRAME:
-                self.shoot_arrow(offset_x)
+            if self.should_shoot(player):
+                self.shoot = True
+                if self.frame_count == self.ARROW_FRAME:
+                    self.shoot_arrow(offset_x)
 
-        for arrow in self.arrows:
-            arrow.update()
+            for arrow in self.arrows:
+                arrow.update()
 
-        self.update_sprite(player)
+            self.update_sprite(player)
         
     def should_shoot(self, player):
         dx = player.rect.x - self.rect.x
@@ -295,7 +295,10 @@ class RangedEnemies(pygame.sprite.Sprite):
 
     def shoot_arrow(self,offset_x):
         enemy_rect = self.rect.move(-offset_x,0)
-        arrow = Arrow(self.rect,self.orientation)
+        if self.sprite_sheet_name == "GnomeTinkerer":
+            arrow = Wrench(self.rect,self.orientation)
+        else:
+            arrow = Arrow(self.rect,self.orientation)
         self.arrows.append(arrow)
         arrow_sound = mixer.Sound(resource_manager.get_sound("arrow"))
         arrow_sound.play()
@@ -305,12 +308,13 @@ class RangedEnemies(pygame.sprite.Sprite):
         if self.shoot:
             sprite_sheet = "shoot"
             self.shoot = False
-            self.ANIMATION_DELAY = 4
+            self.ANIMATION_DELAY = 30
         else: 
             sprite_sheet = "idle"
             self.ANIMATION_DELAY = 9
         
-        sprites = self.SPRITES[sprite_sheet]
+        sprites = resource_manager.load_sprite_sheets("Enemies",self.sprite_sheet_name,16,16,False)
+        sprites = sprites[sprite_sheet]
         sprite_index = (self.animation_count // self.ANIMATION_DELAY) % len(sprites)
         self.sprite = sprites[sprite_index]
         self.sprite = pygame.transform.scale(self.sprite,(16 * 5, 16 * 5))
@@ -337,12 +341,12 @@ class RangedEnemies(pygame.sprite.Sprite):
     def draw(self,window,offset_x):
         for arrow in self.arrows:
             arrow.draw(window,offset_x)
+
         window.blit(self.sprite,(self.rect.x - offset_x,self.rect.y))
         
 class MeleeEnemie(pygame.sprite.Sprite):
     SPRITES = resource_manager.load_sprite_sheets("Enemies","HalflingRogue",16,16,False)
     ANIMATION_DELAY = 20
-    ENEMY_VELOCITY = 2
     GRAVITY = 5
     
     def __init__(self,x,y,width,height):
@@ -358,6 +362,7 @@ class MeleeEnemie(pygame.sprite.Sprite):
         self.orientation = "left"
         self.x_vel = 0
         self.fall = False
+        self.is_alive = True
         
     def loop(self,player,fps):
         self.frame_count += 1
@@ -416,7 +421,6 @@ class MeleeEnemie(pygame.sprite.Sprite):
 class Boss(pygame.sprite.Sprite):
     SPRITES = resource_manager.load_sprite_sheets("Enemies","Boss",32,32,False)
     ANIMATION_DELAY = 20
-    ENEMY_VELOCITY = 2
     GRAVITY = 5
     
     def __init__(self,x,y,width,height):
@@ -576,9 +580,35 @@ class Arrow(pygame.sprite.Sprite):
         self.rect.move_ip(self.velocity)
 
     def draw(self, screen,offset_x):
-        screen.blit(self.image, (self.rect.x - offset_x, self.rect.y))
-    
+        screen.blit(self.image, (self.rect.x - offset_x, self.rect.y))      
 
+class Wrench(pygame.sprite.Sprite):
+    def __init__(self, enemy_rect, orientation):
+        super().__init__()
+        self.original_image = pygame.image.load("assets/Items/Wrench/Wrench.png")
+        self.original_image = pygame.transform.scale(self.original_image, (16 * 5, 16 * 5))
+        self.angle = 0 
+        self.image = self.original_image.copy()
+
+        if orientation == "right":
+            self.rect = self.image.get_rect(midleft=(enemy_rect.midright[0] - 70, enemy_rect.centery + 10))
+            self.velocity = (3, 0)
+        else:
+            self.image = pygame.transform.flip(self.image, True, False)
+            self.rect = self.image.get_rect(midleft=(enemy_rect.midright[0] - 90, enemy_rect.centery + 10))
+            self.velocity = (-3, 0)
+            
+    def is_offscreen(self, offset_x):
+        return self.rect.right - offset_x < 0 or self.rect.left - offset_x > WIDTH or self.rect.bottom < 0 or self.rect.top > HEIGHT
+
+    def update(self):
+        self.rect.move_ip(self.velocity)
+        self.angle += 3
+        self.image = pygame.transform.rotate(self.original_image, self.angle)
+        self.rect = self.image.get_rect(center=self.rect.center)
+
+    def draw(self, screen, offset_x):
+        screen.blit(self.image, (self.rect.x - offset_x, self.rect.y))
 
 def draw(window,background,bg_image,heart_image, coin_image, player,objects,coins,enemie,meleeEnemie,firstBoss,mercader,opt1,opt2,opt3,offset_x):
     for tile in background:
@@ -589,7 +619,9 @@ def draw(window,background,bg_image,heart_image, coin_image, player,objects,coin
 
     player.draw(window,offset_x)
     enemie.draw(window,offset_x)
-    meleeEnemie.draw(window,offset_x)
+    
+    if meleeEnemie.is_alive:
+        meleeEnemie.draw(window,offset_x)
     mercader.draw(window,offset_x,opt1,opt2,opt3)
     firstBoss.draw(window,offset_x)
 
@@ -658,7 +690,11 @@ def collide_arrow(player,arrows,objects):
 def collide_enemie(player,enemie,objects):
     
     if(pygame.sprite.collide_mask(player,enemie)):
-        player.get_hit()
+        if player.melee_active == True:
+            enemie.is_alive = False
+        
+        if enemie.is_alive:
+            player.get_hit()
             
     for obj in objects:
         if(pygame.sprite.collide_mask(enemie,obj)):
@@ -684,7 +720,7 @@ def handle_move(player,arrows,enemie,boss,objects):
     collide_right = collide(player,objects,PLAYER_VEL * 2)
     collide_arrow(player,arrows,objects)
     collide_enemie(player,enemie,objects)
-    collide_boss(player,boss,PLAYER_VEL * 2)
+    #collide_boss(player,boss,PLAYER_VEL * 2)
         
     if keys[pygame.K_p]:
         player.melee_attack()
@@ -804,7 +840,7 @@ def play(window):
     lives = Lives()
 
     player = Player(400,400,50,50, lives)
-    enemie = RangedEnemies(900,500,100,100)
+    enemie = RangedEnemies(900,500,100,100,"GnomeTinkerer")
     meleeEnemie = MeleeEnemie(0,625,100,100)
     mercader = Mercader(2700, 625, 100, 100) 
     firstBoss = Boss(500,450,100,100)
