@@ -1,7 +1,7 @@
 | Por hacer | Desarrollo | Pruebas | Finalizado |
 |---|---|---|---|
 |  |  |  | pantalla inicial (jugar y opciones) |
-|  | Opciones (volumen, tamaño...) |  |  |
+|  |  |  | Opciones (volumen, tamaño...) |
 |  | Movimiento personaje |  |  |
 | resource manager
 |  |  | Contadores |  |
@@ -15,7 +15,7 @@
 |  | Decoracion |  |  |
 |  |  | Monedas y Coleccionables |  |
 |  |  | Vidas |  |
-| Musica/efecos de sonido |  |  |  |
+|  |  |  | Musica/efecos de sonido |
 | Menu de pausa (?)|  |  |  |
 | Menu de muerte |  |  |  |
 cambiar a sincronizacion x tiempo perosnaje y enemigos?¿
