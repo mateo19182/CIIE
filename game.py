@@ -69,6 +69,8 @@ class Player(pygame.sprite.Sprite):
     def move(self,dx,dy):
         self.rect.x += dx
         self.rect.y += dy
+        if self.rect.y > HEIGHT + 100 :
+            self.die(self.rect.x, self.rect.y)
 
     def move_left(self,vel):
         self.x_vel = -vel
@@ -84,11 +86,12 @@ class Player(pygame.sprite.Sprite):
             self.direction = "right"
             self.animation_count = 0
             
-    def loop(self,fps):
+    def loop(self,fps, enemies):
         self.y_vel += min(1,(self.fall_count / fps) * self.GRAVITY)
         self.move(self.x_vel,self.y_vel)
         self.fall_count += 1
         self.update_sprite()
+        self.check_attack(enemies)
 
     def landed(self):
         self.fall_count = 0
@@ -135,11 +138,22 @@ class Player(pygame.sprite.Sprite):
         self.update_sprite()
         self.x_vel = 0
         self.y_vel = 0
+        #self.rect.x = posx
+        #self.rect.y = posy
         self.jump_count = 3
         death_sound = mixer.Sound(resource_manager.get_sound("death"))
         death_sound.play()
 
         #pantalla de game over
+
+    def check_attack(self, enemies):
+        if self.melee_active:
+            hitbox = self.get_melee_hitbox()
+            for enemy in enemies:
+                if hitbox.colliderect(enemy.rect):
+                    enemy.take_damage()  
+                    break 
+
     def update_sprite(self):
         sprite_sheet = "idle"
 
@@ -350,6 +364,7 @@ class MeleeEnemie(pygame.sprite.Sprite):
     GRAVITY = 5
     
     def __init__(self,x,y,width,height):
+        super().__init__()
         self.x = x
         self.y = y
         self.width = width
@@ -382,7 +397,11 @@ class MeleeEnemie(pygame.sprite.Sprite):
         self.rect.x += self.x_vel
             
         self.update_sprite(player)
-        
+
+    def take_damage(self):
+        self.kill()
+        self.update_sprite(self)
+
     def update_sprite(self,player):
         sprites = self.SPRITES["HalflingRogueIdleSide"]
         sprite_index = (self.animation_count // self.ANIMATION_DELAY) % len(sprites)
@@ -688,7 +707,6 @@ def collide_arrow(player,arrows,objects):
     player.update()
     
 def collide_enemie(player,enemie,objects):
-    
     if(pygame.sprite.collide_mask(player,enemie)):
         if player.melee_active == True:
             enemie.is_alive = False
@@ -845,6 +863,9 @@ def play(window):
     mercader = Mercader(2700, 625, 100, 100) 
     firstBoss = Boss(500,450,100,100)
 
+    enemies_group = pygame.sprite.Group()
+    enemies_group.add(meleeEnemie)
+
     block_size = 96
     plat_size = 100
 
@@ -891,8 +912,8 @@ def play(window):
                             text_input="15 Coins -> 2 Lifes", font=pygame.font.Font("assets/font.ttf", 15), base_color="#d7fcd4", hovering_color="White")
         option3_mercader = Button(image=pygame.image.load("assets/OptionsMercader.png"), pos=(mercader.rect.x - offset_x+40,mercader.rect.y-10), 
                             text_input="1 Gem -> New aspect", font=pygame.font.Font("assets/font.ttf", 15), base_color="#d7fcd4", hovering_color="White")
-
-        clock.tick(FPS)
+        delta_time = clock.tick(FPS) / 1000.0
+        #clock.tick(FPS)
         #timer
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -916,10 +937,12 @@ def play(window):
                     negociation3(player)  
 
 
-        player.loop(FPS)
+        player.loop(FPS, enemies_group)
         #timer
+        for enemy in enemies_group:
+            enemy.loop(player,offset_x)
+        #meleeEnemie.loop(player,FPS)
         enemie.loop(player,offset_x)
-        meleeEnemie.loop(player,FPS)
         mercader.loop(player,offset_x)
         firstBoss.loop(player,FPS)
         handle_move(player,enemie.arrows,meleeEnemie,firstBoss,objects)

@@ -71,6 +71,16 @@ def get_platform(size):
 
     return pygame.transform.scale2x(surface)
 
+def get_death():
+    sprite_sheet = pygame.image.load('assets/Desappearing (96x96).png').convert_alpha()
+    frame_width, frame_height = 96, 96 
+    frames = []
+    for i in range(7):
+        frame_x = i * frame_width
+        frame_surface = pygame.Surface((frame_width, frame_height), pygame.SRCALPHA).convert_alpha()
+        frame_surface.blit(sprite_sheet, (0, 0), (frame_x, 0, frame_width, frame_height))
+        frames.append(frame_surface)
+    return frames
 
 def get_sound(path):
     return join("assets", "Sounds", path + ".mp3")
