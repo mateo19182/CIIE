@@ -876,8 +876,19 @@ def play(window):
     
     floor = [Block(i*block_size,HEIGHT - block_size ,block_size)for i in range(-WIDTH // block_size,WIDTH*2 // block_size)]
     floor2 = [Block(i*block_size,HEIGHT - block_size ,block_size)for i in range(5 + WIDTH*2 // block_size,WIDTH*4 // block_size)]
+    floor3 = [Block(i*block_size + 7200,HEIGHT - block_size ,block_size)for i in range(0,30)]
 
     column = [Block(block_size + 3000,HEIGHT - block_size - (100*i),block_size)for i in range(1,7)]
+    column2 = [Block(block_size + 7100,HEIGHT - block_size - (100*i),block_size)for i in range(1,5)]
+    column3 = [Block(block_size + 7200,HEIGHT - block_size - (100*i),block_size)for i in range(1,5)]
+    column4 = [Block(block_size + 7300,HEIGHT - block_size - (100*i),block_size)for i in range(1,4)]
+    column5 = [Block(block_size + 7400,HEIGHT - block_size - (100*i),block_size)for i in range(1,4)]
+    column6 = [Block(block_size + 7500,HEIGHT - block_size - (100*i),block_size)for i in range(1,3)]
+    column7 = [Block(block_size + 7600,HEIGHT - block_size - (100*i),block_size)for i in range(1,3)]
+    column8 = [Block(block_size + 7700,HEIGHT - block_size - (100*i),block_size)for i in range(1,2)]
+    column9 = [Block(block_size + 7800,HEIGHT - block_size - (100*i),block_size)for i in range(1,2)]
+    column10 = [Block(block_size + 9000,HEIGHT - block_size - (100*i),block_size)for i in range(1,7)]
+    
 
     plat1 = [Platform(i*block_size + 800,HEIGHT - block_size - 125, plat_size)for i in range(0,4)]
     plat2 = [Platform(i*block_size + 1300,HEIGHT - block_size - 300, plat_size)for i in range(0,2)]
@@ -890,19 +901,41 @@ def play(window):
     plat8 = [Platform(i*block_size + 2825,HEIGHT - block_size - 250 - (300*i), plat_size)for i in range(0,2)]
 
     plat9 = [Platform(3*i*block_size + 3400,HEIGHT - block_size - 300 - (200*i), plat_size)for i in range(0,2)]
-    
 
-    coin_size = 40
+    plat10 = [Platform(i*block_size + 4000,HEIGHT - block_size - 600, plat_size)for i in range(0,1)]
+
+    plat11 = [Platform(i*block_size + 4100,HEIGHT - block_size - 100, plat_size)for i in range(0,4)]
+
+    plat12 = [Platform(i*block_size + 4200,HEIGHT - block_size - 400, plat_size)for i in range(0,2)]
+
+    plat13 = [Platform(i*block_size + 4700,HEIGHT - block_size - 250, plat_size)for i in range(0,2)]
+
+    plat14 = [Platform(3*i*block_size + 5050,HEIGHT - block_size - (400 * i) - 100, plat_size)for i in range(0,3)]
+
+    plat15 = [Platform(4*i*block_size + 5300,HEIGHT - block_size - (200 * i), plat_size)for i in range(0,5)]
+    plat16 = [Platform(4*i*block_size + 5400,HEIGHT - block_size - (200 * i), plat_size)for i in range(0,5)]
+
+    plat17 = [Platform(i*block_size + 6800,HEIGHT - block_size - 400, plat_size)for i in range(0,2)]
+
+    plat18 = [Platform(i*block_size + 6150,HEIGHT - block_size, plat_size)for i in range(0,1)]
+    plat19 = [Platform(i*block_size + 6600,HEIGHT - block_size ,plat_size)for i in range(0,1)]
+
+
+    plat20 = [Platform(3*i*block_size + 5500,HEIGHT - block_size - 800 + (300 * i), plat_size)for i in range(0,2)]
+
+    plat21 = [Platform(i*block_size + 5050,HEIGHT - block_size - 425, plat_size)for i in range(0,1)]
+
+    coin_size = 40  
     num_coins = 10
     coins = [
         Coin(random.randint(0, WIDTH - coin_size), random.randint(100, 650), coin_size)
         for _ in range(num_coins)
     ]
-    coins = pygame.sprite.Group(coins)
+    coins = pygame.sprite.Group(coins)  
 
-    objects = [*floor,*floor2,*column,*plat1,*plat2,*plat3,*plat4,*plat5,*plat6,*plat7,*plat8,*plat9]
+    objects = [*floor,*floor2,*floor3,*column,*column2,*column3,*column4,*column5,*column6,*column7,*column8,*column9,*column10 ,*plat1,*plat2,*plat3,*plat4,*plat5,*plat6,*plat7,*plat8,*plat9,*plat10,*plat11,*plat12,*plat13,*plat14,*plat15,*plat16,*plat17,*plat18,*plat19,*plat20,*plat21]
 
-    while run:
+    while run: 
 
         MENU_MOUSE_POS = pygame.mouse.get_pos()
 
