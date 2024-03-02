@@ -359,11 +359,10 @@ class RangedEnemies(pygame.sprite.Sprite):
         window.blit(self.sprite,(self.rect.x - offset_x,self.rect.y))
         
 class MeleeEnemie(pygame.sprite.Sprite):
-    SPRITES = resource_manager.load_sprite_sheets("Enemies","HalflingRogue",16,16,False)
     ANIMATION_DELAY = 20
-    GRAVITY = 5
+    GRAVITY = 8
     
-    def __init__(self,x,y,width,height):
+    def __init__(self,x,y,width,height,sprite_sheet_name):
         super().__init__()
         self.x = x
         self.y = y
@@ -378,8 +377,9 @@ class MeleeEnemie(pygame.sprite.Sprite):
         self.x_vel = 0
         self.fall = False
         self.is_alive = True
+        self.sprite_sheet_name = sprite_sheet_name
         
-    def loop(self,player,fps):
+    def loop(self,player):
         self.frame_count += 1
         
         dx = player.rect.x - self.rect.x
@@ -393,8 +393,9 @@ class MeleeEnemie(pygame.sprite.Sprite):
             self.x_vel = ratio * max_velocity * (dx / distance)
         else:
             self.x_vel = 0
-    
-        self.rect.x += self.x_vel
+
+        if not self.fall:
+            self.rect.x += self.x_vel
             
         self.update_sprite(player)
 
@@ -403,7 +404,9 @@ class MeleeEnemie(pygame.sprite.Sprite):
         self.update_sprite(self)
 
     def update_sprite(self,player):
-        sprites = self.SPRITES["HalflingRogueIdleSide"]
+        sprite_sheet = "idle"
+        sprites = resource_manager.load_sprite_sheets("Enemies",self.sprite_sheet_name,16,16,False)
+        sprites = sprites[sprite_sheet]
         sprite_index = (self.animation_count // self.ANIMATION_DELAY) % len(sprites)
         self.sprite = sprites[sprite_index]
         self.sprite = pygame.transform.scale(self.sprite,(16 * 5, 16 * 5))
@@ -629,7 +632,7 @@ class Wrench(pygame.sprite.Sprite):
     def draw(self, screen, offset_x):
         screen.blit(self.image, (self.rect.x - offset_x, self.rect.y))
 
-def draw(window,background,bg_image,heart_image, coin_image, player,objects,coins,enemie,meleeEnemie,firstBoss,mercader,opt1,opt2,opt3,offset_x):
+def draw(window,background,bg_image,heart_image, coin_image, player,objects,coins,enemie,meleeEnemie_grop,firstBoss,mercader,opt1,opt2,opt3,offset_x):
     for tile in background:
         window.blit(bg_image,tile)
         
@@ -639,8 +642,10 @@ def draw(window,background,bg_image,heart_image, coin_image, player,objects,coin
     player.draw(window,offset_x)
     enemie.draw(window,offset_x)
     
-    if meleeEnemie.is_alive:
-        meleeEnemie.draw(window,offset_x)
+    for meleeEnemie in meleeEnemie_grop:
+        if meleeEnemie.is_alive:
+            meleeEnemie.draw(window,offset_x)
+        
     mercader.draw(window,offset_x,opt1,opt2,opt3)
     firstBoss.draw(window,offset_x)
 
@@ -707,18 +712,19 @@ def collide_arrow(player,arrows,objects):
     player.update()
     
 def collide_enemie(player,enemie,objects):
+    
     if(pygame.sprite.collide_mask(player,enemie)):
         if player.melee_active == True:
-            enemie.is_alive = False
-        
+             enemie.is_alive = False
+            
         if enemie.is_alive:
             player.get_hit()
-            
+                
     for obj in objects:
         if(pygame.sprite.collide_mask(enemie,obj)):
             enemie.fall = False
             return
-            
+                
     enemie.fall = True
 
     enemie.y += enemie.GRAVITY
@@ -726,7 +732,7 @@ def collide_enemie(player,enemie,objects):
 
     player.update()
     
-def handle_move(player,arrows,enemie,boss,objects):
+def handle_move(player,arrows,enemie_group,boss,objects):
     vertical_collide = handle_vertical_colission(player,objects,player.y_vel)
     if player.lives.lives <= 0:
         player.die()
@@ -737,8 +743,9 @@ def handle_move(player,arrows,enemie,boss,objects):
     collide_left = collide(player,objects,-PLAYER_VEL * 2)
     collide_right = collide(player,objects,PLAYER_VEL * 2)
     collide_arrow(player,arrows,objects)
-    collide_enemie(player,enemie,objects)
-    #collide_boss(player,boss,PLAYER_VEL * 2)
+    for enemie in enemie_group:
+        collide_enemie(player,enemie,objects)
+    collide_boss(player,boss,PLAYER_VEL * 2)
         
     if keys[pygame.K_p]:
         player.melee_attack()
@@ -858,20 +865,25 @@ def play(window):
     lives = Lives()
 
     player = Player(400,400,50,50, lives)
-    enemie = RangedEnemies(900,500,100,100,"GnomeTinkerer")
-    meleeEnemie = MeleeEnemie(0,625,100,100)
+    enemie = RangedEnemies(900,500,100,100,"HalflingRanger")
+    meleeEnemie1 = MeleeEnemie(800,625,100,100,"HalflingRogue")
+    meleeEnemie2 = MeleeEnemie(4375,500,100,100,"HalflingRogue")
+    meleeEnemie3 = MeleeEnemie(8320,500,100,100,"HalflingRogue")
     mercader = Mercader(2700, 625, 100, 100) 
-    firstBoss = Boss(500,450,100,100)
+    firstBoss = Boss(8500,450,100,100)
 
-    enemies_group = pygame.sprite.Group()
-    enemies_group.add(meleeEnemie)
+    melee_enemies_group = pygame.sprite.Group()
+    
+    melee_enemies_group.add(meleeEnemie1)
+    melee_enemies_group.add(meleeEnemie2)
+    melee_enemies_group.add(meleeEnemie3)
 
     block_size = 96
     plat_size = 100
 
     offset_x = 0
-    scroll_area_width = 200
-
+    scroll_area_width = 400
+    
     run = True
     
     floor = [Block(i*block_size,HEIGHT - block_size ,block_size)for i in range(-WIDTH // block_size,WIDTH*2 // block_size)]
@@ -969,17 +981,15 @@ def play(window):
                 if option3_mercader.checkForInput(MENU_MOUSE_POS):
                     negociation3(player)  
 
-
-        player.loop(FPS, enemies_group)
+        player.loop(FPS, melee_enemies_group)
         #timer
-        for enemy in enemies_group:
-            enemy.loop(player,offset_x)
-        #meleeEnemie.loop(player,FPS)
+        for enemy in melee_enemies_group:
+            enemy.loop(player)
         enemie.loop(player,offset_x)
         mercader.loop(player,offset_x)
         firstBoss.loop(player,FPS)
-        handle_move(player,enemie.arrows,meleeEnemie,firstBoss,objects)
-        draw(window,background,bg_image,heart_image, coin_image, player,objects,coins,enemie,meleeEnemie,firstBoss,mercader,option1_mercader,option2_mercader,option3_mercader,offset_x)
+        handle_move(player,enemie.arrows,melee_enemies_group,firstBoss,objects)
+        draw(window,background,bg_image,heart_image, coin_image, player,objects,coins,enemie,melee_enemies_group,firstBoss,mercader,option1_mercader,option2_mercader,option3_mercader,offset_x)
         
         enemie.arrows = [arrow for arrow in enemie.arrows if not arrow.is_offscreen(offset_x)]
 
