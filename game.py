@@ -272,7 +272,7 @@ class RangedEnemies(pygame.sprite.Sprite):
     SHOOT_DISTANCE = 300
     SHOOT_HEIGHT_THRESHOLD = 20
 
-    def __init__(self,x,y,width,height,sprite_sheet_name):
+    def __init__(self,x,y,width,height,delay,sprite_sheet_name):
         super().__init__()
         self.x = x
         self.y = y
@@ -288,6 +288,7 @@ class RangedEnemies(pygame.sprite.Sprite):
         self.shoot = False
         self.sprite_sheet_name = sprite_sheet_name
         self.is_alive = True
+        self.delay = delay
 
     def loop(self,player):
             self.frame_count += 1
@@ -327,7 +328,7 @@ class RangedEnemies(pygame.sprite.Sprite):
         if self.shoot:
             sprite_sheet = "shoot"
             self.shoot = False
-            self.ANIMATION_DELAY = 30
+            self.ANIMATION_DELAY = self.delay
         else: 
             sprite_sheet = "idle"
             self.ANIMATION_DELAY = 9
@@ -750,7 +751,7 @@ def collide_enemie(player,enemie,objects):
 
     player.update()
     
-def handle_move(player,arrows,enemie_group,boss,objects):
+def handle_move(player,ranged_enemies_group,enemie_group,boss,objects):
     vertical_collide = handle_vertical_colission(player,objects,player.y_vel)
     if player.lives.lives <= 0:
         player.die()
@@ -760,7 +761,8 @@ def handle_move(player,arrows,enemie_group,boss,objects):
     #por timer
     collide_left = collide(player,objects,-PLAYER_VEL * 2)
     collide_right = collide(player,objects,PLAYER_VEL * 2)
-    collide_arrow(player,arrows,objects)
+    for rangedEnemy in ranged_enemies_group:
+        collide_arrow(player,rangedEnemy.arrows,objects)
     for enemie in enemie_group:
         collide_enemie(player,enemie,objects)
     collide_boss(player,boss,PLAYER_VEL * 2)
@@ -880,10 +882,10 @@ def play(window):
     background,bg_image, heart_image, coin_image = resource_manager.get_background("Night.png")
 
     lives = Lives()
-
+    
     player = Player(400,400,50,50, lives)
-    rangedenemie1 = RangedEnemies(900,500,100,100,"HalflingRanger")
-    rangedenemie2 = RangedEnemies(6135,220,100,100,"HalflingRanger")
+    rangedenemie1 = RangedEnemies(900,500,100,100,30,"GnomeTinkerer")
+    rangedenemie2 = RangedEnemies(6135,230,100,100,4,"HalflingRanger")
     meleeEnemie1 = MeleeEnemie(800,625,100,100,"HalflingRogue")
     meleeEnemie2 = MeleeEnemie(4375,500,100,100,"HalflingRogue")
     meleeEnemie3 = MeleeEnemie(8320,500,100,100,"HalflingRogue")
@@ -892,9 +894,9 @@ def play(window):
     
     all_enemies_group = pygame.sprite.Group()
     melee_enemies_group = pygame.sprite.Group()
-    boss_group = pygame.sprite.Group()
     ranged_enemies_group = pygame.sprite.Group()
     
+     
     all_enemies_group.add(meleeEnemie1)
     all_enemies_group.add(meleeEnemie2)
     all_enemies_group.add(meleeEnemie3)
@@ -907,8 +909,7 @@ def play(window):
     melee_enemies_group.add(meleeEnemie3)
     
     ranged_enemies_group.add(rangedenemie1)
-    
-    boss_group.add(firstBoss)
+    ranged_enemies_group.add(rangedenemie2)
 
     block_size = 96
     plat_size = 100
@@ -1014,15 +1015,18 @@ def play(window):
                     negociation3(player)  
                     
         player.loop(FPS, all_enemies_group)
-        #timer
+        
         for enemy in all_enemies_group:
             enemy.loop(player)
+            
         mercader.loop(player,offset_x)
-        handle_move(player,rangedenemie1.arrows,melee_enemies_group,firstBoss,objects)
+        
+        handle_move(player,ranged_enemies_group,melee_enemies_group,firstBoss,objects)
         draw(window,background,bg_image,heart_image, coin_image, player,objects,coins,all_enemies_group,mercader,option1_mercader,option2_mercader,option3_mercader,offset_x)
         
-        rangedenemie1.arrows = [arrow for arrow in rangedenemie1.arrows if not arrow.is_offscreen(offset_x)]
-
+        for rangedEnemie in ranged_enemies_group:
+            rangedEnemie.arrows = [arrow for arrow in rangedEnemie.arrows if not arrow.is_offscreen(offset_x)]
+            
         if pygame.sprite.spritecollideany(player, coins): 
             for _ in pygame.sprite.spritecollide(player, coins, True):
                 player.collect_coin() 
