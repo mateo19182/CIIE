@@ -18,7 +18,7 @@ pygame.display.set_caption("Platformer")
 
 WIDTH, HEIGHT = 1000, 800
 FPS = 60
-PLAYER_VEL = 5
+PLAYER_VEL = 5 * FPS
 VOLUME =  0.5
 TIMER = 0
 LEVEL = 1
@@ -30,7 +30,7 @@ window = pygame.display.set_mode((WIDTH,HEIGHT))
 
 class Player(pygame.sprite.Sprite):
     COLOR = (255,0,0)
-    GRAVITY = 1
+    GRAVITY = 2000
     SPRITES = resource_manager.load_sprite_sheets("main", "",32,32,True)
 
     ANIMATION_DELAY = 8
@@ -45,7 +45,7 @@ class Player(pygame.sprite.Sprite):
         self.direction = "left"
         self.animation_count = 0
         self.fall_count = 0
-        self.jump_count = 0
+        self.jump_count = 1
         self.coins = 0
         self.lives = lives
         self._last_called = 0
@@ -55,7 +55,7 @@ class Player(pygame.sprite.Sprite):
         self.melee_start_time = 0
 
     def jump(self):
-        self.y_vel = -self.GRAVITY * 8
+        self.y_vel = -self.GRAVITY / 3
             
         self.animation_count = 0
         self.jump_count +=1
@@ -66,11 +66,11 @@ class Player(pygame.sprite.Sprite):
         jump_sound = mixer.Sound(resource_manager.get_sound("jump"))
         jump_sound.play()    
 
-    def move(self,dx,dy):
-        self.rect.x += dx
-        self.rect.y += dy
+    def move(self,dx,dy, delta):
+        self.rect.x += dx  * delta
+        self.rect.y += dy * delta
         if self.rect.y > HEIGHT + 100 :
-            self.die(self.rect.x, self.rect.y)
+            self.die()
 
     def move_left(self,vel):
         self.x_vel = -vel
@@ -86,9 +86,9 @@ class Player(pygame.sprite.Sprite):
             self.direction = "right"
             self.animation_count = 0
             
-    def loop(self,fps, enemies):
-        self.y_vel += min(1,(self.fall_count / fps) * self.GRAVITY)
-        self.move(self.x_vel,self.y_vel)
+    def loop(self,delta, enemies):
+        self.y_vel += min(30, (self.fall_count * delta * self.GRAVITY))
+        self.move(self.x_vel,self.y_vel, delta)
         self.fall_count += 1
         self.update_sprite()
         self.check_attack(enemies)
@@ -142,6 +142,7 @@ class Player(pygame.sprite.Sprite):
         #self.rect.y = posy
         self.jump_count = 3
         death_sound = mixer.Sound(resource_manager.get_sound("death"))
+        mixer.music.stop()
         death_sound.play()
 
         #pantalla de game over
@@ -159,7 +160,7 @@ class Player(pygame.sprite.Sprite):
 
         if self.lives.lives <= 0:
             sprite_sheet = "die"
-        if self.y_vel < 0:
+        elif self.y_vel < 0:
             if self.jump_count == 1:
                 sprite_sheet = "jump"
             elif self.jump_count == 2:
@@ -179,7 +180,7 @@ class Player(pygame.sprite.Sprite):
             sprite_index = len(sprites) - 1        
         self.sprite = sprites[sprite_index]
         self.animation_count +=1
-        if sprite_sheet == "hit" and self.animation_count == 4:
+        if sprite_sheet == "hit" and self.animation_count == 3:
             self.hit = False
         self.update_melee_attack()            
         self.update()
@@ -628,7 +629,7 @@ class Arrow(pygame.sprite.Sprite):
 class Wrench(pygame.sprite.Sprite):
     def __init__(self, enemy_rect, orientation):
         super().__init__()
-        self.original_image = pygame.image.load("assets/Items/Wrench/Wrench.png")
+        self.original_image = pygame.image.load("assets/Items/Wrench/wrench.png")
         self.original_image = pygame.transform.scale(self.original_image, (16 * 5, 16 * 5))
         self.angle = 0 
         self.image = self.original_image.copy()
@@ -690,8 +691,8 @@ def handle_vertical_colission(player,objects,dy):
 
     return collided_objects
 
-def collide(player,objects,dx):
-    player.move(dx,0)
+def collide(player,objects,dx,delta):
+    player.move(dx,0, delta)
     player.update()
 
     collided_object = None
@@ -705,17 +706,17 @@ def collide(player,objects,dx):
                 player.jump_count = 1
             break
 
-    player.move(-dx,0)
+    player.move(-dx,0, delta)
     player.update()
 
     
     return collided_object
 
-def collide_boss(player,boss,dx):
+def collide_boss(player,boss,dx, delta):
     if(pygame.sprite.collide_mask(player,boss)):
         if boss.is_alive:
             player.get_hit()
-            player.move(-dx,0)
+            player.move(-dx,0, delta)
     
     player.update()
 
@@ -751,7 +752,7 @@ def collide_enemie(player,enemie,objects):
 
     player.update()
     
-def handle_move(player,ranged_enemies_group,enemie_group,boss,objects):
+def handle_move(player,ranged_enemies_group,enemie_group,boss,objects, delta):
     vertical_collide = handle_vertical_colission(player,objects,player.y_vel)
     if player.lives.lives <= 0:
         player.die()
@@ -759,13 +760,13 @@ def handle_move(player,ranged_enemies_group,enemie_group,boss,objects):
     keys = pygame.key.get_pressed()
     player.x_vel = 0
     #por timer
-    collide_left = collide(player,objects,-PLAYER_VEL * 2)
-    collide_right = collide(player,objects,PLAYER_VEL * 2)
+    collide_left = collide(player,objects,-PLAYER_VEL * 2, delta)
+    collide_right = collide(player,objects,PLAYER_VEL * 2, delta)
     for rangedEnemy in ranged_enemies_group:
         collide_arrow(player,rangedEnemy.arrows,objects)
     for enemie in enemie_group:
         collide_enemie(player,enemie,objects)
-    collide_boss(player,boss,PLAYER_VEL * 2)
+    collide_boss(player,boss,PLAYER_VEL * 2, delta)
         
     if keys[pygame.K_p]:
         player.melee_attack()
@@ -853,10 +854,9 @@ def options(window):
                 dragging_thumb = False
             elif event.type == pygame.MOUSEMOTION:
                 if dragging_thumb:
-                    # Calculate the new volume based on the mouse movement
                     delta_y = event.pos[1] - last_mouse_y
                     volume += delta_y / scroll_bar_height
-                    volume = max(min(volume,  1),  0)  # Clamp between  0 and  1
+                    volume = max(min(volume,  1),  0)
                     with open('volumen.pkl', 'wb') as f:
                         pickle.dump(volume, f)
                     last_mouse_y = event.pos[1]
@@ -896,7 +896,6 @@ def play(window):
     melee_enemies_group = pygame.sprite.Group()
     ranged_enemies_group = pygame.sprite.Group()
     
-     
     all_enemies_group.add(meleeEnemie1)
     all_enemies_group.add(meleeEnemie2)
     all_enemies_group.add(meleeEnemie3)
@@ -990,9 +989,9 @@ def play(window):
                             text_input="15 Coins -> 2 Lifes", font=pygame.font.Font("assets/font.ttf", 15), base_color="#d7fcd4", hovering_color="White")
         option3_mercader = Button(image=pygame.image.load("assets/OptionsMercader.png"), pos=(mercader.rect.x - offset_x+40,mercader.rect.y-10), 
                             text_input="1 Gem -> New aspect", font=pygame.font.Font("assets/font.ttf", 15), base_color="#d7fcd4", hovering_color="White")
+        
         delta_time = clock.tick(FPS) / 1000.0
-        #clock.tick(FPS)
-        #timer
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
@@ -1014,14 +1013,14 @@ def play(window):
                 if option3_mercader.checkForInput(MENU_MOUSE_POS):
                     negociation3(player)  
                     
-        player.loop(FPS, all_enemies_group)
+        player.loop(delta_time, all_enemies_group)
         
         for enemy in all_enemies_group:
             enemy.loop(player)
             
         mercader.loop(player,offset_x)
         
-        handle_move(player,ranged_enemies_group,melee_enemies_group,firstBoss,objects)
+        handle_move(player,ranged_enemies_group,melee_enemies_group,firstBoss,objects, delta_time)
         draw(window,background,bg_image,heart_image, coin_image, player,objects,coins,all_enemies_group,mercader,option1_mercader,option2_mercader,option3_mercader,offset_x)
         
         for rangedEnemie in ranged_enemies_group:

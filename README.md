@@ -20,6 +20,9 @@
 | Menu de muerte |  |  |  |
 cambiar a sincronizacion x tiempo perosnaje y enemigos?¿
 Meter scroll vertical
+esta chungo el scroll horizonal ahora
+si t golpean justo cuando saltas no se carga bien el sprite
+ajutar valores de gravedad y salto
 
 Sprites: https://docs.google.com/document/d/1EuMQ6IRIVIDK1ZTutrC-vJyGtHOsDGUhb8_T0rz1q54/edit
 
