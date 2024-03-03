@@ -134,19 +134,19 @@ class Player(pygame.sprite.Sprite):
         melee_hitbox = pygame.Rect(self.rect.x + offset_x, self.rect.y, *melee_hitbox_size)
         #melee_hitbox.x -= self.x_vel
         return melee_hitbox
-    def die(self):
+    def die(self,check_x,check_y):
         self.update_sprite()
         self.x_vel = 0
         self.y_vel = 0
-        #self.rect.x = posx
-        #self.rect.y = posy
+        self.rect.x = check_x
+        self.rect.y = check_y
         self.jump_count = 3
         death_sound = mixer.Sound(resource_manager.get_sound("death"))
         mixer.music.stop()
         death_sound.play()
 
         #pantalla de game over
-
+        
     def check_attack(self, enemies):
         if self.melee_active:
             hitbox = self.get_melee_hitbox()
@@ -653,8 +653,67 @@ class Wrench(pygame.sprite.Sprite):
 
     def draw(self, screen, offset_x):
         screen.blit(self.image, (self.rect.x - offset_x, self.rect.y))
+        
+class Checkpoint(pygame.sprite.Sprite):
+    ANIMATION_DELAY = 3
+    
+    def __init__(self,x,y,width,height):
+        super().__init__()
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.animation_count = 0
+        self.frame_count = 0
+        self.rect = pygame.Rect(x,y,width,height)
+        self.sprite = None
+        self.activated = False
+        self.activate_idle = False
 
-def draw(window,background,bg_image,heart_image, coin_image, player,objects,coins,all_enemies_group,mercader,opt1,opt2,opt3,offset_x):
+    def activate(self):
+        self.activated = True
+        
+    def loop(self):
+        self.frame_count += 1
+        self.update_sprite()
+        
+    def update_sprite(self):
+        
+        if self.activated:
+            sprite_sheet = "flag_out"
+        elif not self.activated: 
+            sprite_sheet = "no_flag"
+            
+        if self.activate_idle:
+            sprite_sheet = "idle"
+
+        sprites = resource_manager.load_sprite_sheets("Items","Checkpoint",64,64,False)
+        sprites = sprites[sprite_sheet]
+        sprite_index = (self.animation_count // self.ANIMATION_DELAY) % len(sprites)
+        self.sprite = sprites[sprite_index]
+        self.animation_count += 1
+        
+        if sprite_index == 25:
+            self.activate_idle = True
+            self.deactivate()
+
+        if(sprite_index == 0):
+            self.frame_count = 0
+            
+        self.update()
+        
+    def update(self):
+        self.rect = self.sprite.get_rect(topleft = (self.rect.x,self.rect.y))
+        self.mask = pygame.mask.from_surface(self.sprite)
+            
+    def deactivate(self):
+        self.activated = False
+        
+    def draw(self,window,offset_x):
+        window.blit(self.sprite,(self.rect.x - offset_x,self.rect.y))
+
+
+def draw(window,background,bg_image,heart_image, coin_image, player,objects,checkpoint,coins,all_enemies_group,mercader,opt1,opt2,opt3,offset_x):
     for tile in background:
         window.blit(bg_image,tile)
         
@@ -667,6 +726,8 @@ def draw(window,background,bg_image,heart_image, coin_image, player,objects,coin
         enemy.draw(window,offset_x)
         
     mercader.draw(window,offset_x,opt1,opt2,opt3)
+    
+    checkpoint.draw(window,offset_x)
 
     draw_bar(player.lives.lives, player.coins, heart_image, coin_image)
     for coin in coins:
@@ -752,10 +813,15 @@ def collide_enemie(player,enemie,objects):
 
     player.update()
     
-def handle_move(player,ranged_enemies_group,enemie_group,boss,objects, delta):
+def collide_checkpoint(player,checkpoint):
+    if(pygame.sprite.collide_mask(player,checkpoint)):
+        if not checkpoint.activate_idle:
+            checkpoint.activated = True
+    
+def handle_move(player,ranged_enemies_group,enemie_group,boss,checkpoint,objects, delta):
     vertical_collide = handle_vertical_colission(player,objects,player.y_vel)
     if player.lives.lives <= 0:
-        player.die()
+        player.die(checkpoint.x,checkpoint.y + 65)
         return 
     keys = pygame.key.get_pressed()
     player.x_vel = 0
@@ -766,7 +832,9 @@ def handle_move(player,ranged_enemies_group,enemie_group,boss,objects, delta):
         collide_arrow(player,rangedEnemy.arrows,objects)
     for enemie in enemie_group:
         collide_enemie(player,enemie,objects)
+        
     collide_boss(player,boss,PLAYER_VEL * 2, delta)
+    collide_checkpoint(player,checkpoint)
         
     if keys[pygame.K_p]:
         player.melee_attack()
@@ -891,6 +959,7 @@ def play(window):
     meleeEnemie3 = MeleeEnemie(8320,500,100,100,"HalflingRogue")
     mercader = Mercader(2700, 625, 100, 100) 
     firstBoss = Boss(8500,450,100,100)
+    checkpoint = Checkpoint(7700,375,50,50)
     
     all_enemies_group = pygame.sprite.Group()
     melee_enemies_group = pygame.sprite.Group()
@@ -1019,9 +1088,10 @@ def play(window):
             enemy.loop(player)
             
         mercader.loop(player,offset_x)
+        checkpoint.loop()
         
-        handle_move(player,ranged_enemies_group,melee_enemies_group,firstBoss,objects, delta_time)
-        draw(window,background,bg_image,heart_image, coin_image, player,objects,coins,all_enemies_group,mercader,option1_mercader,option2_mercader,option3_mercader,offset_x)
+        handle_move(player,ranged_enemies_group,melee_enemies_group,firstBoss,checkpoint,objects, delta_time)
+        draw(window,background,bg_image,heart_image, coin_image, player,objects,checkpoint,coins,all_enemies_group,mercader,option1_mercader,option2_mercader,option3_mercader,offset_x)
         
         for rangedEnemie in ranged_enemies_group:
             rangedEnemie.arrows = [arrow for arrow in rangedEnemie.arrows if not arrow.is_offscreen(offset_x)]
@@ -1032,7 +1102,7 @@ def play(window):
 
         if((player.rect.right - offset_x >= WIDTH - scroll_area_width) and player.x_vel > 0) or (
             (player.rect.left - offset_x <= scroll_area_width) and player.x_vel < 0):
-                offset_x += player.x_vel 
+                offset_x += player.x_vel / FPS 
     
     pygame.quit()
     quit()
