@@ -6,10 +6,10 @@
 | resource manager
 |  |  | Contadores |  |
 |  | Diseño nivel basico |  |  |
-| Enemigos nivel1 |  |  |  |
-| Boss nivel1 |  |  |  |
+| |  | Enemigos nivel1 |  |
+| |  | Boss nivel1 |  |
 | Ataque espada |  |  |  |
-| Checkpoints |  |  |  |
+| |  |  | Checkpoints |
 | Cambio de fase |  |  |  |
 |  | Mercader |  |  |
 |  | Decoracion |  |  |
