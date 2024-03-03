@@ -273,7 +273,7 @@ class RangedEnemies(pygame.sprite.Sprite):
     SHOOT_DISTANCE = 300
     SHOOT_HEIGHT_THRESHOLD = 20
 
-    def __init__(self,x,y,width,height,delay,sprite_sheet_name):
+    def __init__(self,x,y,width,height,delay,arrows,sprite_sheet_name):
         super().__init__()
         self.x = x
         self.y = y
@@ -284,7 +284,7 @@ class RangedEnemies(pygame.sprite.Sprite):
         self.rect = pygame.Rect(x,y,width,height)
         self.mask = None
         self.sprite = None
-        self.arrows = []
+        self.arrows = arrows
         self.orientation = "left"
         self.shoot = False
         self.sprite_sheet_name = sprite_sheet_name
@@ -320,7 +320,7 @@ class RangedEnemies(pygame.sprite.Sprite):
             arrow = Wrench(self.rect,self.orientation)
         else:
             arrow = Arrow(self.rect,self.orientation)
-        self.arrows.append(arrow)
+        self.arrows.add(arrow)
         arrow_sound = mixer.Sound(resource_manager.get_sound("arrow"))
         arrow_sound.play()
 
@@ -360,9 +360,6 @@ class RangedEnemies(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.sprite)
 
     def draw(self,window,offset_x):
-        for arrow in self.arrows:
-            arrow.draw(window,offset_x)
-
         window.blit(self.sprite,(self.rect.x - offset_x,self.rect.y))
         
 class MeleeEnemie(pygame.sprite.Sprite):
@@ -606,6 +603,7 @@ class Mercader(pygame.sprite.Sprite):
 
 class Arrow(pygame.sprite.Sprite):
     def __init__(self, enemy_rect,orientation):
+        super().__init__()
         self.image = pygame.image.load("assets/Items/Arrow/Arrow.png")
         self.image = pygame.transform.scale(self.image, (16 * 5, 16 * 5))  # Ajusta el tamaño aquí
 
@@ -619,7 +617,7 @@ class Arrow(pygame.sprite.Sprite):
             
     def is_offscreen(self,offset_x):
         return self.rect.right - offset_x < 0 or self.rect.left - offset_x > WIDTH or self.rect.bottom < 0 or self.rect.top > HEIGHT
-
+    
     def update(self):
         self.rect.move_ip(self.velocity)
 
@@ -644,7 +642,7 @@ class Wrench(pygame.sprite.Sprite):
             
     def is_offscreen(self, offset_x):
         return self.rect.right - offset_x < 0 or self.rect.left - offset_x > WIDTH or self.rect.bottom < 0 or self.rect.top > HEIGHT
-
+    
     def update(self):
         self.rect.move_ip(self.velocity)
         self.angle += 3
@@ -713,7 +711,7 @@ class Checkpoint(pygame.sprite.Sprite):
         window.blit(self.sprite,(self.rect.x - offset_x,self.rect.y))
 
 
-def draw(window,background,bg_image,heart_image, coin_image, player,objects,checkpoint,coins,all_enemies_group,mercader,opt1,opt2,opt3,offset_x):
+def draw(window,background,bg_image,heart_image, coin_image,arrow_group, player,objects,checkpoint,coins,all_enemies_group,mercader,opt1,opt2,opt3,offset_x):
     for tile in background:
         window.blit(bg_image,tile)
         
@@ -724,6 +722,9 @@ def draw(window,background,bg_image,heart_image, coin_image, player,objects,chec
     
     for enemy in all_enemies_group:
         enemy.draw(window,offset_x)
+        
+    for arrow in arrow_group:
+        arrow.draw(window,offset_x)
         
     mercader.draw(window,offset_x,opt1,opt2,opt3)
     
@@ -784,12 +785,13 @@ def collide_boss(player,boss,dx, delta):
 def collide_arrow(player,arrows,objects):
     for arrow in arrows:
         if pygame.sprite.collide_mask(player,arrow):
-            arrows.remove(arrow)
+            arrow.kill()
             player.get_hit()
             
         for obj in objects:
             if pygame.sprite.collide_mask(arrow,obj):
-                arrows.remove(arrow)
+                arrow.kill()
+                arrow.update()
     player.update()
     
 def collide_enemie(player,enemie,objects):
@@ -818,7 +820,7 @@ def collide_checkpoint(player,checkpoint):
         if not checkpoint.activate_idle:
             checkpoint.activated = True
     
-def handle_move(player,ranged_enemies_group,enemie_group,boss,checkpoint,objects, delta):
+def handle_move(player,ranged_enemies_group,enemie_group,boss,checkpoint,objects,arrow_group,delta):
     vertical_collide = handle_vertical_colission(player,objects,player.y_vel)
     if player.lives.lives <= 0:
         player.die(checkpoint.x,checkpoint.y + 65)
@@ -828,8 +830,9 @@ def handle_move(player,ranged_enemies_group,enemie_group,boss,checkpoint,objects
     #por timer
     collide_left = collide(player,objects,-PLAYER_VEL * 2, delta)
     collide_right = collide(player,objects,PLAYER_VEL * 2, delta)
-    for rangedEnemy in ranged_enemies_group:
-        collide_arrow(player,rangedEnemy.arrows,objects)
+    
+    collide_arrow(player,arrow_group,objects)
+    
     for enemie in enemie_group:
         collide_enemie(player,enemie,objects)
         
@@ -951,27 +954,27 @@ def play(window):
 
     lives = Lives()
     
+    all_enemies_group = pygame.sprite.Group()
+    melee_enemies_group = pygame.sprite.Group()
+    ranged_enemies_group = pygame.sprite.Group()
+    arrow_group = pygame.sprite.Group()
+    
     player = Player(400,400,50,50, lives)
-    rangedenemie1 = RangedEnemies(900,500,100,100,30,"GnomeTinkerer")
-    rangedenemie2 = RangedEnemies(6135,230,100,100,4,"HalflingRanger")
+    rangedenemie1 = RangedEnemies(900,500,100,100,30,arrow_group,"GnomeTinkerer")
+    rangedenemie2 = RangedEnemies(6135,230,100,100,4,arrow_group,"HalflingRanger")
     meleeEnemie1 = MeleeEnemie(800,625,100,100,"HalflingRogue")
     meleeEnemie2 = MeleeEnemie(4375,500,100,100,"HalflingRogue")
     meleeEnemie3 = MeleeEnemie(8320,500,100,100,"HalflingRogue")
     mercader = Mercader(2700, 625, 100, 100) 
     firstBoss = Boss(8500,450,100,100)
     checkpoint = Checkpoint(7700,375,50,50)
-    
-    all_enemies_group = pygame.sprite.Group()
-    melee_enemies_group = pygame.sprite.Group()
-    ranged_enemies_group = pygame.sprite.Group()
-    
+
     all_enemies_group.add(meleeEnemie1)
     all_enemies_group.add(meleeEnemie2)
     all_enemies_group.add(meleeEnemie3)
     all_enemies_group.add(rangedenemie1)
     all_enemies_group.add(rangedenemie2)
-    all_enemies_group.add(firstBoss)
-    
+    all_enemies_group.add(firstBoss)   
     melee_enemies_group.add(meleeEnemie1)
     melee_enemies_group.add(meleeEnemie2)
     melee_enemies_group.add(meleeEnemie3)
@@ -1090,11 +1093,9 @@ def play(window):
         mercader.loop(player,offset_x)
         checkpoint.loop()
         
-        handle_move(player,ranged_enemies_group,melee_enemies_group,firstBoss,checkpoint,objects, delta_time)
-        draw(window,background,bg_image,heart_image, coin_image, player,objects,checkpoint,coins,all_enemies_group,mercader,option1_mercader,option2_mercader,option3_mercader,offset_x)
-        
-        for rangedEnemie in ranged_enemies_group:
-            rangedEnemie.arrows = [arrow for arrow in rangedEnemie.arrows if not arrow.is_offscreen(offset_x)]
+        handle_move(player,ranged_enemies_group,melee_enemies_group,firstBoss,checkpoint,objects,arrow_group, delta_time)
+        draw(window,background,bg_image,heart_image, coin_image,arrow_group, player,objects,checkpoint,coins,all_enemies_group,mercader,option1_mercader,option2_mercader,option3_mercader,offset_x)
+           
             
         if pygame.sprite.spritecollideany(player, coins): 
             for _ in pygame.sprite.spritecollide(player, coins, True):
