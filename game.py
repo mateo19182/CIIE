@@ -157,12 +157,6 @@ class Player(pygame.sprite.Sprite):
             self.ranged_active = True
             self.update_sprite()
 
-    
-    def handle_spike_collision(self, spikes):
-        for spike in spikes:
-            if spike.check_collision(self):
-                self.get_hit()
-
     def die(self,check_x,check_y):
         self.update_sprite()
         self.x_vel = 0
