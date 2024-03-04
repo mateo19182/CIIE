@@ -35,7 +35,8 @@ class Player(pygame.sprite.Sprite):
 
     ANIMATION_DELAY = 8
     MELEE_COOLDOWN = 1.0
-    MELEE_DURATION = 0.5
+    MELEE_DURATION = 0.2
+    RANGED_DURATION = 0.4
 
     def __init__(self,x,y,width,height, lives):
         self.rect = pygame.Rect(x,y,width,height)
@@ -54,6 +55,9 @@ class Player(pygame.sprite.Sprite):
         self.last_melee_time = 0
         self.melee_active = False
         self.melee_start_time = 0
+        self.projectiles = pygame.sprite.Group() 
+        self.ranged_active = False
+        self.last_ranged_time = 0
 
     def jump(self):
         self.y_vel = -self.GRAVITY / 3
@@ -92,6 +96,8 @@ class Player(pygame.sprite.Sprite):
         self.move(self.x_vel,self.y_vel, delta)
         self.fall_count += 1
         self.update_sprite()
+        self.projectiles.update()
+        self.projectiles.draw(window)
         self.check_attack(enemies)
 
     def landed(self):
@@ -131,15 +137,26 @@ class Player(pygame.sprite.Sprite):
         self.melee_active = True
         self.melee_start_time = current_time
         self.last_melee_time = current_time
-    def update_melee_attack(self):
-        if self.melee_active and (time.time() - self.melee_start_time > self.MELEE_DURATION):
-            self.melee_active = False
+        self.animation_count = 0
+        self.update_sprite()
+
     def get_melee_hitbox(self):
-        melee_hitbox_size = (64, 64)
+        melee_hitbox_size = (12, 12)
         offset_x = self.rect.width if self.direction == "right" else -melee_hitbox_size[0]
         melee_hitbox = pygame.Rect(self.rect.x + offset_x, self.rect.y, *melee_hitbox_size)
         #melee_hitbox.x -= self.x_vel
         return melee_hitbox
+    
+    def ranged_attack(self):
+        current_time = time.time()
+        if current_time - self.last_ranged_time >= self.MELEE_COOLDOWN:
+            projectile = Fireball(self.rect, self.direction)
+            self.projectiles.add(projectile)
+            self.last_ranged_time = current_time
+            self.animation_count = 0
+            self.ranged_active = True
+            self.update_sprite()
+
     
     def handle_spike_collision(self, spikes):
         for spike in spikes:
@@ -185,6 +202,8 @@ class Player(pygame.sprite.Sprite):
             sprite_sheet = "run"
         elif self.melee_active:
             sprite_sheet = "melee"
+        elif self.ranged_active:
+            sprite_sheet = "ranged"
         sprite_sheet_name = sprite_sheet + "_" + self.direction
         sprites = self.SPRITES[sprite_sheet_name]
         sprite_index = (self.animation_count // self.ANIMATION_DELAY) % len(sprites)
@@ -194,17 +213,18 @@ class Player(pygame.sprite.Sprite):
         self.animation_count +=1
         if sprite_sheet == "hit" and self.animation_count == 3:
             self.hit = False
-        self.update_melee_attack()            
+
         self.update()
 
     def update(self):
+        if self.melee_active and (time.time() - self.melee_start_time > self.MELEE_DURATION):
+            self.melee_active = False       
+        if self.ranged_active and (time.time() - self.last_ranged_time > self.RANGED_DURATION):
+            self.ranged_active = False      
         self.rect = self.sprite.get_rect(topleft = (self.rect.x,self.rect.y))
         self.mask = pygame.mask.from_surface(self.sprite)
 
     def draw(self,window,offset_x):
-        if self.melee_active:
-            melee_hitbox = self.get_melee_hitbox()
-            pygame.draw.rect(window, (0, 255, 0), melee_hitbox, 2)
         window.blit(self.sprite,(self.rect.x - offset_x,self.rect.y))
         
 class Object(pygame.sprite.Sprite):
@@ -770,7 +790,29 @@ class Wrench(pygame.sprite.Sprite):
 
     def draw(self, screen, offset_x):
         screen.blit(self.image, (self.rect.x - offset_x, self.rect.y))
-        
+
+class Fireball(pygame.sprite.Sprite):
+    def __init__(self, initial_rect, direction, *groups):
+        super().__init__(*groups)
+        self.image = pygame.Surface((1000, 500)) 
+        self.image.fill((255, 100, 0)) 
+        self.rect = self.image.get_rect(center=initial_rect.center)
+
+        self.speed = 10
+        self.direction = direction
+
+        if self.direction == "RIGHT":
+            self.velocity = self.speed
+        else: 
+            self.velocity = -self.speed
+
+    def update(self):
+        self.rect.x += self.velocity
+        print(f"Fireball position: {self.rect.x}, {self.rect.y}")
+        if self.rect.right < 0 or self.rect.left > pygame.display.get_surface().get_width():
+            self.kill()    
+    def draw(self, screen, offset_x):
+        screen.blit(self.image, (self.rect.x - offset_x, self.rect.y))
 class Checkpoint(pygame.sprite.Sprite):
     ANIMATION_DELAY = 3
     
@@ -888,7 +930,7 @@ def collide(player,objects,dx,delta):
             if player.y_vel > 0.5:
                 player.wall_jump = True
                 player.y_vel *= 0.5
-                player.jump_count = 1
+                #player.jump_count=0
             if isinstance(obj, Block3) or isinstance(obj, Block4):
                 player.get_hit() 
             break
@@ -952,7 +994,6 @@ def handle_move(player,ranged_enemies_group,enemie_group,boss,checkpoint,objects
         return 
     keys = pygame.key.get_pressed()
     player.x_vel = 0
-    #por timer
     collide_left = collide(player,objects,-PLAYER_VEL * 2, delta)
     collide_right = collide(player,objects,PLAYER_VEL * 2, delta)
     
@@ -964,12 +1005,25 @@ def handle_move(player,ranged_enemies_group,enemie_group,boss,checkpoint,objects
     collide_boss(player,boss,PLAYER_VEL * 2, delta)
     collide_checkpoint(player,checkpoint)
         
-    if keys[pygame.K_p]:
-        player.melee_attack()
     if keys[pygame.K_a] and not collide_left:
         player.move_left(PLAYER_VEL)
+        player.melee_active = False
+        player.ranged_active = False
+
     if keys[pygame.K_d] and not collide_right:
         player.move_right(PLAYER_VEL)
+        player.melee_active = False
+        player.ranged_active = False
+    elif keys[pygame.K_p]:
+        if player.x_vel == 0 and player.y_vel == 0:
+            player.melee_attack()
+            player.ranged_active = False
+
+    elif keys[pygame.K_o]:
+        if player.x_vel == 0 and player.y_vel == 0:
+            player.ranged_attack()
+            player.melee_active = False
+
 
     #to_check = [*vertical_collide]
 def draw_bar(lives, coins, gems, heart_image, coin_image, gem_image):
@@ -1324,11 +1378,8 @@ def play(window):
         checkpoint.loop()
         
         handle_move(player,ranged_enemies_group,melee_enemies_group,firstBoss,checkpoint,objects,arrow_group, delta_time)
+        draw(window,background,bg_image,heart_image, coin_image,arrow_group, player,objects,checkpoint,coins,all_enemies_group,mercader,option1_mercader,option2_mercader,option3_mercader,offset_x)
 
-    
-        
-        draw(window,background,bg_image,heart_image, coin_image,gem_image,arrow_group, player,objects,checkpoint,coins,gems,all_enemies_group,mercader,option1_mercader,option2_mercader,option3_mercader,offset_x)
-           
             
         if pygame.sprite.spritecollideany(player, coins): 
             for _ in pygame.sprite.spritecollide(player, coins, True):
