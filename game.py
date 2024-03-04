@@ -333,69 +333,6 @@ class Block4(Object):
         super().__init__(x, y, size, size)
         block = resource_manager.get_block4(size)
         self.image.blit(block, (0, 0))
-        self.mask = pygame.mask.from_surface(self.image)
-
-class Block2(Object):
-    def __init__(self, x, y, size):
-        super().__init__(x, y, size, size)
-        block = resource_manager.get_block2(size)
-        self.image.blit(block, (0, 0))
-        self.mask = pygame.mask.from_surface(self.image)
-
-class Block3(Object):
-    def __init__(self, x, y, size):
-        super().__init__(x, y, size, size)
-        block = resource_manager.get_block3(size)
-        self.image.blit(block, (0, 0))
-        self.mask = pygame.mask.from_surface(self.image)   
-
-class Block4(Object):
-    def __init__(self, x, y, size):
-        super().__init__(x, y, size, size)
-        block = resource_manager.get_block4(size)
-        self.image.blit(block, (0, 0))
-        self.mask = pygame.mask.from_surface(self.image)
-
-class Block2(Object):
-    def __init__(self, x, y, size):
-        super().__init__(x, y, size, size)
-        block = resource_manager.get_block2(size)
-        self.image.blit(block, (0, 0))
-        self.mask = pygame.mask.from_surface(self.image)
-
-class Block3(Object):
-    def __init__(self, x, y, size):
-        super().__init__(x, y, size, size)
-        block = resource_manager.get_block3(size)
-        self.image.blit(block, (0, 0))
-        self.mask = pygame.mask.from_surface(self.image)   
-
-class Block4(Object):
-    def __init__(self, x, y, size):
-        super().__init__(x, y, size, size)
-        block = resource_manager.get_block4(size)
-        self.image.blit(block, (0, 0))
-        self.mask = pygame.mask.from_surface(self.image)
-
-class Block2(Object):
-    def __init__(self, x, y, size):
-        super().__init__(x, y, size, size)
-        block = resource_manager.get_block2(size)
-        self.image.blit(block, (0, 0))
-        self.mask = pygame.mask.from_surface(self.image)
-
-class Block3(Object):
-    def __init__(self, x, y, size):
-        super().__init__(x, y, size, size)
-        block = resource_manager.get_block3(size)
-        self.image.blit(block, (0, 0))
-        self.mask = pygame.mask.from_surface(self.image)   
-
-class Block4(Object):
-    def __init__(self, x, y, size):
-        super().__init__(x, y, size, size)
-        block = resource_manager.get_block4(size)
-        self.image.blit(block, (0, 0))
         self.mask = pygame.mask.from_surface(self.image) 
         
 class Platform(Object):
