@@ -1181,6 +1181,14 @@ def play(window):
     ]
     coins = pygame.sprite.Group(coins)  
 
+    gem_size = 40  
+    num_gems = 2
+    gems = [
+        Gem(random.randint(0, WIDTH - gem_size), random.randint(100, 650), gem_size)
+        for _ in range(num_gems)
+    ]
+    gems = pygame.sprite.Group(gems)  
+
  ############################################# NIVEL 2 - CUEVA ###############################################################   
     floor = [Block2(i*block2_size,HEIGHT - block2_size ,block2_size)for i in range(-WIDTH // block_size,WIDTH*14 // block_size)]
 
