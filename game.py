@@ -258,6 +258,27 @@ class Block(Object):
         block = resource_manager.get_block(size)
         self.image.blit(block, (0, 0))
         self.mask = pygame.mask.from_surface(self.image)
+
+class Block2(Object):
+    def __init__(self, x, y, size):
+        super().__init__(x, y, size, size)
+        block = resource_manager.get_block2(size)
+        self.image.blit(block, (0, 0))
+        self.mask = pygame.mask.from_surface(self.image)
+
+class Block3(Object):
+    def __init__(self, x, y, size):
+        super().__init__(x, y, size, size)
+        block = resource_manager.get_block3(size)
+        self.image.blit(block, (0, 0))
+        self.mask = pygame.mask.from_surface(self.image)   
+
+class Block4(Object):
+    def __init__(self, x, y, size):
+        super().__init__(x, y, size, size)
+        block = resource_manager.get_block4(size)
+        self.image.blit(block, (0, 0))
+        self.mask = pygame.mask.from_surface(self.image) 
         
 class Platform(Object):
     def __init__(self,x,y,size):
@@ -950,7 +971,10 @@ def play(window):
     mixer.music.play(-1)
 
     clock = pygame.time.Clock()
-    background,bg_image, heart_image, coin_image = resource_manager.get_background("Night.png")
+    ########################################## NIVEL 1 ##########################################
+    # background,bg_image, heart_image, coin_image = resource_manager.get_background("Night.png")
+    ########################################## NIVEL 2 ##########################################
+    background,bg_image, heart_image, coin_image = resource_manager.get_background("Cave2.png")
 
     lives = Lives()
     
@@ -983,63 +1007,71 @@ def play(window):
     ranged_enemies_group.add(rangedenemie2)
 
     block_size = 96
+    block2_size = 64 
+    block3_size = 64 
+    block4_size = 32 
+
     plat_size = 100
 
     offset_x = 0
     scroll_area_width = 400
     
     run = True
+   ############################################# NIVEL 1 - BOSQUE ############################################################### 
+   # floor = [Block(i*block_size,HEIGHT - block_size ,block_size)for i in range(-WIDTH // block_size,WIDTH*2 // block_size)]
+   # floor2 = [Block(i*block_size,HEIGHT - block_size ,block_size)for i in range(5 + WIDTH*2 // block_size,WIDTH*4 // block_size)]
+   # floor3 = [Block(i*block_size + 7200,HEIGHT - block_size ,block_size)for i in range(0,30)]
+
+   # column = [Block(block_size + 3000,HEIGHT - block_size - (100*i),block_size)for i in range(1,7)]
+   # column2 = [Block(block_size + 7100,HEIGHT - block_size - (100*i),block_size)for i in range(1,5)]
+   # column3 = [Block(block_size + 7200,HEIGHT - block_size - (100*i),block_size)for i in range(1,5)]
+   # column4 = [Block(block_size + 7300,HEIGHT - block_size - (100*i),block_size)for i in range(1,4)]
+   # column5 = [Block(block_size + 7400,HEIGHT - block_size - (100*i),block_size)for i in range(1,4)]
+   # column6 = [Block(block_size + 7500,HEIGHT - block_size - (100*i),block_size)for i in range(1,3)]
+   # column7 = [Block(block_size + 7600,HEIGHT - block_size - (100*i),block_size)for i in range(1,3)]
+   # column8 = [Block(block_size + 7700,HEIGHT - block_size - (100*i),block_size)for i in range(1,2)]
+   # column9 = [Block(block_size + 7800,HEIGHT - block_size - (100*i),block_size)for i in range(1,2)]
+   # column10 = [Block(block_size + 9000,HEIGHT - block_size - (100*i),block_size)for i in range(1,7)]
     
-    floor = [Block(i*block_size,HEIGHT - block_size ,block_size)for i in range(-WIDTH // block_size,WIDTH*2 // block_size)]
-    floor2 = [Block(i*block_size,HEIGHT - block_size ,block_size)for i in range(5 + WIDTH*2 // block_size,WIDTH*4 // block_size)]
-    floor3 = [Block(i*block_size + 7200,HEIGHT - block_size ,block_size)for i in range(0,30)]
 
-    column = [Block(block_size + 3000,HEIGHT - block_size - (100*i),block_size)for i in range(1,7)]
-    column2 = [Block(block_size + 7100,HEIGHT - block_size - (100*i),block_size)for i in range(1,5)]
-    column3 = [Block(block_size + 7200,HEIGHT - block_size - (100*i),block_size)for i in range(1,5)]
-    column4 = [Block(block_size + 7300,HEIGHT - block_size - (100*i),block_size)for i in range(1,4)]
-    column5 = [Block(block_size + 7400,HEIGHT - block_size - (100*i),block_size)for i in range(1,4)]
-    column6 = [Block(block_size + 7500,HEIGHT - block_size - (100*i),block_size)for i in range(1,3)]
-    column7 = [Block(block_size + 7600,HEIGHT - block_size - (100*i),block_size)for i in range(1,3)]
-    column8 = [Block(block_size + 7700,HEIGHT - block_size - (100*i),block_size)for i in range(1,2)]
-    column9 = [Block(block_size + 7800,HEIGHT - block_size - (100*i),block_size)for i in range(1,2)]
-    column10 = [Block(block_size + 9000,HEIGHT - block_size - (100*i),block_size)for i in range(1,7)]
-    
+  #  plat1 = [Platform(i*block_size + 800,HEIGHT - block_size - 125, plat_size)for i in range(0,4)]
+  #  plat2 = [Platform(i*block_size + 1300,HEIGHT - block_size - 300, plat_size)for i in range(0,2)]
+  #  plat3 = [Platform(4*i*block_size + 1600,HEIGHT - block_size - 500, plat_size)for i in range(0,2)]
+  #  plat4 = [Platform(2*i*block_size + 700,HEIGHT - block_size - 450, plat_size)for i in range(0,3)]
+  #  plat5 = [Platform(i*block_size + 400,HEIGHT - block_size - 625, plat_size)for i in range(0,1)]
+  #  plat6 = [Platform(i*block_size + 2050,HEIGHT - block_size - 150, plat_size)for i in range(0,2)]
 
-    plat1 = [Platform(i*block_size + 800,HEIGHT - block_size - 125, plat_size)for i in range(0,4)]
-    plat2 = [Platform(i*block_size + 1300,HEIGHT - block_size - 300, plat_size)for i in range(0,2)]
-    plat3 = [Platform(4*i*block_size + 1600,HEIGHT - block_size - 500, plat_size)for i in range(0,2)]
-    plat4 = [Platform(2*i*block_size + 700,HEIGHT - block_size - 450, plat_size)for i in range(0,3)]
-    plat5 = [Platform(i*block_size + 400,HEIGHT - block_size - 625, plat_size)for i in range(0,1)]
-    plat6 = [Platform(i*block_size + 2050,HEIGHT - block_size - 150, plat_size)for i in range(0,2)]
+  #  plat7 = [Platform(i*block_size + 2500,HEIGHT - block_size - 150 - (300*i), plat_size)for i in range(0,2)]
+  #  plat8 = [Platform(i*block_size + 2825,HEIGHT - block_size - 250 - (300*i), plat_size)for i in range(0,2)]
 
-    plat7 = [Platform(i*block_size + 2500,HEIGHT - block_size - 150 - (300*i), plat_size)for i in range(0,2)]
-    plat8 = [Platform(i*block_size + 2825,HEIGHT - block_size - 250 - (300*i), plat_size)for i in range(0,2)]
+  #  plat9 = [Platform(3*i*block_size + 3400,HEIGHT - block_size - 300 - (200*i), plat_size)for i in range(0,2)]
 
-    plat9 = [Platform(3*i*block_size + 3400,HEIGHT - block_size - 300 - (200*i), plat_size)for i in range(0,2)]
+  #  plat10 = [Platform(i*block_size + 4000,HEIGHT - block_size - 600, plat_size)for i in range(0,1)]
 
-    plat10 = [Platform(i*block_size + 4000,HEIGHT - block_size - 600, plat_size)for i in range(0,1)]
+  #  plat11 = [Platform(i*block_size + 4100,HEIGHT - block_size - 100, plat_size)for i in range(0,4)]
 
-    plat11 = [Platform(i*block_size + 4100,HEIGHT - block_size - 100, plat_size)for i in range(0,4)]
+  #  plat12 = [Platform(i*block_size + 4200,HEIGHT - block_size - 400, plat_size)for i in range(0,2)]
 
-    plat12 = [Platform(i*block_size + 4200,HEIGHT - block_size - 400, plat_size)for i in range(0,2)]
+  #  plat13 = [Platform(i*block_size + 4700,HEIGHT - block_size - 250, plat_size)for i in range(0,2)]
 
-    plat13 = [Platform(i*block_size + 4700,HEIGHT - block_size - 250, plat_size)for i in range(0,2)]
+  #  plat14 = [Platform(3*i*block_size + 5050,HEIGHT - block_size - (400 * i) - 100, plat_size)for i in range(0,3)]
 
-    plat14 = [Platform(3*i*block_size + 5050,HEIGHT - block_size - (400 * i) - 100, plat_size)for i in range(0,3)]
+  #  plat15 = [Platform(4*i*block_size + 5300,HEIGHT - block_size - (200 * i), plat_size)for i in range(0,5)]
+  #  plat16 = [Platform(4*i*block_size + 5400,HEIGHT - block_size - (200 * i), plat_size)for i in range(0,5)]
 
-    plat15 = [Platform(4*i*block_size + 5300,HEIGHT - block_size - (200 * i), plat_size)for i in range(0,5)]
-    plat16 = [Platform(4*i*block_size + 5400,HEIGHT - block_size - (200 * i), plat_size)for i in range(0,5)]
+  #  plat17 = [Platform(i*block_size + 6800,HEIGHT - block_size - 400, plat_size)for i in range(0,2)]
 
-    plat17 = [Platform(i*block_size + 6800,HEIGHT - block_size - 400, plat_size)for i in range(0,2)]
-
-    plat18 = [Platform(i*block_size + 6150,HEIGHT - block_size, plat_size)for i in range(0,1)]
-    plat19 = [Platform(i*block_size + 6600,HEIGHT - block_size ,plat_size)for i in range(0,1)]
+  #  plat18 = [Platform(i*block_size + 6150,HEIGHT - block_size, plat_size)for i in range(0,1)]
+  #  plat19 = [Platform(i*block_size + 6600,HEIGHT - block_size ,plat_size)for i in range(0,1)]
 
 
-    plat20 = [Platform(3*i*block_size + 5500,HEIGHT - block_size - 800 + (300 * i), plat_size)for i in range(0,2)]
+  #  plat20 = [Platform(3*i*block_size + 5500,HEIGHT - block_size - 800 + (300 * i), plat_size)for i in range(0,2)]
 
-    plat21 = [Platform(i*block_size + 5050,HEIGHT - block_size - 425, plat_size)for i in range(0,1)]
+  #  plat21 = [Platform(i*block_size + 5050,HEIGHT - block_size - 425, plat_size)for i in range(0,1)]
+
+  #  objects = [*floor,*floor2,*floor3,*column,*column2,*column3,*column4,*column5,*column6,*column7,*column8,*column9,*column10 ,*plat1,*plat2,*plat3,*plat4,*plat5,*plat6,*plat7,*plat8,*plat9,*plat10,*plat11,*plat12,*plat13,*plat14,*plat15,*plat16,*plat17,*plat18,*plat19,*plat20,*plat21]
+
+########################################### FIN NIVEL 1 #############################################################################################
 
     coin_size = 40  
     num_coins = 10
@@ -1049,7 +1081,89 @@ def play(window):
     ]
     coins = pygame.sprite.Group(coins)  
 
-    objects = [*floor,*floor2,*floor3,*column,*column2,*column3,*column4,*column5,*column6,*column7,*column8,*column9,*column10 ,*plat1,*plat2,*plat3,*plat4,*plat5,*plat6,*plat7,*plat8,*plat9,*plat10,*plat11,*plat12,*plat13,*plat14,*plat15,*plat16,*plat17,*plat18,*plat19,*plat20,*plat21]
+ ############################################# NIVEL 2 - CUEVA ###############################################################   
+    floor = [Block2(i*block2_size,HEIGHT - block2_size ,block2_size)for i in range(-WIDTH // block_size,WIDTH*14 // block_size)]
+
+    column = [Block2(block2_size + 600,HEIGHT - block2_size - (64*i),block2_size)for i in range(3,13)]
+    column2 = [Block2(block2_size + 1600,HEIGHT - block2_size - (64*i),block2_size)for i in range(1,10)]
+    column3 = [Block2(block2_size + 2240,HEIGHT - block2_size -  576 - (64*i),block2_size)for i in range(1,6)]
+    column4 = [Block2(block2_size + 1856,HEIGHT - block2_size -  384 +  (64*i),block2_size)for i in range(1,4)]
+    column5 = [Block2(block2_size + 3840,HEIGHT - block2_size -  832 +  (64*i),block2_size)for i in range(0,11)]
+    column6 = [Block2(block2_size + 4800,HEIGHT - block2_size -  832 +  (64*i),block2_size)for i in range(3,15)]
+    column7 = [Block2(block2_size + 7804,HEIGHT - block2_size -  832 +  (64*i),block2_size)for i in range(0,12)]
+    
+    spike1 = [Block3(i*block3_size,HEIGHT - block3_size - 128, block3_size)for i in range(1,10)]
+
+    mini_spike1 = [Block4(i*block4_size,HEIGHT - block4_size - 192, block4_size)for i in range(1,10)]
+
+    plat1 = [Block2(i*block2_size + 664,HEIGHT - block2_size - 320, block2_size)for i in range(1,10)]
+    plat2 = [Block2(i*block2_size + 960,HEIGHT - block2_size - 576, block2_size)for i in range(1,15)]
+    plat5 = [Block2(i*block2_size + 960,HEIGHT - block2_size - 576, block2_size)for i in range(17,30)]
+    plat3 = [Block2(i*block2_size + 1344,HEIGHT - block2_size - 196, block2_size)for i in range(1,7)]
+    plat4 = [Block2(i*block2_size + 832,HEIGHT - block2_size - 512, block2_size)for i in range(1,17)]
+
+    plat6 = [Block2(i*block2_size + 1920,HEIGHT - block2_size - 384 + (64*i), block2_size)for i in range(1,7)]
+    plat7 = [Block2(i*block2_size + 1856,HEIGHT - block2_size - 384 + (64*i), block2_size)for i in range(1,7)]
+    plat8 = [Block2(i*block2_size + 1856,HEIGHT - block2_size - 128, block2_size)for i in range(1,5)]
+    
+    plat9 = [Block2(i*block2_size + 2880,HEIGHT - block2_size - 320, block2_size)for i in range(1,14)]
+    plat10 = [Block2(i*block2_size + 2944,HEIGHT - block2_size - 320 - (64*i), block2_size)for i in range(0,7)]
+    plat11 = [Block2(i*block2_size + 3008,HEIGHT - block2_size - 128, block2_size)for i in range(0,7)]
+    plat12 = [Block2(i*block2_size + 3008,HEIGHT - block2_size - 192, block2_size)for i in range(0,7)]
+    plat13 = [Block2(i*block2_size + 3008,HEIGHT - block2_size - 256, block2_size)for i in range(0,7)]
+
+    plat14 = [Block2(block2_size + 3328,HEIGHT - block2_size - 256 + (64*i), block2_size)for i in range(0,2)]
+    plat14 = [Block2(block2_size + 3392,HEIGHT - block2_size - 256 + (64*i), block2_size)for i in range(0,2)]
+    plat15 = [Block2(block2_size + 3584,HEIGHT - block2_size - 64 - (64*i), block2_size)for i in range(0,2)]
+    plat16 = [Block2(block2_size + 3648,HEIGHT - block2_size - 64 - (64*i), block2_size)for i in range(0,2)]
+
+    plat17 = [Block2(i*block2_size + 3904,HEIGHT - block2_size - 192 , block2_size)for i in range(1,6)]
+    plat18 = [Block2(i*block2_size + 3904,HEIGHT - block2_size - 192 , block2_size)for i in range(10,15)]
+
+    plat19 = [Block2(i*block2_size + 3904,HEIGHT - block2_size - 448 , block2_size)for i in range(1,5)]
+    plat20 = [Block2(i*block2_size + 3904,HEIGHT - block2_size - 448 , block2_size)for i in range(11,15)]
+    plat25 = [Block2(i*block2_size + 3904,HEIGHT - block2_size - 512 , block2_size)for i in range(11,15)]
+    plat26 = [Block2(i*block2_size + 3904,HEIGHT - block2_size - 576 , block2_size)for i in range(11,15)]
+
+    plat21 = [Block2(i*block2_size + 3904,HEIGHT - block2_size - 640 , block2_size)for i in range(1,4)]
+    plat22 = [Block2(i*block2_size + 3904,HEIGHT - block2_size - 640 , block2_size)for i in range(11,15)]
+
+    plat23 = [Block2(i*block2_size + 3904,HEIGHT - block2_size - 320 , block2_size)for i in range(7,9)]
+    plat24 = [Block2(i*block2_size + 3904,HEIGHT - block2_size - 576 , block2_size)for i in range(7,9)]
+
+    plat27 = [Block2(i*block2_size + 4992,HEIGHT - block2_size - 384 + (64*i) , block2_size)for i in range(1,4)]
+    plat31 = [Block2(i*block2_size + 5312,HEIGHT - block2_size - 256 + (64*i) , block2_size)for i in range(1,4)]
+    plat32 = [Block2(i*block2_size + 5632,HEIGHT - block2_size - 384 + (64*i) , block2_size)for i in range(1,4)]
+    
+    plat28 = [Block2(i*block2_size + 4992,HEIGHT - block2_size - 512 - (64*i) , block2_size)for i in range(1,4)]
+    plat29 = [Block2(i*block2_size + 5312,HEIGHT - block2_size - 384 - (64*i) , block2_size)for i in range(1,4)]
+    plat30 = [Block2(i*block2_size + 5694,HEIGHT - block2_size - 512 - (64*i) , block2_size)for i in range(1,4)]
+
+    plat33 = [Block2(i*block2_size + 6016,HEIGHT - block2_size - 832 + (64*i) , block2_size)for i in range(1,6)]
+    plat34 = [Block2(i*block2_size + 6016,HEIGHT - block2_size -  (64*i) , block2_size)for i in range(1,6)]
+
+    plat35 = [Block2(i*block2_size + 6400,HEIGHT - block2_size -  320 , block2_size)for i in range(0,21)]
+    plat36 = [Block2(i*block2_size + 6400,HEIGHT - block2_size -  512 , block2_size)for i in range(0,23)]
+
+    plat39 = [Block2(i*block2_size + 6400,HEIGHT - block2_size -  128 , block2_size)for i in range(0,23)]
+    
+
+    plat37 = [Block2(i*block2_size + 6400,HEIGHT - block2_size -  384 , block2_size)for i in range(5,7)]
+    plat38 = [Block2(i*block2_size + 6400,HEIGHT - block2_size -  448 , block2_size)for i in range(14,16)]
+
+    
+    
+    
+
+
+    objects = [*mini_spike1,*spike1,*floor,*column,*column2,*column3,*column4,*column5,*column6,*column7,*plat1,*plat2,*plat3,*plat4,*plat5,*plat6,*plat7,*plat8,*plat9,*plat10,*plat11,*plat12,*plat13,*plat14,*plat15,*plat16,*plat17,*plat18,*plat19,*plat20,*plat21,*plat22,*plat23,*plat24,*plat25,*plat26,*plat27,*plat28,*plat29,*plat30,*plat31,*plat32,*plat33,*plat34,*plat35,*plat36,*plat37,*plat38,*plat39]
+
+
+
+
+
+
+
 
     while run: 
 

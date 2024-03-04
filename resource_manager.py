@@ -61,6 +61,39 @@ def get_block(size):
 
     return pygame.transform.scale2x(surface)
 
+def get_block2(size):
+    #path = join("assets","Terrain","Terrain.png")
+    path = join("assets","Cave_build.png")
+    image = pygame.image.load(path).convert_alpha()
+    surface = pygame.Surface((size,size),pygame.SRCALPHA,32)
+    rect = pygame.Rect(336,367,size,size)
+    surface.blit(image,(0,0),rect)
+
+    return pygame.transform.scale2x(surface)
+
+def get_block3(size):
+    #path = join("assets","Terrain","Terrain.png")
+    path = join("assets","Spike.png")
+    image = pygame.image.load(path).convert_alpha()
+    surface = pygame.Surface((size,size),pygame.SRCALPHA,32)
+    rect = pygame.Rect(0,0,size,size)
+    surface.blit(image,(0,0),rect)
+    scaled = pygame.transform.scale2x(surface)
+    return pygame.transform.scale2x(scaled)
+
+def get_block4(size):
+    #path = join("assets","Terrain","Terrain.png")
+    path = join("assets","Spike.png")
+    image = pygame.image.load(path).convert_alpha()
+    surface = pygame.Surface((size,size),pygame.SRCALPHA,32)
+    rect = pygame.Rect(0,0,size,size)
+    surface.blit(image,(0,0),rect)
+    return pygame.transform.scale2x(surface)
+
+    
+
+
+
 def get_platform(size):
     #path = join("assets","Terrain","Terrain.png")
     path = join("assets","LV1_Build.png")
