@@ -47,6 +47,7 @@ class Player(pygame.sprite.Sprite):
         self.fall_count = 0
         self.jump_count = 1
         self.coins = 0
+        self.gems = 0
         self.lives = lives
         self._last_called = 0
         self.hit = False
@@ -117,6 +118,11 @@ class Player(pygame.sprite.Sprite):
         self.coins += 1 
         coin_sound = mixer.Sound(resource_manager.get_sound("coin"))
         coin_sound.play()
+
+    def collect_gem(self):
+        self.gems += 1 
+        gem_sound = mixer.Sound(resource_manager.get_sound("coin"))
+        gem_sound.play()    
 
     def melee_attack(self):
         current_time = time.time()
@@ -252,10 +258,96 @@ class Coin(pygame.sprite.Sprite):
     def draw(self,window,offset_x):
         window.blit(self.image,(self.rect.x - offset_x,self.rect.y))
 
+
+class Gem(pygame.sprite.Sprite):
+    def __init__(self, x, y, size):
+        super().__init__()
+        self.images = [pygame.transform.scale(pygame.image.load(f'assets/Collectibles/gem{i}.png'), (size, size)) for i in range(8)]
+        self.index = 0
+        self.image = self.images[self.index]
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.frame_count = 0 
+
+    def update(self):
+        self.frame_count += 1 
+        if self.frame_count >= 5:
+            self.frame_count = 0
+            self.index = (self.index + 1) % len(self.images)
+            self.image = self.images[self.index]
+
+    def draw(self,window,offset_x):
+        window.blit(self.image,(self.rect.x - offset_x,self.rect.y))
+
+
 class Block(Object):
     def __init__(self, x, y, size):
         super().__init__(x, y, size, size)
         block = resource_manager.get_block(size)
+        self.image.blit(block, (0, 0))
+        self.mask = pygame.mask.from_surface(self.image)
+
+class Block2(Object):
+    def __init__(self, x, y, size):
+        super().__init__(x, y, size, size)
+        block = resource_manager.get_block2(size)
+        self.image.blit(block, (0, 0))
+        self.mask = pygame.mask.from_surface(self.image)
+
+class Block3(Object):
+    def __init__(self, x, y, size):
+        super().__init__(x, y, size, size)
+        block = resource_manager.get_block3(size)
+        self.image.blit(block, (0, 0))
+        self.mask = pygame.mask.from_surface(self.image)   
+
+class Block4(Object):
+    def __init__(self, x, y, size):
+        super().__init__(x, y, size, size)
+        block = resource_manager.get_block4(size)
+        self.image.blit(block, (0, 0))
+        self.mask = pygame.mask.from_surface(self.image)
+
+class Block2(Object):
+    def __init__(self, x, y, size):
+        super().__init__(x, y, size, size)
+        block = resource_manager.get_block2(size)
+        self.image.blit(block, (0, 0))
+        self.mask = pygame.mask.from_surface(self.image)
+
+class Block3(Object):
+    def __init__(self, x, y, size):
+        super().__init__(x, y, size, size)
+        block = resource_manager.get_block3(size)
+        self.image.blit(block, (0, 0))
+        self.mask = pygame.mask.from_surface(self.image)   
+
+class Block4(Object):
+    def __init__(self, x, y, size):
+        super().__init__(x, y, size, size)
+        block = resource_manager.get_block4(size)
+        self.image.blit(block, (0, 0))
+        self.mask = pygame.mask.from_surface(self.image)
+
+class Block2(Object):
+    def __init__(self, x, y, size):
+        super().__init__(x, y, size, size)
+        block = resource_manager.get_block2(size)
+        self.image.blit(block, (0, 0))
+        self.mask = pygame.mask.from_surface(self.image)
+
+class Block3(Object):
+    def __init__(self, x, y, size):
+        super().__init__(x, y, size, size)
+        block = resource_manager.get_block3(size)
+        self.image.blit(block, (0, 0))
+        self.mask = pygame.mask.from_surface(self.image)   
+
+class Block4(Object):
+    def __init__(self, x, y, size):
+        super().__init__(x, y, size, size)
+        block = resource_manager.get_block4(size)
         self.image.blit(block, (0, 0))
         self.mask = pygame.mask.from_surface(self.image)
 
@@ -732,7 +824,7 @@ class Checkpoint(pygame.sprite.Sprite):
         window.blit(self.sprite,(self.rect.x - offset_x,self.rect.y))
 
 
-def draw(window,background,bg_image,heart_image, coin_image,arrow_group, player,objects,checkpoint,coins,all_enemies_group,mercader,opt1,opt2,opt3,offset_x):
+def draw(window,background,bg_image,heart_image, coin_image,gem_image,arrow_group, player,objects,checkpoint,coins,gems,all_enemies_group,mercader,opt1,opt2,opt3,offset_x):
     for tile in background:
         window.blit(bg_image,tile)
         
@@ -751,10 +843,14 @@ def draw(window,background,bg_image,heart_image, coin_image,arrow_group, player,
     
     checkpoint.draw(window,offset_x)
 
-    draw_bar(player.lives.lives, player.coins, heart_image, coin_image)
+    draw_bar(player.lives.lives, player.coins, player.gems, heart_image, coin_image, gem_image)
     for coin in coins:
         coin.update()
         coin.draw(window, offset_x)
+
+    for gem in gems:
+        gem.update()
+        gem.draw(window, offset_x)    
         
     pygame.display.update()
     
@@ -868,13 +964,17 @@ def handle_move(player,ranged_enemies_group,enemie_group,boss,checkpoint,objects
         player.move_right(PLAYER_VEL)
 
     #to_check = [*vertical_collide]
-def draw_bar(lives, coins, heart_image, coin_image):
+def draw_bar(lives, coins, gems, heart_image, coin_image, gem_image):
     for i in range(lives):
         SCREEN.blit(heart_image, (50 + i * 35, 45))
-    SCREEN.blit(coin_image, (50, 90)) 
 
+    SCREEN.blit(coin_image, (50, 90)) 
     coins_text = resource_manager.get_font(20).render(str(coins), True, (0, 0, 0))
     SCREEN.blit(coins_text, (86, 93)) 
+
+    SCREEN.blit(gem_image, (130, 90)) 
+    gem_text = resource_manager.get_font(20).render(str(gems), True, (0, 0, 0))
+    SCREEN.blit(gem_text, (166, 93)) 
 
 def negociation1(player):
     if player.coins >= 10 and player.lives.lives < 3 :
@@ -972,9 +1072,9 @@ def play(window):
 
     clock = pygame.time.Clock()
     ########################################## NIVEL 1 ##########################################
-    # background,bg_image, heart_image, coin_image = resource_manager.get_background("Night.png")
+    # background,bg_image, heart_image, coin_image, gem_image = resource_manager.get_background("Night.png")
     ########################################## NIVEL 2 ##########################################
-    background,bg_image, heart_image, coin_image = resource_manager.get_background("Cave2.png")
+    background,bg_image, heart_image, coin_image, gem_image = resource_manager.get_background("Cave2.png")
 
     lives = Lives()
     
@@ -1208,12 +1308,16 @@ def play(window):
         checkpoint.loop()
         
         handle_move(player,ranged_enemies_group,melee_enemies_group,firstBoss,checkpoint,objects,arrow_group, delta_time)
-        draw(window,background,bg_image,heart_image, coin_image,arrow_group, player,objects,checkpoint,coins,all_enemies_group,mercader,option1_mercader,option2_mercader,option3_mercader,offset_x)
+        draw(window,background,bg_image,heart_image, coin_image,gem_image,arrow_group, player,objects,checkpoint,coins,gems,all_enemies_group,mercader,option1_mercader,option2_mercader,option3_mercader,offset_x)
            
             
         if pygame.sprite.spritecollideany(player, coins): 
             for _ in pygame.sprite.spritecollide(player, coins, True):
                 player.collect_coin() 
+
+        if pygame.sprite.spritecollideany(player, gems): 
+            for _ in pygame.sprite.spritecollide(player, gems, True):
+                player.collect_gem()         
 
         if((player.rect.right - offset_x >= WIDTH - scroll_area_width) and player.x_vel > 0) or (
             (player.rect.left - offset_x <= scroll_area_width) and player.x_vel < 0):

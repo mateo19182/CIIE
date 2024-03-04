@@ -18,10 +18,11 @@ def get_background(name):
         for j in range(HEIGHT // height+1):
             pos = (i*width,j*height)
             tiles.append(pos)
-    coin = pygame.image.load("assets/Collectibles/heart.png")
-    heart = pygame.image.load("assets/Collectibles/coin_0.png")
+    heart = pygame.image.load("assets/Collectibles/heart.png")
+    coin = pygame.image.load("assets/Collectibles/coin_0.png")
+    gem = pygame.image.load("assets/Collectibles/gem0.png")
 
-    return tiles,image, coin, heart
+    return tiles,image, heart, coin, gem
 
 def flip(sprites):
     return[pygame.transform.flip(sprite,True,False) for sprite in sprites]
