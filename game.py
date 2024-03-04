@@ -140,6 +140,12 @@ class Player(pygame.sprite.Sprite):
         melee_hitbox = pygame.Rect(self.rect.x + offset_x, self.rect.y, *melee_hitbox_size)
         #melee_hitbox.x -= self.x_vel
         return melee_hitbox
+    
+    def handle_spike_collision(self, spikes):
+        for spike in spikes:
+            if spike.check_collision(self):
+                self.get_hit()
+
     def die(self,check_x,check_y):
         self.update_sprite()
         self.x_vel = 0
@@ -883,6 +889,8 @@ def collide(player,objects,dx,delta):
                 player.wall_jump = True
                 player.y_vel *= 0.5
                 player.jump_count = 1
+            if isinstance(obj, Block3) or isinstance(obj, Block4):
+                player.get_hit() 
             break
 
     player.move(-dx,0, delta)
@@ -1266,7 +1274,7 @@ def play(window):
 
     objects = [*mini_spike1,*spike1,*floor,*column,*column2,*column3,*column4,*column5,*column6,*column7,*plat1,*plat2,*plat3,*plat4,*plat5,*plat6,*plat7,*plat8,*plat9,*plat10,*plat11,*plat12,*plat13,*plat14,*plat15,*plat16,*plat17,*plat18,*plat19,*plat20,*plat21,*plat22,*plat23,*plat24,*plat25,*plat26,*plat27,*plat28,*plat29,*plat30,*plat31,*plat32,*plat33,*plat34,*plat35,*plat36,*plat37,*plat38,*plat39]
 
-
+    
 
 
 
@@ -1316,6 +1324,9 @@ def play(window):
         checkpoint.loop()
         
         handle_move(player,ranged_enemies_group,melee_enemies_group,firstBoss,checkpoint,objects,arrow_group, delta_time)
+
+    
+        
         draw(window,background,bg_image,heart_image, coin_image,gem_image,arrow_group, player,objects,checkpoint,coins,gems,all_enemies_group,mercader,option1_mercader,option2_mercader,option3_mercader,offset_x)
            
             
