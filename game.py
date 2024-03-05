@@ -1309,7 +1309,7 @@ def play(window):
         checkpoint.loop()
         
         handle_move(player,ranged_enemies_group,melee_enemies_group,firstBoss,checkpoint,objects,arrow_group, delta_time)
-        draw(window,background,bg_image,heart_image, coin_image,arrow_group, player,objects,checkpoint,coins,all_enemies_group,mercader,option1_mercader,option2_mercader,option3_mercader,offset_x)
+        draw(window,background,bg_image,heart_image, coin_image, gem_image,arrow_group, player,objects,checkpoint,coins,gems,all_enemies_group,mercader,option1_mercader,option2_mercader,option3_mercader,offset_x)
 
             
         if pygame.sprite.spritecollideany(player, coins): 
