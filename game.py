@@ -38,7 +38,7 @@ class Player(pygame.sprite.Sprite):
     MELEE_DURATION = 0.2
     RANGED_DURATION = 0.4
 
-    def __init__(self,x,y,width,height, lives):
+    def __init__(self,x,y,width,height, lives,projectiles):
         self.rect = pygame.Rect(x,y,width,height)
         self.x_vel = 0
         self.y_vel = 0
@@ -55,9 +55,10 @@ class Player(pygame.sprite.Sprite):
         self.last_melee_time = 0
         self.melee_active = False
         self.melee_start_time = 0
-        self.projectiles = pygame.sprite.Group() 
+        self.projectiles = projectiles
         self.ranged_active = False
         self.last_ranged_time = 0
+        self.frame_count = 0
 
     def jump(self):
         self.y_vel = -self.GRAVITY / 3
@@ -95,9 +96,11 @@ class Player(pygame.sprite.Sprite):
         self.y_vel += min(30, (self.fall_count * delta * self.GRAVITY))
         self.move(self.x_vel,self.y_vel, delta)
         self.fall_count += 1
+        
+        for projectile in self.projectiles:
+            projectile.update()
+        
         self.update_sprite()
-        self.projectiles.update()
-        self.projectiles.draw(window)
         self.check_attack(enemies)
 
     def landed(self):
@@ -150,12 +153,14 @@ class Player(pygame.sprite.Sprite):
     def ranged_attack(self):
         current_time = time.time()
         if current_time - self.last_ranged_time >= self.MELEE_COOLDOWN:
-            projectile = Fireball(self.rect, self.direction)
-            self.projectiles.add(projectile)
             self.last_ranged_time = current_time
             self.animation_count = 0
             self.ranged_active = True
             self.update_sprite()
+            
+        if self.frame_count == 21:
+            projectile = Fireball(self.rect, self.direction)
+            self.projectiles.add(projectile)
 
     def die(self,check_x,check_y):
         self.update_sprite()
@@ -198,15 +203,22 @@ class Player(pygame.sprite.Sprite):
             sprite_sheet = "melee"
         elif self.ranged_active:
             sprite_sheet = "ranged"
+            
         sprite_sheet_name = sprite_sheet + "_" + self.direction
         sprites = self.SPRITES[sprite_sheet_name]
         sprite_index = (self.animation_count // self.ANIMATION_DELAY) % len(sprites)
+        
         if sprite_sheet == "die": 
             sprite_index = len(sprites) - 1        
         self.sprite = sprites[sprite_index]
         self.animation_count +=1
         if sprite_sheet == "hit" and self.animation_count == 3:
             self.hit = False
+            
+        if(sprite_index == 0):
+            self.frame_count = 0
+            
+        self.frame_count += 1
 
         self.update()
 
@@ -725,25 +737,27 @@ class Wrench(pygame.sprite.Sprite):
 class Fireball(pygame.sprite.Sprite):
     def __init__(self, initial_rect, direction, *groups):
         super().__init__(*groups)
-        self.image = pygame.Surface((1000, 500)) 
-        self.image.fill((255, 100, 0)) 
+        self.image = pygame.image.load("assets/Items/Fireball/fireball.png")
+        self.image = pygame.transform.scale(self.image, (32 * 2, 32 * 2))
         self.rect = self.image.get_rect(center=initial_rect.center)
 
         self.speed = 10
         self.direction = direction
-
-        if self.direction == "RIGHT":
+                
+        if self.direction == "right":
             self.velocity = self.speed
         else: 
+            self.image = pygame.transform.flip(self.image, True, False)
             self.velocity = -self.speed
 
     def update(self):
         self.rect.x += self.velocity
-        print(f"Fireball position: {self.rect.x}, {self.rect.y}")
-        if self.rect.right < 0 or self.rect.left > pygame.display.get_surface().get_width():
-            self.kill()    
+        # if self.rect.right < 0 or self.rect.left > pygame.display.get_surface().get_width():
+        #     self.kill()    
+        
     def draw(self, screen, offset_x):
         screen.blit(self.image, (self.rect.x - offset_x, self.rect.y))
+        
 class Checkpoint(pygame.sprite.Sprite):
     ANIMATION_DELAY = 3
     
@@ -803,7 +817,7 @@ class Checkpoint(pygame.sprite.Sprite):
         window.blit(self.sprite,(self.rect.x - offset_x,self.rect.y))
 
 
-def draw(window,background,bg_image,heart_image, coin_image,gem_image,arrow_group, player,objects,checkpoint,coins,gems,all_enemies_group,mercader,opt1,opt2,opt3,offset_x):
+def draw(window,background,bg_image,heart_image, coin_image,gem_image,arrow_group,fireball_group, player,objects,checkpoint,coins,gems,all_enemies_group,mercader,opt1,opt2,opt3,offset_x):
     for tile in background:
         window.blit(bg_image,tile)
         
@@ -817,6 +831,12 @@ def draw(window,background,bg_image,heart_image, coin_image,gem_image,arrow_grou
         
     for arrow in arrow_group:
         arrow.draw(window,offset_x)
+        
+    for fireball in fireball_group:
+        fireball.draw(window,offset_x)
+        
+        
+    
         
     mercader.draw(window,offset_x,opt1,opt2,opt3)
     
@@ -1075,8 +1095,9 @@ def play(window):
     melee_enemies_group = pygame.sprite.Group()
     ranged_enemies_group = pygame.sprite.Group()
     arrow_group = pygame.sprite.Group()
+    fireball_group = pygame.sprite.Group()
     
-    player = Player(400,400,50,50, lives)
+    player = Player(400,400,50,50, lives,fireball_group)
     rangedenemie1 = RangedEnemies(900,500,100,100,30,arrow_group,"GnomeTinkerer")
     rangedenemie2 = RangedEnemies(6135,230,100,100,4,arrow_group,"HalflingRanger")
     meleeEnemie1 = MeleeEnemie(800,625,100,100,"HalflingRogue")
@@ -1308,8 +1329,8 @@ def play(window):
         mercader.loop(player,offset_x)
         checkpoint.loop()
         
-        handle_move(player,ranged_enemies_group,melee_enemies_group,firstBoss,checkpoint,objects,arrow_group, delta_time)
-        draw(window,background,bg_image,heart_image, coin_image, gem_image,arrow_group, player,objects,checkpoint,coins,gems,all_enemies_group,mercader,option1_mercader,option2_mercader,option3_mercader,offset_x)
+        handle_move(player,ranged_enemies_group,melee_enemies_group,firstBoss,checkpoint,objects,arrow_group,delta_time)
+        draw(window,background,bg_image,heart_image, coin_image, gem_image,arrow_group,fireball_group,player,objects,checkpoint,coins,gems,all_enemies_group,mercader,option1_mercader,option2_mercader,option3_mercader,offset_x)
 
             
         if pygame.sprite.spritecollideany(player, coins): 
