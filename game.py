@@ -915,14 +915,19 @@ def collide_checkpoint(player,checkpoint):
         if not checkpoint.activate_idle:
             checkpoint.activated = True
             
-def collide_fireball(fireball_group, objects):
+def collide_fireball(fireball_group,enemies_group,objects):
     for fireball in fireball_group:
+        for enemy in enemies_group:
+            if pygame.sprite.collide_mask(fireball,enemy):
+                enemy.take_damage()
+                enemy.is_alive = False        
+                
         for obj in objects:
             if pygame.sprite.collide_mask(fireball,obj):
                 fireball.kill()
                 fireball.update()
     
-def handle_move(player,ranged_enemies_group,enemie_group,boss,checkpoint,objects,arrow_group,fireball_group,delta):
+def handle_move(player,enemies_group,boss,checkpoint,objects,arrow_group,fireball_group,delta):
     vertical_collide = handle_vertical_colission(player,objects,player.y_vel)
     if player.lives.lives <= 0:
         player.die(checkpoint.x,checkpoint.y + 65)
@@ -935,7 +940,7 @@ def handle_move(player,ranged_enemies_group,enemie_group,boss,checkpoint,objects
     collide_arrow(player,arrow_group,objects)
     collide_boss(player,boss,PLAYER_VEL * 2, delta)
     collide_checkpoint(player,checkpoint)
-    collide_fireball(fireball_group,objects)
+    collide_fireball(fireball_group,enemies_group,objects)
         
     if keys[pygame.K_a] and not collide_left:
         player.move_left(PLAYER_VEL)
@@ -1077,8 +1082,6 @@ def play(window):
     lives = Lives()
     
     all_enemies_group = pygame.sprite.Group()
-    melee_enemies_group = pygame.sprite.Group()
-    ranged_enemies_group = pygame.sprite.Group()
     arrow_group = pygame.sprite.Group()
     fireball_group = pygame.sprite.Group()
     
@@ -1097,13 +1100,7 @@ def play(window):
     all_enemies_group.add(meleeEnemie3)
     all_enemies_group.add(rangedenemie1)
     all_enemies_group.add(rangedenemie2)
-    all_enemies_group.add(firstBoss)   
-    melee_enemies_group.add(meleeEnemie1)
-    melee_enemies_group.add(meleeEnemie2)
-    melee_enemies_group.add(meleeEnemie3)
-    
-    ranged_enemies_group.add(rangedenemie1)
-    ranged_enemies_group.add(rangedenemie2)
+    all_enemies_group.add(firstBoss)
 
     block_size = 96
     block2_size = 64 
@@ -1314,7 +1311,7 @@ def play(window):
         mercader.loop(player,offset_x)
         checkpoint.loop()
         
-        handle_move(player,ranged_enemies_group,melee_enemies_group,firstBoss,checkpoint,objects,arrow_group,fireball_group,delta_time)
+        handle_move(player,all_enemies_group,firstBoss,checkpoint,objects,arrow_group,fireball_group,delta_time)
         draw(window,background,bg_image,heart_image, coin_image, gem_image,arrow_group,fireball_group,player,objects,checkpoint,coins,gems,all_enemies_group,mercader,option1_mercader,option2_mercader,option3_mercader,offset_x)
 
             
