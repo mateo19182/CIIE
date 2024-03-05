@@ -8,7 +8,7 @@ import resource_manager
 from os import listdir
 from os.path import isfile, join
 from button import Button
-from partida import Partida
+from partida import Partida, Volume
 from pygame import mixer
 
 
@@ -61,7 +61,7 @@ class Player(pygame.sprite.Sprite):
         self.frame_count = 0
         self.dead = False
 
-    def jump(self):
+    def jump(self,volume):
         self.y_vel = -self.GRAVITY / 3
             
         self.animation_count = 0
@@ -71,7 +71,8 @@ class Player(pygame.sprite.Sprite):
             self.fall_count = 0
 
         jump_sound = mixer.Sound(resource_manager.get_sound("jump"))
-        jump_sound.play()    
+        jump_sound.play() 
+        jump_sound.set_volume(volume)   
 
     def move(self,dx,dy, delta, window, partida, volume):
         self.rect.x += dx  * delta
@@ -109,7 +110,7 @@ class Player(pygame.sprite.Sprite):
         self.y_vel = 0
         self.jump_count = 0
 
-    def get_hit(self):
+    def get_hit(self, volume):
         current_time = time.time()
         if current_time - self._last_called < 1:
             return
@@ -120,19 +121,22 @@ class Player(pygame.sprite.Sprite):
         self.animation_count = 0
         hit_sound = mixer.Sound(resource_manager.get_sound("hit"))
         hit_sound.play()
+        hit_sound.set_volume(volume)
 
     def hit_head(self):
         self.y_vel = 0
         
-    def collect_coin(self):
+    def collect_coin(self,volume):
         self.coins += 1 
         coin_sound = mixer.Sound(resource_manager.get_sound("coin"))
         coin_sound.play()
+        coin_sound.set_volume(volume)
 
-    def collect_gem(self):
+    def collect_gem(self,volume):
         self.gems += 1 
         gem_sound = mixer.Sound(resource_manager.get_sound("coin"))
-        gem_sound.play()    
+        gem_sound.play() 
+        gem_sound.set_volume(volume)   
 
     def melee_attack(self):
         current_time = time.time()
@@ -172,6 +176,7 @@ class Player(pygame.sprite.Sprite):
             death_sound = mixer.Sound(resource_manager.get_sound("death"))
             mixer.music.stop()
             death_sound.play()
+            death_sound.set_volume(volume.sounds_volume)
             death_menu(window, partida, volume)
         
     def check_attack(self, enemies):
@@ -372,13 +377,13 @@ class RangedEnemies(pygame.sprite.Sprite):
         self.is_alive = True
         self.delay = delay
 
-    def loop(self,player):
+    def loop(self,player,volume):
             self.frame_count += 1
             if self.is_alive:
                 if self.should_shoot(player):
                     self.shoot = True
                     if self.frame_count == self.ARROW_FRAME:
-                        self.shoot_arrow()
+                        self.shoot_arrow(volume.sounds_volume)
 
                 for arrow in self.arrows:
                     arrow.update()
@@ -396,7 +401,7 @@ class RangedEnemies(pygame.sprite.Sprite):
         self.kill()
         self.update_sprite(self)
 
-    def shoot_arrow(self):
+    def shoot_arrow(self,volume):
         if self.sprite_sheet_name == "GnomeTinkerer":
             arrow = Wrench(self.rect,self.orientation)
         else:
@@ -404,6 +409,7 @@ class RangedEnemies(pygame.sprite.Sprite):
         self.arrows.add(arrow)
         arrow_sound = mixer.Sound(resource_manager.get_sound("arrow"))
         arrow_sound.play()
+        arrow_sound.set_volume(volume)
 
     def update_sprite(self,player):
         
@@ -464,7 +470,7 @@ class MeleeEnemie(pygame.sprite.Sprite):
         self.is_alive = True
         self.sprite_sheet_name = sprite_sheet_name
         
-    def loop(self,player):
+    def loop(self,player,volume):
         self.frame_count += 1
         
         dx = player.rect.x - self.rect.x
@@ -549,7 +555,7 @@ class Boss(pygame.sprite.Sprite):
         self.is_alive = True
         self.last_damage_time = 0
         
-    def loop(self,player):
+    def loop(self,player,volume):
         self.frame_count += 1
         
         self.die()
@@ -880,7 +886,7 @@ def collide(player,objects,dx,delta, window, partida, volume):
                 player.y_vel *= 0.5
                 #player.jump_count=0
             if isinstance(obj, Block3) or isinstance(obj, Block4):
-                player.get_hit() 
+                player.get_hit(volume.sounds_volume) 
             break
 
     player.move(-dx,0, delta, window, partida, volume)
@@ -892,16 +898,16 @@ def collide(player,objects,dx,delta, window, partida, volume):
 def collide_boss(player,boss,dx, delta, window, partida, volume):
     if(pygame.sprite.collide_mask(player,boss)):
         if boss.is_alive:
-            player.get_hit()
+            player.get_hit(volume.sounds_volume)
             player.move(-dx,0, delta, window, partida, volume)
     
     player.update()
 
-def collide_arrow(player,arrows,objects):
+def collide_arrow(player,arrows,objects,volume):
     for arrow in arrows:
         if pygame.sprite.collide_mask(player,arrow):
             arrow.kill()
-            player.get_hit()
+            player.get_hit(volume.sounds_volume)
             
         for obj in objects:
             if pygame.sprite.collide_mask(arrow,obj):
@@ -937,7 +943,7 @@ def handle_move(partida,volume,player,enemies_group,boss,checkpoint,objects,arro
     collide_left = collide(player,objects,-PLAYER_VEL * 2, delta, window, partida, volume)
     collide_right = collide(player,objects,PLAYER_VEL * 2, delta, window, partida, volume)
     
-    collide_arrow(player,arrow_group,objects)
+    collide_arrow(player,arrow_group,objects, volume)
     collide_boss(player,boss,PLAYER_VEL * 2, delta, window, partida, volume)
     collide_checkpoint(player,checkpoint, partida)
     collide_fireball(fireball_group,enemies_group,objects)
@@ -975,19 +981,21 @@ def draw_bar(lives, coins, gems, heart_image, coin_image, gem_image):
     gem_text = resource_manager.get_font(20).render(str(gems), True, (0, 0, 0))
     SCREEN.blit(gem_text, (166, 93)) 
 
-def negociation1(player):
+def negociation1(player,volume):
     if player.coins >= 10 and player.lives.lives < 3 :
         player.coins -= 10
         player.lives.lives += 1
         deal_sound = mixer.Sound(resource_manager.get_sound("done_deal"))
         deal_sound.play()
+        deal_sound.set_volume(volume)
 
-def negociation2(player):
+def negociation2(player,volume):
     if player.coins >= 15 and player.lives.lives < 2 :
         player.coins -= 15
         player.lives.lives += 2
         deal_sound = mixer.Sound(resource_manager.get_sound("done_deal"))
         deal_sound.play()
+        deal_sound.set_volume(volume)
 
 def negociation3(player):
     text = "En proceso"    
@@ -1040,16 +1048,17 @@ def death_menu(window, partida, volume):
 
 
 def options(window,volumen):
-    VOLUME2 = volumen
     dragging_thumb = False
+    dragging_thumb2 = False
     while True:
-        volume = VOLUME2
+        volume = volumen.music_volume
+        sound = volumen.sounds_volume
         OPTIONS_MOUSE_POS = pygame.mouse.get_pos()
 
         SCREEN.fill("white")
 
-        VOLUME_TEXT = resource_manager.get_font(75).render("VOLUME", True, "#b68f40")
-        VOLUME_RECT = VOLUME_TEXT.get_rect(center=(400, 300))
+        VOLUME_TEXT = resource_manager.get_font(75).render("MUSIC", True, "#b68f40")
+        VOLUME_RECT = VOLUME_TEXT.get_rect(center=(400, 200))
         SCREEN.blit(VOLUME_TEXT, VOLUME_RECT)
 
         scroll_bar_width =  20
@@ -1063,10 +1072,29 @@ def options(window,volumen):
         thumb.fill((100,  100,  100))  # Set a different color for the thumb
         scroll_bar.blit(thumb, (0, scroll_bar_height - thumb_height))
 
-        scroll_bar_rect = scroll_bar.get_rect(center=(700,  300))
+        scroll_bar_rect = scroll_bar.get_rect(center=(700,  200))
         window.blit(scroll_bar, scroll_bar_rect.topleft)
 
-        OPTIONS_BACK = Button(image=None, pos=(515, 550), 
+
+        SOUND_TEXT = resource_manager.get_font(75).render("SOUND", True, "#b68f40")
+        SOUND_RECT = SOUND_TEXT.get_rect(center=(400, 450))
+        SCREEN.blit(SOUND_TEXT, SOUND_RECT)
+
+        scroll_bar_width2 =  20
+        scroll_bar_height2 =  200
+        scroll_bar2 = pygame.Surface((scroll_bar_width2, scroll_bar_height2))
+        scroll_bar2.fill((200,  200,  200))
+
+        # Draw the thumb (the part you drag)
+        thumb_height2 = int(sound * scroll_bar_height2)
+        thumb2 = pygame.Surface((scroll_bar_width2, thumb_height2))
+        thumb2.fill((100,  100,  100))  # Set a different color for the thumb
+        scroll_bar2.blit(thumb2, (0, scroll_bar_height2 - thumb_height2))
+
+        scroll_bar_rect2 = scroll_bar2.get_rect(center=(700,  450))
+        window.blit(scroll_bar2, scroll_bar_rect2.topleft)
+
+        OPTIONS_BACK = Button(image=None, pos=(515, 700), 
                             text_input="BACK", font=resource_manager.get_font(75), base_color="Black", hovering_color="Green")
 
         OPTIONS_BACK.changeColor(OPTIONS_MOUSE_POS)
@@ -1078,19 +1106,24 @@ def options(window,volumen):
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if OPTIONS_BACK.checkForInput(OPTIONS_MOUSE_POS):
-                    main_menu(window, volume)
+                    main_menu(window, volumen)
                 if scroll_bar_rect.collidepoint(event.pos):
                     # Start dragging the scroll bar thumb
                     dragging_thumb = True
-                    last_mouse_y = event.pos[1]    
+                    last_mouse_y = event.pos[1]  
+                if scroll_bar_rect2.collidepoint(event.pos):
+                    # Start dragging the scroll bar thumb
+                    dragging_thumb2 = True
+                    last_mouse_y = event.pos[1]         
             elif event.type ==pygame.MOUSEBUTTONUP:
                 dragging_thumb = False
+                dragging_thumb2 = False
             elif event.type == pygame.MOUSEMOTION:
                 if dragging_thumb:
                     delta_y = event.pos[1] - last_mouse_y
                     volume += delta_y / scroll_bar_height
                     volume = max(min(volume,  1),  0)
-                    VOLUME2 = volume
+                    volumen.music_volume = volume
                     last_mouse_y = event.pos[1]
 
                     mixer.music.set_volume(volume)
@@ -1100,12 +1133,29 @@ def options(window,volumen):
                     thumb = pygame.Surface((scroll_bar_width, thumb_height))
                     thumb.fill((100,  100,  100))
                     scroll_bar.fill((200,  200,  200))  # Reset the scroll bar background
-                    scroll_bar.blit(thumb, (0, scroll_bar_height - thumb_height))        
+                    scroll_bar.blit(thumb, (0, scroll_bar_height - thumb_height))    
+
+
+                if dragging_thumb2:
+                    delta_y = event.pos[1] - last_mouse_y
+                    sound += delta_y / scroll_bar_height2
+                    sound = max(min(sound,  1),  0)
+                    volumen.sounds_volume = sound
+                    last_mouse_y = event.pos[1]
+
+                    # Update the thumb position
+                    thumb_height2 = int(sound * scroll_bar_height2)
+                    thumb2 = pygame.Surface((scroll_bar_width2, thumb_height2))
+                    thumb2.fill((100,  100,  100))
+                    scroll_bar2.fill((200,  200,  200))  # Reset the scroll bar background
+                    scroll_bar2.blit(thumb2, (0, scroll_bar_height2 - thumb_height2))       
+
 
         pygame.display.update()
 
 
 def play(window, partida, volume):
+
 
     mixer.music.load(resource_manager.get_sound("forest"))
     mixer.music.play(-1)
@@ -1332,24 +1382,25 @@ def play(window, partida, volume):
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE and player.jump_count < 2:
-                    player.jump()  
+                    player.jump(volume.sounds_volume)  
                 if event.key == pygame.K_n and mercader.close:
                     mercader.negociating = True 
                     negociate_sound = mixer.Sound(resource_manager.get_sound("negociate"))
                     negociate_sound.play()
+                    negociate_sound.set_volume(volume.sounds_volume)
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if option1_mercader.checkForInput(MENU_MOUSE_POS):
-                    negociation1(player)
+                    negociation1(player, volume.sounds_volume)
                 if option2_mercader.checkForInput(MENU_MOUSE_POS):
-                    negociation2(player)
+                    negociation2(player, volume.sounds_volume)
                 if option3_mercader.checkForInput(MENU_MOUSE_POS):
-                    negociation3(player)  
+                    negociation3(player, volume.sounds_volume)  
                     
         player.loop(delta_time, all_enemies_group, window, partida, volume)
         
         for enemy in all_enemies_group:
-            enemy.loop(player)
+            enemy.loop(player,volume)
             
         mercader.loop(player,offset_x)
         checkpoint.loop()
@@ -1360,11 +1411,11 @@ def play(window, partida, volume):
             
         if pygame.sprite.spritecollideany(player, coins): 
             for _ in pygame.sprite.spritecollide(player, coins, True):
-                player.collect_coin() 
+                player.collect_coin(volume.sounds_volume) 
 
         if pygame.sprite.spritecollideany(player, gems): 
             for _ in pygame.sprite.spritecollide(player, gems, True):
-                player.collect_gem()         
+                player.collect_gem(volume.sounds_volume)
                 
         outOfWindow(fireball_group,offset_x)
         outOfWindow(arrow_group,offset_x)
@@ -1380,7 +1431,7 @@ def play(window, partida, volume):
 def main_menu(window, volume):
 
     if not pygame.mixer.music.get_busy():
-        mixer.music.set_volume(volume)
+        mixer.music.set_volume(volume.music_volume)
         mixer.music.load(resource_manager.get_sound("menu"))
         mixer.music.play(-1)
         
@@ -1423,4 +1474,4 @@ def main_menu(window, volume):
         pygame.display.update()    
 
 if __name__ == "__main__":
-    main_menu(window, 0.5)
+    main_menu(window, Volume())
