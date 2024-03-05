@@ -8,6 +8,7 @@ import resource_manager
 from os import listdir
 from os.path import isfile, join
 from button import Button
+from partida import Partida
 from pygame import mixer
 
 
@@ -19,7 +20,6 @@ pygame.display.set_caption("Platformer")
 WIDTH, HEIGHT = 1000, 800
 FPS = 60
 PLAYER_VEL = 5 * FPS
-VOLUME =  0.5
 TIMER = 0
 LEVEL = 1
 BAR_WIDTH = 300
@@ -59,6 +59,7 @@ class Player(pygame.sprite.Sprite):
         self.ranged_active = False
         self.last_ranged_time = 0
         self.frame_count = 0
+        self.dead = False
 
     def jump(self):
         self.y_vel = -self.GRAVITY / 3
@@ -72,11 +73,11 @@ class Player(pygame.sprite.Sprite):
         jump_sound = mixer.Sound(resource_manager.get_sound("jump"))
         jump_sound.play()    
 
-    def move(self,dx,dy, delta):
+    def move(self,dx,dy, delta, window, partida, volume):
         self.rect.x += dx  * delta
         self.rect.y += dy * delta
         if self.rect.y > HEIGHT + 100 :
-            self.die()
+            self.die(window, partida, volume)
 
     def move_left(self,vel):
         self.x_vel = -vel
@@ -92,9 +93,9 @@ class Player(pygame.sprite.Sprite):
             self.direction = "right"
             self.animation_count = 0
             
-    def loop(self,delta, enemies):
+    def loop(self,delta, enemies, window, partida, volume):
         self.y_vel += min(30, (self.fall_count * delta * self.GRAVITY))
-        self.move(self.x_vel,self.y_vel, delta)
+        self.move(self.x_vel,self.y_vel, delta, window, partida, volume)
         self.fall_count += 1
         
         for projectile in self.projectiles:
@@ -162,18 +163,16 @@ class Player(pygame.sprite.Sprite):
             projectile = Fireball(self.rect, self.direction)
             self.projectiles.add(projectile)
 
-    def die(self,check_x,check_y):
-        self.update_sprite()
-        self.x_vel = 0
-        self.y_vel = 0
-        self.rect.x = check_x
-        self.rect.y = check_y
-        self.jump_count = 3
-        death_sound = mixer.Sound(resource_manager.get_sound("death"))
-        mixer.music.stop()
-        death_sound.play()
-
-        #pantalla de game over
+    def die(self, window, partida, volume):
+        if not self.dead : 
+            self.update_sprite()
+            self.x_vel = 0
+            self.y_vel = 0
+            self.jump_count = 3
+            death_sound = mixer.Sound(resource_manager.get_sound("death"))
+            mixer.music.stop()
+            death_sound.play()
+            death_menu(window, partida, volume)
         
     def check_attack(self, enemies):
         if self.melee_active:
@@ -759,7 +758,7 @@ class Fireball(pygame.sprite.Sprite):
 class Checkpoint(pygame.sprite.Sprite):
     ANIMATION_DELAY = 3
     
-    def __init__(self,x,y,width,height):
+    def __init__(self,x,y,width,height,active):
         super().__init__()
         self.x = x
         self.y = y
@@ -769,8 +768,8 @@ class Checkpoint(pygame.sprite.Sprite):
         self.frame_count = 0
         self.rect = pygame.Rect(x,y,width,height)
         self.sprite = None
-        self.activated = False
-        self.activate_idle = False
+        self.activated = active
+        self.activate_idle = active
 
     def activate(self):
         self.activated = True
@@ -867,8 +866,8 @@ def handle_vertical_colission(player,objects,dy):
 
     return collided_objects
 
-def collide(player,objects,dx,delta):
-    player.move(dx,0, delta)
+def collide(player,objects,dx,delta, window, partida, volume):
+    player.move(dx,0, delta, window, partida, volume)
     player.update()
 
     collided_object = None
@@ -884,17 +883,17 @@ def collide(player,objects,dx,delta):
                 player.get_hit() 
             break
 
-    player.move(-dx,0, delta)
+    player.move(-dx,0, delta, window, partida, volume)
     player.update()
 
     
     return collided_object
 
-def collide_boss(player,boss,dx, delta):
+def collide_boss(player,boss,dx, delta, window, partida, volume):
     if(pygame.sprite.collide_mask(player,boss)):
         if boss.is_alive:
             player.get_hit()
-            player.move(-dx,0, delta)
+            player.move(-dx,0, delta, window, partida, volume)
     
     player.update()
 
@@ -910,10 +909,11 @@ def collide_arrow(player,arrows,objects):
                 arrow.update()
     player.update()
     
-def collide_checkpoint(player,checkpoint):
+def collide_checkpoint(player,checkpoint,partida):
     if(pygame.sprite.collide_mask(player,checkpoint)):
         if not checkpoint.activate_idle:
             checkpoint.activated = True
+        partida.checkpoint = 1     
             
 def collide_fireball(fireball_group,enemies_group,objects):
     for fireball in fireball_group:
@@ -927,19 +927,19 @@ def collide_fireball(fireball_group,enemies_group,objects):
                 fireball.kill()
                 fireball.update()
     
-def handle_move(player,enemies_group,boss,checkpoint,objects,arrow_group,fireball_group,delta):
+def handle_move(partida,volume,player,enemies_group,boss,checkpoint,objects,arrow_group,fireball_group,delta):
     vertical_collide = handle_vertical_colission(player,objects,player.y_vel)
     if player.lives.lives <= 0:
-        player.die(checkpoint.x,checkpoint.y + 65)
+        player.die(window,partida,volume)
         return 
     keys = pygame.key.get_pressed()
     player.x_vel = 0
-    collide_left = collide(player,objects,-PLAYER_VEL * 2, delta)
-    collide_right = collide(player,objects,PLAYER_VEL * 2, delta)
+    collide_left = collide(player,objects,-PLAYER_VEL * 2, delta, window, partida, volume)
+    collide_right = collide(player,objects,PLAYER_VEL * 2, delta, window, partida, volume)
     
     collide_arrow(player,arrow_group,objects)
-    collide_boss(player,boss,PLAYER_VEL * 2, delta)
-    collide_checkpoint(player,checkpoint)
+    collide_boss(player,boss,PLAYER_VEL * 2, delta, window, partida, volume)
+    collide_checkpoint(player,checkpoint, partida)
     collide_fireball(fireball_group,enemies_group,objects)
         
     if keys[pygame.K_a] and not collide_left:
@@ -997,15 +997,53 @@ def outOfWindow(group,offset_x):
         if element.rect.right - offset_x < 0 or element.rect.left - offset_x > WIDTH:
                 element.kill()
         
-def options(window):
-    try:
-        with open('volumen.pkl', 'rb') as f:
-            volume = pickle.load(f)
-    except FileNotFoundError:
-        volume =  0.5
 
+
+def death_menu(window, partida, volume):
+
+    
+    if not pygame.mixer.music.get_busy():
+        mixer.music.load(resource_manager.get_sound("menu"))
+        mixer.music.play(-1)
+        
+    while True:
+        #SCREEN.blit(BG, (0, 0))
+        SCREEN.fill("black")
+
+        MENU_MOUSE_POS = pygame.mouse.get_pos()
+
+        MENU_TEXT = resource_manager.get_font(75).render("GAME OVER", True, "#b68f40")
+        MENU_RECT = MENU_TEXT.get_rect(center=(515, 120))
+
+        REPLAY_BUTTON = Button(image=pygame.image.load("assets/Options Rect.png"), pos=(515, 300), 
+                            text_input="REPLAY", font=resource_manager.get_font(75), base_color="#d7fcd4", hovering_color="White")
+        MENU_BUTTON = Button(image=pygame.image.load("assets/Play Rect.png"), pos=(515, 475), 
+                            text_input="MENU", font=resource_manager.get_font(75), base_color="#d7fcd4", hovering_color="White")
+
+        SCREEN.blit(MENU_TEXT, MENU_RECT)
+
+        for button in [REPLAY_BUTTON, MENU_BUTTON]:
+            button.changeColor(MENU_MOUSE_POS)
+            button.update(SCREEN)
+        
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if REPLAY_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    play(window, partida, volume)
+                if MENU_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    main_menu(window, volume)
+
+        pygame.display.update()
+
+
+def options(window,volumen):
+    VOLUME2 = volumen
     dragging_thumb = False
     while True:
+        volume = VOLUME2
         OPTIONS_MOUSE_POS = pygame.mouse.get_pos()
 
         SCREEN.fill("white")
@@ -1040,7 +1078,7 @@ def options(window):
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if OPTIONS_BACK.checkForInput(OPTIONS_MOUSE_POS):
-                    main_menu(window)
+                    main_menu(window, volume)
                 if scroll_bar_rect.collidepoint(event.pos):
                     # Start dragging the scroll bar thumb
                     dragging_thumb = True
@@ -1052,8 +1090,7 @@ def options(window):
                     delta_y = event.pos[1] - last_mouse_y
                     volume += delta_y / scroll_bar_height
                     volume = max(min(volume,  1),  0)
-                    with open('volumen.pkl', 'wb') as f:
-                        pickle.dump(volume, f)
+                    VOLUME2 = volume
                     last_mouse_y = event.pos[1]
 
                     mixer.music.set_volume(volume)
@@ -1068,32 +1105,40 @@ def options(window):
         pygame.display.update()
 
 
-def play(window):
+def play(window, partida, volume):
 
     mixer.music.load(resource_manager.get_sound("forest"))
     mixer.music.play(-1)
 
     clock = pygame.time.Clock()
-    ########################################## NIVEL 1 ##########################################
-    # background,bg_image, heart_image, coin_image, gem_image = resource_manager.get_background("Night.png")
-    ########################################## NIVEL 2 ##########################################
-    background,bg_image, heart_image, coin_image, gem_image = resource_manager.get_background("Cave2.png")
+
+    if partida.level == 1:
+        background,bg_image, heart_image, coin_image, gem_image = resource_manager.get_background("Night.png")
+    elif partida.level == 2:
+        background,bg_image, heart_image, coin_image, gem_image = resource_manager.get_background("Cave2.png")
 
     lives = Lives()
     
     all_enemies_group = pygame.sprite.Group()
     arrow_group = pygame.sprite.Group()
     fireball_group = pygame.sprite.Group()
+
+    distance = 0
+    checkpoint_activated = False 
+
+    if partida.checkpoint == 1:
+        distance = 7300
+        checkpoint_activated = True
     
     player = Player(400,400,50,50, lives,fireball_group)
-    rangedenemie1 = RangedEnemies(900,500,100,100,4,arrow_group,"HalflingRanger")
-    rangedenemie2 = RangedEnemies(6135,230,100,100,4,arrow_group,"HalflingRanger")
-    meleeEnemie1 = MeleeEnemie(800,625,100,100,"HalflingRogue")
-    meleeEnemie2 = MeleeEnemie(4375,500,100,100,"HalflingRogue")
-    meleeEnemie3 = MeleeEnemie(8320,500,100,100,"HalflingRogue")
-    mercader = Mercader(2700, 625, 100, 100) 
-    firstBoss = Boss(8500,450,100,100)
-    checkpoint = Checkpoint(7700,375,50,50)
+    rangedenemie1 = RangedEnemies(900-distance,500,100,100,4,arrow_group,"HalflingRanger")
+    rangedenemie2 = RangedEnemies(6135-distance,230,100,100,4,arrow_group,"HalflingRanger")
+    meleeEnemie1 = MeleeEnemie(800-distance,625,100,100,"HalflingRogue")
+    meleeEnemie2 = MeleeEnemie(4375-distance,500,100,100,"HalflingRogue")
+    meleeEnemie3 = MeleeEnemie(8320-distance,500,100,100,"HalflingRogue")
+    mercader = Mercader(2700-distance, 625, 100, 100) 
+    firstBoss = Boss(8500-distance,450,100,100)
+    checkpoint = Checkpoint(7700-distance,375,50,50, checkpoint_activated)
 
     all_enemies_group.add(meleeEnemie1)
     all_enemies_group.add(meleeEnemie2)
@@ -1113,66 +1158,146 @@ def play(window):
     scroll_area_width = 400
     
     run = True
+    if partida.level == 1:
    ############################################# NIVEL 1 - BOSQUE ############################################################### 
-    floor = [Block(i*block_size,HEIGHT - block_size ,block_size)for i in range(-WIDTH // block_size,WIDTH*2 // block_size)]
-    floor2 = [Block(i*block_size,HEIGHT - block_size ,block_size)for i in range(5 + WIDTH*2 // block_size,WIDTH*4 // block_size)]
-    floor3 = [Block(i*block_size + 7200,HEIGHT - block_size ,block_size)for i in range(0,30)]
+        floor = [Block(i*block_size-distance,HEIGHT - block_size ,block_size)for i in range(-WIDTH // block_size,WIDTH*2 // block_size)]
+        floor2 = [Block(i*block_size-distance,HEIGHT - block_size ,block_size)for i in range(5 + WIDTH*2 // block_size,WIDTH*4 // block_size)]
+        floor3 = [Block(i*block_size + 7200-distance,HEIGHT - block_size ,block_size)for i in range(0,30)]
 
-    column = [Block(block_size + 3000,HEIGHT - block_size - (100*i),block_size)for i in range(1,7)]
-    column2 = [Block(block_size + 7100,HEIGHT - block_size - (100*i),block_size)for i in range(1,5)]
-    column3 = [Block(block_size + 7200,HEIGHT - block_size - (100*i),block_size)for i in range(1,5)]
-    column4 = [Block(block_size + 7300,HEIGHT - block_size - (100*i),block_size)for i in range(1,4)]
-    column5 = [Block(block_size + 7400,HEIGHT - block_size - (100*i),block_size)for i in range(1,4)]
-    column6 = [Block(block_size + 7500,HEIGHT - block_size - (100*i),block_size)for i in range(1,3)]
-    column7 = [Block(block_size + 7600,HEIGHT - block_size - (100*i),block_size)for i in range(1,3)]
-    column8 = [Block(block_size + 7700,HEIGHT - block_size - (100*i),block_size)for i in range(1,2)]
-    column9 = [Block(block_size + 7800,HEIGHT - block_size - (100*i),block_size)for i in range(1,2)]
-    column10 = [Block(block_size + 9000,HEIGHT - block_size - (100*i),block_size)for i in range(1,7)]
-        
+        column = [Block(block_size + 3000-distance,HEIGHT - block_size - (100*i),block_size)for i in range(1,7)]
+        column2 = [Block(block_size + 7100-distance,HEIGHT - block_size - (100*i),block_size)for i in range(1,5)]
+        column3 = [Block(block_size + 7200-distance,HEIGHT - block_size - (100*i),block_size)for i in range(1,5)]
+        column4 = [Block(block_size + 7300-distance,HEIGHT - block_size - (100*i),block_size)for i in range(1,4)]
+        column5 = [Block(block_size + 7400-distance,HEIGHT - block_size - (100*i),block_size)for i in range(1,4)]
+        column6 = [Block(block_size + 7500-distance,HEIGHT - block_size - (100*i),block_size)for i in range(1,3)]
+        column7 = [Block(block_size + 7600-distance,HEIGHT - block_size - (100*i),block_size)for i in range(1,3)]
+        column8 = [Block(block_size + 7700-distance,HEIGHT - block_size - (100*i),block_size)for i in range(1,2)]
+        column9 = [Block(block_size + 7800-distance,HEIGHT - block_size - (100*i),block_size)for i in range(1,2)]
+        column10 = [Block(block_size + 9000-distance,HEIGHT - block_size - (100*i),block_size)for i in range(1,7)]
+            
 
-    plat1 = [Platform(i*block_size + 800,HEIGHT - block_size - 125, plat_size)for i in range(0,4)]
-    plat2 = [Platform(i*block_size + 1300,HEIGHT - block_size - 300, plat_size)for i in range(0,2)]
-    plat3 = [Platform(4*i*block_size + 1600,HEIGHT - block_size - 500, plat_size)for i in range(0,2)]
-    plat4 = [Platform(2*i*block_size + 700,HEIGHT - block_size - 450, plat_size)for i in range(0,3)]
-    plat5 = [Platform(i*block_size + 400,HEIGHT - block_size - 625, plat_size)for i in range(0,1)]
-    plat6 = [Platform(i*block_size + 2050,HEIGHT - block_size - 150, plat_size)for i in range(0,2)]
+        plat1 = [Platform(i*block_size + 800-distance,HEIGHT - block_size - 125, plat_size)for i in range(0,4)]
+        plat2 = [Platform(i*block_size + 1300-distance,HEIGHT - block_size - 300, plat_size)for i in range(0,2)]
+        plat3 = [Platform(4*i*block_size + 1600-distance,HEIGHT - block_size - 500, plat_size)for i in range(0,2)]
+        plat4 = [Platform(2*i*block_size + 700-distance,HEIGHT - block_size - 450, plat_size)for i in range(0,3)]
+        plat5 = [Platform(i*block_size + 400-distance,HEIGHT - block_size - 625, plat_size)for i in range(0,1)]
+        plat6 = [Platform(i*block_size + 2050-distance,HEIGHT - block_size - 150, plat_size)for i in range(0,2)]
 
-    plat7 = [Platform(i*block_size + 2500,HEIGHT - block_size - 150 - (300*i), plat_size)for i in range(0,2)]
-    plat8 = [Platform(i*block_size + 2825,HEIGHT - block_size - 250 - (300*i), plat_size)for i in range(0,2)]
+        plat7 = [Platform(i*block_size + 2500-distance,HEIGHT - block_size - 150 - (300*i), plat_size)for i in range(0,2)]
+        plat8 = [Platform(i*block_size + 2825-distance,HEIGHT - block_size - 250 - (300*i), plat_size)for i in range(0,2)]
 
-    plat9 = [Platform(3*i*block_size + 3400,HEIGHT - block_size - 300 - (200*i), plat_size)for i in range(0,2)]
+        plat9 = [Platform(3*i*block_size + 3400-distance,HEIGHT - block_size - 300 - (200*i), plat_size)for i in range(0,2)]
 
-    plat10 = [Platform(i*block_size + 4000,HEIGHT - block_size - 600, plat_size)for i in range(0,1)]
+        plat10 = [Platform(i*block_size + 4000-distance,HEIGHT - block_size - 600, plat_size)for i in range(0,1)]
 
-    plat11 = [Platform(i*block_size + 4100,HEIGHT - block_size - 100, plat_size)for i in range(0,4)]
+        plat11 = [Platform(i*block_size + 4100-distance,HEIGHT - block_size - 100, plat_size)for i in range(0,4)]
 
-    plat12 = [Platform(i*block_size + 4200,HEIGHT - block_size - 400, plat_size)for i in range(0,2)]
+        plat12 = [Platform(i*block_size + 4200-distance,HEIGHT - block_size - 400, plat_size)for i in range(0,2)]
 
-    plat13 = [Platform(i*block_size + 4700,HEIGHT - block_size - 250, plat_size)for i in range(0,2)]
+        plat13 = [Platform(i*block_size + 4700-distance,HEIGHT - block_size - 250, plat_size)for i in range(0,2)]
 
-    plat14 = [Platform(3*i*block_size + 5050,HEIGHT - block_size - (400 * i) - 100, plat_size)for i in range(0,3)]
+        plat14 = [Platform(3*i*block_size + 5050-distance,HEIGHT - block_size - (400 * i) - 100, plat_size)for i in range(0,3)]
 
-    plat15 = [Platform(4*i*block_size + 5300,HEIGHT - block_size - (200 * i), plat_size)for i in range(0,5)]
-    plat16 = [Platform(4*i*block_size + 5400,HEIGHT - block_size - (200 * i), plat_size)for i in range(0,5)]
+        plat15 = [Platform(4*i*block_size + 5300-distance,HEIGHT - block_size - (200 * i), plat_size)for i in range(0,5)]
+        plat16 = [Platform(4*i*block_size + 5400-distance,HEIGHT - block_size - (200 * i), plat_size)for i in range(0,5)]
 
-    plat17 = [Platform(i*block_size + 6800,HEIGHT - block_size - 400, plat_size)for i in range(0,2)]
+        plat17 = [Platform(i*block_size + 6800-distance,HEIGHT - block_size - 400, plat_size)for i in range(0,2)]
 
-    plat18 = [Platform(i*block_size + 6150,HEIGHT - block_size, plat_size)for i in range(0,1)]
-    plat19 = [Platform(i*block_size + 6600,HEIGHT - block_size ,plat_size)for i in range(0,1)]
+        plat18 = [Platform(i*block_size + 6150-distance,HEIGHT - block_size, plat_size)for i in range(0,1)]
+        plat19 = [Platform(i*block_size + 6600-distance,HEIGHT - block_size ,plat_size)for i in range(0,1)]
 
 
-    plat20 = [Platform(3*i*block_size + 5500,HEIGHT - block_size - 800 + (300 * i), plat_size)for i in range(0,2)]
+        plat20 = [Platform(3*i*block_size + 5500-distance,HEIGHT - block_size - 800 + (300 * i), plat_size)for i in range(0,2)]
 
-    plat21 = [Platform(i*block_size + 5050,HEIGHT - block_size - 425, plat_size)for i in range(0,1)]
+        plat21 = [Platform(i*block_size + 5050-distance,HEIGHT - block_size - 425, plat_size)for i in range(0,1)]
 
-    objects = [*floor,*floor2,*floor3,*column,*column2,*column3,*column4,*column5,*column6,*column7,*column8,*column9,*column10 ,*plat1,*plat2,*plat3,*plat4,*plat5,*plat6,*plat7,*plat8,*plat9,*plat10,*plat11,*plat12,*plat13,*plat14,*plat15,*plat16,*plat17,*plat18,*plat19,*plat20,*plat21]
+        objects = [*floor,*floor2,*floor3,*column,*column2,*column3,*column4,*column5,*column6,*column7,*column8,*column9,*column10 ,*plat1,*plat2,*plat3,*plat4,*plat5,*plat6,*plat7,*plat8,*plat9,*plat10,*plat11,*plat12,*plat13,*plat14,*plat15,*plat16,*plat17,*plat18,*plat19,*plat20,*plat21]
 
 ########################################### FIN NIVEL 1 #############################################################################################
+
+    elif partida.level == 2:
+ ############################################# NIVEL 2 - CUEVA ###############################################################   
+        floor = [Block2(i*block2_size-distance,HEIGHT - block2_size ,block2_size)for i in range(-WIDTH // block_size,WIDTH*14 // block_size)]
+
+        column = [Block2(block2_size + 600-distance,HEIGHT - block2_size - (64*i),block2_size)for i in range(3,13)]
+        column2 = [Block2(block2_size + 1600-distance,HEIGHT - block2_size - (64*i),block2_size)for i in range(1,10)]
+        column3 = [Block2(block2_size + 2240-distance,HEIGHT - block2_size -  576 - (64*i),block2_size)for i in range(1,6)]
+        column4 = [Block2(block2_size + 1856-distance,HEIGHT - block2_size -  384 +  (64*i),block2_size)for i in range(1,4)]
+        column5 = [Block2(block2_size + 3840-distance,HEIGHT - block2_size -  832 +  (64*i),block2_size)for i in range(0,11)]
+        column6 = [Block2(block2_size + 4800-distance,HEIGHT - block2_size -  832 +  (64*i),block2_size)for i in range(3,15)]
+        column7 = [Block2(block2_size + 7804-distance,HEIGHT - block2_size -  832 +  (64*i),block2_size)for i in range(0,12)]
+        
+        spike1 = [Block3(i*block3_size-distance,HEIGHT - block3_size - 128, block3_size)for i in range(1,10)]
+
+        mini_spike1 = [Block4(i*block4_size-distance,HEIGHT - block4_size - 192, block4_size)for i in range(1,10)]
+
+        plat1 = [Block2(i*block2_size + 664-distance,HEIGHT - block2_size - 320, block2_size)for i in range(1,10)]
+        plat2 = [Block2(i*block2_size + 960-distance,HEIGHT - block2_size - 576, block2_size)for i in range(1,15)]
+        plat5 = [Block2(i*block2_size + 960-distance,HEIGHT - block2_size - 576, block2_size)for i in range(17,30)]
+        plat3 = [Block2(i*block2_size + 1344-distance,HEIGHT - block2_size - 196, block2_size)for i in range(1,7)]
+        plat4 = [Block2(i*block2_size + 832-distance,HEIGHT - block2_size - 512, block2_size)for i in range(1,17)]
+
+        plat6 = [Block2(i*block2_size + 1920-distance,HEIGHT - block2_size - 384 + (64*i), block2_size)for i in range(1,7)]
+        plat7 = [Block2(i*block2_size + 1856-distance,HEIGHT - block2_size - 384 + (64*i), block2_size)for i in range(1,7)]
+        plat8 = [Block2(i*block2_size + 1856-distance,HEIGHT - block2_size - 128, block2_size)for i in range(1,5)]
+        
+        plat9 = [Block2(i*block2_size + 2880-distance,HEIGHT - block2_size - 320, block2_size)for i in range(1,14)]
+        plat10 = [Block2(i*block2_size + 2944-distance,HEIGHT - block2_size - 320 - (64*i), block2_size)for i in range(0,7)]
+        plat11 = [Block2(i*block2_size + 3008-distance,HEIGHT - block2_size - 128, block2_size)for i in range(0,7)]
+        plat12 = [Block2(i*block2_size + 3008-distance,HEIGHT - block2_size - 192, block2_size)for i in range(0,7)]
+        plat13 = [Block2(i*block2_size + 3008-distance,HEIGHT - block2_size - 256, block2_size)for i in range(0,7)]
+
+        plat14 = [Block2(block2_size + 3328-distance,HEIGHT - block2_size - 256 + (64*i), block2_size)for i in range(0,2)]
+        plat14 = [Block2(block2_size + 3392-distance,HEIGHT - block2_size - 256 + (64*i), block2_size)for i in range(0,2)]
+        plat15 = [Block2(block2_size + 3584-distance,HEIGHT - block2_size - 64 - (64*i), block2_size)for i in range(0,2)]
+        plat16 = [Block2(block2_size + 3648-distance,HEIGHT - block2_size - 64 - (64*i), block2_size)for i in range(0,2)]
+
+        plat17 = [Block2(i*block2_size + 3904-distance,HEIGHT - block2_size - 192 , block2_size)for i in range(1,6)]
+        plat18 = [Block2(i*block2_size + 3904-distance,HEIGHT - block2_size - 192 , block2_size)for i in range(10,15)]
+
+        plat19 = [Block2(i*block2_size + 3904-distance,HEIGHT - block2_size - 448 , block2_size)for i in range(1,5)]
+        plat20 = [Block2(i*block2_size + 3904-distance,HEIGHT - block2_size - 448 , block2_size)for i in range(11,15)]
+        plat25 = [Block2(i*block2_size + 3904-distance,HEIGHT - block2_size - 512 , block2_size)for i in range(11,15)]
+        plat26 = [Block2(i*block2_size + 3904-distance,HEIGHT - block2_size - 576 , block2_size)for i in range(11,15)]
+
+        plat21 = [Block2(i*block2_size + 3904-distance,HEIGHT - block2_size - 640 , block2_size)for i in range(1,4)]
+        plat22 = [Block2(i*block2_size + 3904-distance,HEIGHT - block2_size - 640 , block2_size)for i in range(11,15)]
+
+        plat23 = [Block2(i*block2_size + 3904-distance,HEIGHT - block2_size - 320 , block2_size)for i in range(7,9)]
+        plat24 = [Block2(i*block2_size + 3904-distance,HEIGHT - block2_size - 576 , block2_size)for i in range(7,9)]
+
+        plat27 = [Block2(i*block2_size + 4992-distance,HEIGHT - block2_size - 384 + (64*i) , block2_size)for i in range(1,4)]
+        plat31 = [Block2(i*block2_size + 5312-distance,HEIGHT - block2_size - 256 + (64*i) , block2_size)for i in range(1,4)]
+        plat32 = [Block2(i*block2_size + 5632-distance,HEIGHT - block2_size - 384 + (64*i) , block2_size)for i in range(1,4)]
+        
+        plat28 = [Block2(i*block2_size + 4992-distance,HEIGHT - block2_size - 512 - (64*i) , block2_size)for i in range(1,4)]
+        plat29 = [Block2(i*block2_size + 5312-distance,HEIGHT - block2_size - 384 - (64*i) , block2_size)for i in range(1,4)]
+        plat30 = [Block2(i*block2_size + 5694-distance,HEIGHT - block2_size - 512 - (64*i) , block2_size)for i in range(1,4)]
+
+        plat33 = [Block2(i*block2_size + 6016-distance,HEIGHT - block2_size - 832 + (64*i) , block2_size)for i in range(1,6)]
+        plat34 = [Block2(i*block2_size + 6016-distance,HEIGHT - block2_size -  (64*i) , block2_size)for i in range(1,6)]
+
+        plat35 = [Block2(i*block2_size + 6400-distance,HEIGHT - block2_size -  320 , block2_size)for i in range(0,21)]
+        plat36 = [Block2(i*block2_size + 6400-distance,HEIGHT - block2_size -  512 , block2_size)for i in range(0,23)]
+
+        plat39 = [Block2(i*block2_size + 6400-distance,HEIGHT - block2_size -  128 , block2_size)for i in range(0,23)]
+        
+
+        plat37 = [Block2(i*block2_size + 6400-distance,HEIGHT - block2_size -  384 , block2_size)for i in range(5,7)]
+        plat38 = [Block2(i*block2_size + 6400-distance,HEIGHT - block2_size -  448 , block2_size)for i in range(14,16)]
+
+        
+        
+        
+        objects = [*mini_spike1,*spike1,*floor,*column,*column2,*column3,*column4,*column5,*column6,*column7,*plat1,*plat2,*plat3,*plat4,*plat5,*plat6,*plat7,*plat8,*plat9,*plat10,*plat11,*plat12,*plat13,*plat14,*plat15,*plat16,*plat17,*plat18,*plat19,*plat20,*plat21,*plat22,*plat23,*plat24,*plat25,*plat26,*plat27,*plat28,*plat29,*plat30,*plat31,*plat32,*plat33,*plat34,*plat35,*plat36,*plat37,*plat38,*plat39]
+
+    
+
 
     coin_size = 40  
     num_coins = 10
     coins = [
-        Coin(random.randint(0, WIDTH - coin_size), random.randint(100, 650), coin_size)
+        Coin(random.randint(0, WIDTH - coin_size)-distance, random.randint(100, 650), coin_size)
         for _ in range(num_coins)
     ]
     coins = pygame.sprite.Group(coins)  
@@ -1180,92 +1305,10 @@ def play(window):
     gem_size = 40  
     num_gems = 2
     gems = [
-        Gem(random.randint(0, WIDTH - gem_size), random.randint(100, 650), gem_size)
+        Gem(random.randint(0, WIDTH - gem_size)-distance, random.randint(100, 650), gem_size)
         for _ in range(num_gems)
     ]
     gems = pygame.sprite.Group(gems)  
-
- ############################################# NIVEL 2 - CUEVA ###############################################################   
-    # floor = [Block2(i*block2_size,HEIGHT - block2_size ,block2_size)for i in range(-WIDTH // block_size,WIDTH*14 // block_size)]
-
-    # column = [Block2(block2_size + 600,HEIGHT - block2_size - (64*i),block2_size)for i in range(3,13)]
-    # column2 = [Block2(block2_size + 1600,HEIGHT - block2_size - (64*i),block2_size)for i in range(1,10)]
-    # column3 = [Block2(block2_size + 2240,HEIGHT - block2_size -  576 - (64*i),block2_size)for i in range(1,6)]
-    # column4 = [Block2(block2_size + 1856,HEIGHT - block2_size -  384 +  (64*i),block2_size)for i in range(1,4)]
-    # column5 = [Block2(block2_size + 3840,HEIGHT - block2_size -  832 +  (64*i),block2_size)for i in range(0,11)]
-    # column6 = [Block2(block2_size + 4800,HEIGHT - block2_size -  832 +  (64*i),block2_size)for i in range(3,15)]
-    # column7 = [Block2(block2_size + 7804,HEIGHT - block2_size -  832 +  (64*i),block2_size)for i in range(0,12)]
-    
-    # spike1 = [Block3(i*block3_size,HEIGHT - block3_size - 128, block3_size)for i in range(1,10)]
-
-    # mini_spike1 = [Block4(i*block4_size,HEIGHT - block4_size - 192, block4_size)for i in range(1,10)]
-
-    # plat1 = [Block2(i*block2_size + 664,HEIGHT - block2_size - 320, block2_size)for i in range(1,10)]
-    # plat2 = [Block2(i*block2_size + 960,HEIGHT - block2_size - 576, block2_size)for i in range(1,15)]
-    # plat5 = [Block2(i*block2_size + 960,HEIGHT - block2_size - 576, block2_size)for i in range(17,30)]
-    # plat3 = [Block2(i*block2_size + 1344,HEIGHT - block2_size - 196, block2_size)for i in range(1,7)]
-    # plat4 = [Block2(i*block2_size + 832,HEIGHT - block2_size - 512, block2_size)for i in range(1,17)]
-
-    # plat6 = [Block2(i*block2_size + 1920,HEIGHT - block2_size - 384 + (64*i), block2_size)for i in range(1,7)]
-    # plat7 = [Block2(i*block2_size + 1856,HEIGHT - block2_size - 384 + (64*i), block2_size)for i in range(1,7)]
-    # plat8 = [Block2(i*block2_size + 1856,HEIGHT - block2_size - 128, block2_size)for i in range(1,5)]
-    
-    # plat9 = [Block2(i*block2_size + 2880,HEIGHT - block2_size - 320, block2_size)for i in range(1,14)]
-    # plat10 = [Block2(i*block2_size + 2944,HEIGHT - block2_size - 320 - (64*i), block2_size)for i in range(0,7)]
-    # plat11 = [Block2(i*block2_size + 3008,HEIGHT - block2_size - 128, block2_size)for i in range(0,7)]
-    # plat12 = [Block2(i*block2_size + 3008,HEIGHT - block2_size - 192, block2_size)for i in range(0,7)]
-    # plat13 = [Block2(i*block2_size + 3008,HEIGHT - block2_size - 256, block2_size)for i in range(0,7)]
-
-    # plat14 = [Block2(block2_size + 3328,HEIGHT - block2_size - 256 + (64*i), block2_size)for i in range(0,2)]
-    # plat14 = [Block2(block2_size + 3392,HEIGHT - block2_size - 256 + (64*i), block2_size)for i in range(0,2)]
-    # plat15 = [Block2(block2_size + 3584,HEIGHT - block2_size - 64 - (64*i), block2_size)for i in range(0,2)]
-    # plat16 = [Block2(block2_size + 3648,HEIGHT - block2_size - 64 - (64*i), block2_size)for i in range(0,2)]
-
-    # plat17 = [Block2(i*block2_size + 3904,HEIGHT - block2_size - 192 , block2_size)for i in range(1,6)]
-    # plat18 = [Block2(i*block2_size + 3904,HEIGHT - block2_size - 192 , block2_size)for i in range(10,15)]
-
-    # plat19 = [Block2(i*block2_size + 3904,HEIGHT - block2_size - 448 , block2_size)for i in range(1,5)]
-    # plat20 = [Block2(i*block2_size + 3904,HEIGHT - block2_size - 448 , block2_size)for i in range(11,15)]
-    # plat25 = [Block2(i*block2_size + 3904,HEIGHT - block2_size - 512 , block2_size)for i in range(11,15)]
-    # plat26 = [Block2(i*block2_size + 3904,HEIGHT - block2_size - 576 , block2_size)for i in range(11,15)]
-
-    # plat21 = [Block2(i*block2_size + 3904,HEIGHT - block2_size - 640 , block2_size)for i in range(1,4)]
-    # plat22 = [Block2(i*block2_size + 3904,HEIGHT - block2_size - 640 , block2_size)for i in range(11,15)]
-
-    # plat23 = [Block2(i*block2_size + 3904,HEIGHT - block2_size - 320 , block2_size)for i in range(7,9)]
-    # plat24 = [Block2(i*block2_size + 3904,HEIGHT - block2_size - 576 , block2_size)for i in range(7,9)]
-
-    # plat27 = [Block2(i*block2_size + 4992,HEIGHT - block2_size - 384 + (64*i) , block2_size)for i in range(1,4)]
-    # plat31 = [Block2(i*block2_size + 5312,HEIGHT - block2_size - 256 + (64*i) , block2_size)for i in range(1,4)]
-    # plat32 = [Block2(i*block2_size + 5632,HEIGHT - block2_size - 384 + (64*i) , block2_size)for i in range(1,4)]
-    
-    # plat28 = [Block2(i*block2_size + 4992,HEIGHT - block2_size - 512 - (64*i) , block2_size)for i in range(1,4)]
-    # plat29 = [Block2(i*block2_size + 5312,HEIGHT - block2_size - 384 - (64*i) , block2_size)for i in range(1,4)]
-    # plat30 = [Block2(i*block2_size + 5694,HEIGHT - block2_size - 512 - (64*i) , block2_size)for i in range(1,4)]
-
-    # plat33 = [Block2(i*block2_size + 6016,HEIGHT - block2_size - 832 + (64*i) , block2_size)for i in range(1,6)]
-    # plat34 = [Block2(i*block2_size + 6016,HEIGHT - block2_size -  (64*i) , block2_size)for i in range(1,6)]
-
-    # plat35 = [Block2(i*block2_size + 6400,HEIGHT - block2_size -  320 , block2_size)for i in range(0,21)]
-    # plat36 = [Block2(i*block2_size + 6400,HEIGHT - block2_size -  512 , block2_size)for i in range(0,23)]
-
-    # plat39 = [Block2(i*block2_size + 6400,HEIGHT - block2_size -  128 , block2_size)for i in range(0,23)]
-    
-
-    # plat37 = [Block2(i*block2_size + 6400,HEIGHT - block2_size -  384 , block2_size)for i in range(5,7)]
-    # plat38 = [Block2(i*block2_size + 6400,HEIGHT - block2_size -  448 , block2_size)for i in range(14,16)]
-
-    
-    
-    
-
-
-    # objects = [*mini_spike1,*spike1,*floor,*column,*column2,*column3,*column4,*column5,*column6,*column7,*plat1,*plat2,*plat3,*plat4,*plat5,*plat6,*plat7,*plat8,*plat9,*plat10,*plat11,*plat12,*plat13,*plat14,*plat15,*plat16,*plat17,*plat18,*plat19,*plat20,*plat21,*plat22,*plat23,*plat24,*plat25,*plat26,*plat27,*plat28,*plat29,*plat30,*plat31,*plat32,*plat33,*plat34,*plat35,*plat36,*plat37,*plat38,*plat39]
-
-    
-
-
-
 
 
 
@@ -1303,7 +1346,7 @@ def play(window):
                 if option3_mercader.checkForInput(MENU_MOUSE_POS):
                     negociation3(player)  
                     
-        player.loop(delta_time, all_enemies_group)
+        player.loop(delta_time, all_enemies_group, window, partida, volume)
         
         for enemy in all_enemies_group:
             enemy.loop(player)
@@ -1311,7 +1354,7 @@ def play(window):
         mercader.loop(player,offset_x)
         checkpoint.loop()
         
-        handle_move(player,all_enemies_group,firstBoss,checkpoint,objects,arrow_group,fireball_group,delta_time)
+        handle_move(partida,volume,player,all_enemies_group,firstBoss,checkpoint,objects,arrow_group,fireball_group,delta_time)
         draw(window,background,bg_image,heart_image, coin_image, gem_image,arrow_group,fireball_group,player,objects,checkpoint,coins,gems,all_enemies_group,mercader,option1_mercader,option2_mercader,option3_mercader,offset_x)
 
             
@@ -1334,14 +1377,9 @@ def play(window):
     quit()
 
 
-def main_menu(window):
+def main_menu(window, volume):
 
     if not pygame.mixer.music.get_busy():
-        try:
-            with open('volumen.pkl', 'rb') as f:
-                volume = pickle.load(f)
-        except FileNotFoundError:
-            volume =  0.5
         mixer.music.set_volume(volume)
         mixer.music.load(resource_manager.get_sound("menu"))
         mixer.music.play(-1)
@@ -1374,9 +1412,10 @@ def main_menu(window):
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if PLAY_BUTTON.checkForInput(MENU_MOUSE_POS):
-                    play(window)
+                    partida = Partida()
+                    play(window,partida,volume)
                 if OPTIONS_BUTTON.checkForInput(MENU_MOUSE_POS):
-                    options(window)
+                    options(window,volume)
                 if QUIT_BUTTON.checkForInput(MENU_MOUSE_POS):
                     pygame.quit()
                     sys.exit()
@@ -1384,4 +1423,4 @@ def main_menu(window):
         pygame.display.update()    
 
 if __name__ == "__main__":
-    main_menu(window)
+    main_menu(window, 0.5)
