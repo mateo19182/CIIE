@@ -4,6 +4,9 @@ class Partida():
         super().__init__()
         self.level = 1
         self.checkpoint = 0
+        self.coins = 0
+        self.gems = 0
+        self.lives = 3
 
 
 class Volume():

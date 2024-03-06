@@ -38,7 +38,7 @@ class Player(pygame.sprite.Sprite):
     MELEE_DURATION = 0.2
     RANGED_DURATION = 0.4
 
-    def __init__(self,x,y,width,height, lives,projectiles):
+    def __init__(self,x,y,width,height, lives,projectiles,coins,gems):
         self.rect = pygame.Rect(x,y,width,height)
         self.x_vel = 0
         self.y_vel = 0
@@ -47,8 +47,8 @@ class Player(pygame.sprite.Sprite):
         self.animation_count = 0
         self.fall_count = 0
         self.jump_count = 1
-        self.coins = 0
-        self.gems = 0
+        self.coins = coins
+        self.gems = gems
         self.lives = lives
         self._last_called = 0
         self.hit = False
@@ -177,6 +177,8 @@ class Player(pygame.sprite.Sprite):
             mixer.music.stop()
             death_sound.play()
             death_sound.set_volume(volume.sounds_volume)
+            partida.coins = self.coins
+            partida.gems = self.gems
             death_menu(window, partida, volume)
         
     def check_attack(self, enemies):
@@ -250,9 +252,9 @@ class Object(pygame.sprite.Sprite):
         window.blit(self.image,(self.rect.x - offset_x,self.rect.y))
 
 class Lives:
-    def __init__(self):
+    def __init__(self,num):
         self.observers = []
-        self._lives = 3
+        self._lives = num
 
     def attach(self, observer):
         self.observers.append(observer)
@@ -820,7 +822,8 @@ class Checkpoint(pygame.sprite.Sprite):
         window.blit(self.sprite,(self.rect.x - offset_x,self.rect.y))
 
 
-def draw(window,background,bg_image,heart_image, coin_image,gem_image,arrow_group,fireball_group, player,objects,checkpoint,coins,gems,all_enemies_group,mercader,opt1,opt2,opt3,offset_x):
+def draw(window,background,bg_image,heart_image, coin_image,gem_image,arrow_group,fireball_group, player,objects,checkpoint,checkpoint_end,
+         coins,gems,all_enemies_group,mercader,opt1,opt2,opt3,offset_x):
     for tile in background:
         window.blit(bg_image,tile)
         
@@ -844,6 +847,8 @@ def draw(window,background,bg_image,heart_image, coin_image,gem_image,arrow_grou
     mercader.draw(window,offset_x,opt1,opt2,opt3)
     
     checkpoint.draw(window,offset_x)
+
+    checkpoint_end.draw(window,offset_x)
 
     draw_bar(player.lives.lives, player.coins, player.gems, heart_image, coin_image, gem_image)
     for coin in coins:
@@ -920,6 +925,17 @@ def collide_checkpoint(player,checkpoint,partida):
         if not checkpoint.activate_idle:
             checkpoint.activated = True
         partida.checkpoint = 1     
+
+def collide_end(player,checkpoint,partida,volume):
+    if(pygame.sprite.collide_mask(player,checkpoint)):
+        partida.lives = player.lives
+        partida.coins = player.coins
+        partida.gems = player.gems
+        if partida.level != 2:
+            partida.level += 1
+            partida.checkpoint = 0
+            show_loading_screen()
+            play(window, partida, volume)    
             
 def collide_fireball(fireball_group,enemies_group,objects):
     for fireball in fireball_group:
@@ -933,7 +949,7 @@ def collide_fireball(fireball_group,enemies_group,objects):
                 fireball.kill()
                 fireball.update()
     
-def handle_move(partida,volume,player,enemies_group,boss,checkpoint,objects,arrow_group,fireball_group,delta):
+def handle_move(partida,volume,player,enemies_group,boss,checkpoint,checkpoint_end,objects,arrow_group,fireball_group,delta):
     vertical_collide = handle_vertical_colission(player,objects,player.y_vel)
     if player.lives.lives <= 0:
         player.die(window,partida,volume)
@@ -946,6 +962,7 @@ def handle_move(partida,volume,player,enemies_group,boss,checkpoint,objects,arro
     collide_arrow(player,arrow_group,objects, volume)
     collide_boss(player,boss,PLAYER_VEL * 2, delta, window, partida, volume)
     collide_checkpoint(player,checkpoint, partida)
+    collide_end(player,checkpoint_end, partida, volume)
     collide_fireball(fireball_group,enemies_group,objects)
         
     if keys[pygame.K_a] and not collide_left:
@@ -1004,6 +1021,37 @@ def outOfWindow(group,offset_x):
     for element in group:
         if element.rect.right - offset_x < 0 or element.rect.left - offset_x > WIDTH:
                 element.kill()
+
+
+def show_loading_screen():
+    window.fill("white")
+    Load1 = pygame.image.load('assets/Progress_Bar/1.jpg')
+    Load2 = pygame.image.load('assets/Progress_Bar/2.jpg')
+    Load3 = pygame.image.load('assets/Progress_Bar/3.jpg')
+    Load4 = pygame.image.load('assets/Progress_Bar/4.jpg')
+
+    LOADING_TEXT = resource_manager.get_font(75).render("LOADING", True, "#b68f40")
+    LOADING_RECT = LOADING_TEXT.get_rect(center=(515, 180))
+    SCREEN.blit(LOADING_TEXT, LOADING_RECT)
+
+    where = (120, 360)
+    progress = 0
+    while progress < 1:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+        progress += 0.01
+        if progress < 0.33:
+            window.blit(Load1, where)
+        elif progress < 0.66:
+            window.blit(Load2, where)
+        elif progress <= 0.99:
+            window.blit(Load3, where)
+        pygame.display.update()
+        pygame.time.wait(40)
+    window.blit(Load4, where)
+    pygame.display.update()                
         
 
 
@@ -1040,6 +1088,7 @@ def death_menu(window, partida, volume):
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if REPLAY_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    show_loading_screen()
                     play(window, partida, volume)
                 if MENU_BUTTON.checkForInput(MENU_MOUSE_POS):
                     main_menu(window, volume)
@@ -1167,7 +1216,7 @@ def play(window, partida, volume):
     elif partida.level == 2:
         background,bg_image, heart_image, coin_image, gem_image = resource_manager.get_background("Cave2.png")
 
-    lives = Lives()
+    lives = Lives(partida.lives)
     
     all_enemies_group = pygame.sprite.Group()
     arrow_group = pygame.sprite.Group()
@@ -1180,7 +1229,7 @@ def play(window, partida, volume):
         distance = 7300
         checkpoint_activated = True
     
-    player = Player(400,400,50,50, lives,fireball_group)
+    player = Player(400,400,50,50, lives,fireball_group,partida.coins,partida.gems)
     rangedenemie1 = RangedEnemies(900-distance,500,100,100,4,arrow_group,"HalflingRanger")
     rangedenemie2 = RangedEnemies(6135-distance,230,100,100,4,arrow_group,"HalflingRanger")
     meleeEnemie1 = MeleeEnemie(800-distance,625,100,100,"HalflingRogue")
@@ -1189,6 +1238,7 @@ def play(window, partida, volume):
     mercader = Mercader(2700-distance, 625, 100, 100) 
     firstBoss = Boss(8500-distance,450,100,100)
     checkpoint = Checkpoint(7700-distance,375,50,50, checkpoint_activated)
+    checkpoint_end = Checkpoint(8700-distance,575,50,50,True)
 
     all_enemies_group.add(meleeEnemie1)
     all_enemies_group.add(meleeEnemie2)
@@ -1404,9 +1454,11 @@ def play(window, partida, volume):
             
         mercader.loop(player,offset_x)
         checkpoint.loop()
+        checkpoint_end.loop()
         
-        handle_move(partida,volume,player,all_enemies_group,firstBoss,checkpoint,objects,arrow_group,fireball_group,delta_time)
-        draw(window,background,bg_image,heart_image, coin_image, gem_image,arrow_group,fireball_group,player,objects,checkpoint,coins,gems,all_enemies_group,mercader,option1_mercader,option2_mercader,option3_mercader,offset_x)
+        handle_move(partida,volume,player,all_enemies_group,firstBoss,checkpoint,checkpoint_end,objects,arrow_group,fireball_group,delta_time)
+        draw(window,background,bg_image,heart_image, coin_image, gem_image,arrow_group,fireball_group,player,objects,checkpoint,checkpoint_end,
+             coins,gems,all_enemies_group,mercader,option1_mercader,option2_mercader,option3_mercader,offset_x)
 
             
         if pygame.sprite.spritecollideany(player, coins): 
@@ -1441,7 +1493,7 @@ def main_menu(window, volume):
 
         MENU_MOUSE_POS = pygame.mouse.get_pos()
 
-        MENU_TEXT = resource_manager.get_font(75).render("DRAGON KILL?", True, "#b68f40")
+        MENU_TEXT = resource_manager.get_font(75).render("DRAGON KILL", True, "#b68f40")
         MENU_RECT = MENU_TEXT.get_rect(center=(515, 120))
 
         PLAY_BUTTON = Button(image=pygame.image.load("assets/Play Rect.png"), pos=(515, 300), 
@@ -1463,6 +1515,7 @@ def main_menu(window, volume):
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if PLAY_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    show_loading_screen()
                     partida = Partida()
                     play(window,partida,volume)
                 if OPTIONS_BUTTON.checkForInput(MENU_MOUSE_POS):
