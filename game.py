@@ -606,7 +606,111 @@ class Boss(pygame.sprite.Sprite):
         bar_y = self.rect.y - 20
         pygame.draw.rect(window, (255, 0, 0), (bar_x, bar_y, bar_width, bar_height))
         pygame.draw.rect(window, (0, 255, 0), (bar_x, bar_y, bar_width * (self.vida / 3), bar_height))
+
+class SecondBoss(pygame.sprite.Sprite):
+    SPRITES = resource_manager.load_sprite_sheets("Enemies", "SecondBoss", 32, 32, False)
+    ANIMATION_DELAY = 20
+    GRAVITY = 5
+    DAMAGE_COOLDOWN = 500
     
+    def __init__(self, x, y, width, height):
+        super().__init__()
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.animation_count = 0
+        self.frame_count = 0
+        self.rect = pygame.Rect(x, y, width, height)
+        self.mask = None
+        self.sprite = None
+        self.orientation = "left"
+        self.x_vel = 0
+        self.fall = False
+        self.vida = 3
+        self.is_alive = True
+        self.last_damage_time = 0
+        self.explosions = pygame.sprite.Group()  
+        self.state = "Idle"
+        self.player_proximity_threshold = 1000 
+
+    def loop(self, player, volume):
+        self.frame_count += 1
+        self.check_proximity(player)
+        self.die()
+        self.update_sprite()
+        self.attack(player)
+
+    def check_proximity(self, player):
+        distance_to_player = math.hypot(player.rect.x - self.rect.x, player.rect.y - self.rect.y)
+        if distance_to_player < self.player_proximity_threshold:
+            if self.state == "Idle" and self.frame_count >= 100: 
+                self.state = "Attack"
+                self.frame_count = 0 
+        else:
+            self.state = "Idle"
+
+    def update_sprite(self):
+        if self.state == "Attack":
+            sprites = self.SPRITES["Attack"]
+        else:
+            sprites = self.SPRITES["Idle"]
+        sprite_index = (self.animation_count // self.ANIMATION_DELAY) % len(sprites)
+        self.sprite = sprites[sprite_index]
+        self.sprite = pygame.transform.scale(self.sprite, (32 * 8, 32 * 8))
+        self.sprite = pygame.transform.flip(self.sprite, True, False)
+        self.animation_count += 1
+
+        if sprite_index == 0 and self.state == "Attack":
+            self.frame_count = 0
+
+        self.update()
+
+    def attack(self, player):
+        if self.state == "Attack" and self.frame_count == 140:
+            print("PUM!")
+            self.create_explosion(player)
+            self.state = "Idle" 
+
+    def create_explosion(self, player):
+        explosion_x = player.rect.x + random.randint(-50, 50)
+        explosion_y = player.rect.y + random.randint(-50, 50)
+        explosion = Explosion(explosion_x, explosion_y)
+        self.explosions.add(explosion) 
+
+    def take_damage(self):
+        current_time = pygame.time.get_ticks()
+        
+        if current_time - self.last_damage_time > self.DAMAGE_COOLDOWN:
+            self.vida -= 1
+            self.last_damage_time = current_time
+            if self.vida <= 0:
+                self.is_alive = False
+                self.kill()
+                self.update_sprite()
+        
+    def update(self):
+        self.rect.x += self.x_vel
+        self.rect = self.sprite.get_rect(topleft = (self.rect.x, self.rect.y))
+        self.mask = pygame.mask.from_surface(self.sprite)
+        super().update()
+        self.explosions.update()
+                
+    def die(self):
+        if self.vida == 0:
+            self.is_alive = False
+        
+    def draw(self, window, offset_x):
+        window.blit(self.sprite, (self.rect.x - offset_x, self.rect.y))
+        
+        bar_width = 300
+        bar_height = 10 
+        bar_x = self.rect.x - offset_x 
+        bar_y = self.rect.y - 20
+        pygame.draw.rect(window, (255, 0, 0), (bar_x, bar_y, bar_width, bar_height))
+        pygame.draw.rect(window, (0, 255, 0), (bar_x, bar_y, bar_width * (self.vida / 3), bar_height))
+        self.explosions.draw(window) 
+
 
 class Mercader(pygame.sprite.Sprite):
     SPRITES = resource_manager.load_sprite_sheets("Mercader","Mercader",16,16,False)
@@ -763,6 +867,32 @@ class Fireball(pygame.sprite.Sprite):
     def draw(self, screen, offset_x):
         screen.blit(self.image, (self.rect.x - offset_x, self.rect.y))
         
+
+class Explosion(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        self.sprite_sheet = pygame.image.load('assets/Enemies/SecondBoss/Explosion.png').convert_alpha()
+        self.images = self.load_explosion_images()
+        self.current_frame = 0
+        self.image = self.images[self.current_frame] 
+        self.rect = self.image.get_rect(center=(x, y))
+        self.animation_speed = 0.2 
+
+    def load_explosion_images(self):
+        images = []
+        for i in range(0, self.sprite_sheet.get_width(), 32): 
+            image = self.sprite_sheet.subsurface(pygame.Rect(i, 0, 32, 32))
+            scaled_image = pygame.transform.scale(image, (128, 128))
+            images.append(scaled_image)
+        return images
+
+    def update(self):
+        print(self.rect)
+        self.current_frame += self.animation_speed
+        if self.current_frame >= len(self.images):
+            self.kill()
+        else:
+            self.image = self.images[int(self.current_frame)]
 class Checkpoint(pygame.sprite.Sprite):
     ANIMATION_DELAY = 3
     
@@ -823,7 +953,7 @@ class Checkpoint(pygame.sprite.Sprite):
 
 
 def draw(window,background,bg_image,heart_image, coin_image,gem_image,arrow_group,fireball_group, player,objects,checkpoint,checkpoint_end,
-         coins,gems,all_enemies_group,mercader,opt1,opt2,opt3,offset_x):
+        coins,gems,all_enemies_group,mercader,opt1,opt2,opt3,offset_x):
     for tile in background:
         window.blit(bg_image,tile)
         
@@ -870,7 +1000,7 @@ def handle_vertical_colission(player,objects,dy):
                 player.rect.bottom = obj.rect.top
                 player.landed()
             elif dy < 0:
-                player.rect.top = player.rect.bottom
+                player.rect.top = obj.rect.bottom
                 player.hit_head()
 
             collided_objects.append(obj)
@@ -905,7 +1035,6 @@ def collide_boss(player,boss,dx, delta, window, partida, volume):
         if boss.is_alive:
             player.get_hit(volume.sounds_volume)
             player.move(-dx,0, delta, window, partida, volume)
-    
     player.update()
 
 def collide_arrow(player,arrows,objects,volume):
@@ -928,7 +1057,7 @@ def collide_checkpoint(player,checkpoint,partida):
 
 def collide_end(player,checkpoint,partida,volume):
     if(pygame.sprite.collide_mask(player,checkpoint)):
-        partida.lives = player.lives
+        partida.lives = 3
         partida.coins = player.coins
         partida.gems = player.gems
         if partida.level != 2:
@@ -936,7 +1065,12 @@ def collide_end(player,checkpoint,partida,volume):
             partida.checkpoint = 0
             show_loading_screen()
             play(window, partida, volume)    
-            
+
+def collide_explosion(explosions, player, volume):
+    for expl in explosions:
+        if  pygame.sprite.collide_mask(expl,player):
+            player.get_hit(volume.sounds_volume)
+
 def collide_fireball(fireball_group,enemies_group,objects):
     for fireball in fireball_group:
         for enemy in enemies_group:
@@ -964,6 +1098,7 @@ def handle_move(partida,volume,player,enemies_group,boss,checkpoint,checkpoint_e
     collide_checkpoint(player,checkpoint, partida)
     collide_end(player,checkpoint_end, partida, volume)
     collide_fireball(fireball_group,enemies_group,objects)
+    collide_explosion(boss.explosions, player, volume)
         
     if keys[pygame.K_a] and not collide_left:
         player.move_left(PLAYER_VEL)
@@ -1237,6 +1372,7 @@ def play(window, partida, volume):
     meleeEnemie3 = MeleeEnemie(8320-distance,500,100,100,"HalflingRogue")
     mercader = Mercader(2700-distance, 625, 100, 100) 
     firstBoss = Boss(8500-distance,450,100,100)
+    firstBoss = SecondBoss(8500-distance,450,100,100)
     checkpoint = Checkpoint(7700-distance,375,50,50, checkpoint_activated)
     checkpoint_end = Checkpoint(8700-distance,575,50,50,True)
 
