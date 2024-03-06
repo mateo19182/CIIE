@@ -1098,7 +1098,8 @@ def handle_move(partida,volume,player,enemies_group,boss,checkpoint,checkpoint_e
     collide_checkpoint(player,checkpoint, partida)
     collide_end(player,checkpoint_end, partida, volume)
     collide_fireball(fireball_group,enemies_group,objects)
-    collide_explosion(boss.explosions, player, volume)
+    if partida.level==2:
+        collide_explosion(boss.explosions, player, volume)
         
     if keys[pygame.K_a] and not collide_left:
         player.move_left(PLAYER_VEL)
@@ -1395,7 +1396,8 @@ def play(window, partida, volume):
         meleeEnemie2 = MeleeEnemie(4375-distance,525,100,100,"HalflingRogue")
         meleeEnemie3 = MeleeEnemie(8320-distance,500,100,100,"HalflingRogue")
         mercader = Mercader(2700-distance, 625, 100, 100) 
-        firstBoss = Boss(8500-distance,450,100,100)
+        firstBoss = SecondBoss(8500-distance,450,100,100)
+        
         checkpoint = Checkpoint(7700-distance,375,50,50, checkpoint_activated)
         checkpoint_end = Checkpoint(8700-distance,575,50,50,True)
 
@@ -1407,27 +1409,6 @@ def play(window, partida, volume):
         all_enemies_group.add(firstBoss)
 
     
-<<<<<<< HEAD
-    player = Player(400,400,50,50, lives,fireball_group,partida.coins,partida.gems)
-    rangedenemie1 = RangedEnemies(900-distance,500,100,100,4,arrow_group,"HalflingRanger")
-    rangedenemie2 = RangedEnemies(6135-distance,230,100,100,4,arrow_group,"HalflingRanger")
-    meleeEnemie1 = MeleeEnemie(800-distance,625,100,100,"HalflingRogue")
-    meleeEnemie2 = MeleeEnemie(4375-distance,500,100,100,"HalflingRogue")
-    meleeEnemie3 = MeleeEnemie(8320-distance,500,100,100,"HalflingRogue")
-    mercader = Mercader(2700-distance, 625, 100, 100) 
-    firstBoss = Boss(8500-distance,450,100,100)
-    firstBoss = SecondBoss(8500-distance,450,100,100)
-    checkpoint = Checkpoint(7700-distance,375,50,50, checkpoint_activated)
-    checkpoint_end = Checkpoint(8700-distance,575,50,50,True)
-
-    all_enemies_group.add(meleeEnemie1)
-    all_enemies_group.add(meleeEnemie2)
-    all_enemies_group.add(meleeEnemie3)
-    all_enemies_group.add(rangedenemie1)
-    all_enemies_group.add(rangedenemie2)
-    all_enemies_group.add(firstBoss)
-=======
->>>>>>> main
 
     block_size = 96
     block2_size = 64 
