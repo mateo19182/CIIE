@@ -1211,11 +1211,6 @@ def play(window, partida, volume):
 
     clock = pygame.time.Clock()
 
-    if partida.level == 1:
-        background,bg_image, heart_image, coin_image, gem_image = resource_manager.get_background("Night.png")
-    elif partida.level == 2:
-        background,bg_image, heart_image, coin_image, gem_image = resource_manager.get_background("Cave2.png")
-
     lives = Lives(partida.lives)
     
     all_enemies_group = pygame.sprite.Group()
@@ -1225,27 +1220,58 @@ def play(window, partida, volume):
     distance = 0
     checkpoint_activated = False 
 
-    if partida.checkpoint == 1:
-        distance = 7300
-        checkpoint_activated = True
-    
-    player = Player(400,400,50,50, lives,fireball_group,partida.coins,partida.gems)
-    rangedenemie1 = RangedEnemies(900-distance,500,100,100,4,arrow_group,"HalflingRanger")
-    rangedenemie2 = RangedEnemies(6135-distance,230,100,100,4,arrow_group,"HalflingRanger")
-    meleeEnemie1 = MeleeEnemie(800-distance,625,100,100,"HalflingRogue")
-    meleeEnemie2 = MeleeEnemie(4375-distance,500,100,100,"HalflingRogue")
-    meleeEnemie3 = MeleeEnemie(8320-distance,500,100,100,"HalflingRogue")
-    mercader = Mercader(2700-distance, 625, 100, 100) 
-    firstBoss = Boss(8500-distance,450,100,100)
-    checkpoint = Checkpoint(7700-distance,375,50,50, checkpoint_activated)
-    checkpoint_end = Checkpoint(8700-distance,575,50,50,True)
+    if partida.level == 1:
+        background,bg_image, heart_image, coin_image, gem_image = resource_manager.get_background("Night.png")
+        if partida.checkpoint == 1:
+            distance = 7300
+            checkpoint_activated = True
+        
+        player = Player(400,400,50,50, lives,fireball_group,partida.coins,partida.gems)
+        rangedenemie1 = RangedEnemies(900-distance,500,100,100,4,arrow_group,"HalflingRanger")
+        rangedenemie2 = RangedEnemies(6135-distance,230,100,100,4,arrow_group,"HalflingRanger")
+        meleeEnemie1 = MeleeEnemie(800-distance,625,100,100,"HalflingRogue")
+        meleeEnemie2 = MeleeEnemie(4375-distance,525,100,100,"HalflingRogue")
+        meleeEnemie3 = MeleeEnemie(8320-distance,500,100,100,"HalflingRogue")
+        mercader = Mercader(2700-distance, 625, 100, 100) 
+        firstBoss = Boss(8500-distance,450,100,100)
+        checkpoint = Checkpoint(7700-distance,375,50,50, checkpoint_activated)
+        checkpoint_end = Checkpoint(8700-distance,575,50,50,True)
 
-    all_enemies_group.add(meleeEnemie1)
-    all_enemies_group.add(meleeEnemie2)
-    all_enemies_group.add(meleeEnemie3)
-    all_enemies_group.add(rangedenemie1)
-    all_enemies_group.add(rangedenemie2)
-    all_enemies_group.add(firstBoss)
+        all_enemies_group.add(meleeEnemie1)
+        all_enemies_group.add(meleeEnemie2)
+        all_enemies_group.add(meleeEnemie3)
+        all_enemies_group.add(rangedenemie1)
+        all_enemies_group.add(rangedenemie2)
+        all_enemies_group.add(firstBoss)
+
+    elif partida.level == 2:
+        background,bg_image, heart_image, coin_image, gem_image = resource_manager.get_background("Cave2.png")
+
+        ########## CONSTRUIR ENEMIGOS PARA NIVEL 2 (AHORA MISMO ESTA COMO NIVEL 1)#############
+
+        if partida.checkpoint == 1:
+            distance = 7300
+            checkpoint_activated = True
+        
+        player = Player(400,400,50,50, lives,fireball_group,partida.coins,partida.gems)
+        rangedenemie1 = RangedEnemies(900-distance,500,100,100,4,arrow_group,"HalflingRanger")
+        rangedenemie2 = RangedEnemies(6135-distance,230,100,100,4,arrow_group,"HalflingRanger")
+        meleeEnemie1 = MeleeEnemie(800-distance,625,100,100,"HalflingRogue")
+        meleeEnemie2 = MeleeEnemie(4375-distance,525,100,100,"HalflingRogue")
+        meleeEnemie3 = MeleeEnemie(8320-distance,500,100,100,"HalflingRogue")
+        mercader = Mercader(2700-distance, 625, 100, 100) 
+        firstBoss = Boss(8500-distance,450,100,100)
+        checkpoint = Checkpoint(7700-distance,375,50,50, checkpoint_activated)
+        checkpoint_end = Checkpoint(8700-distance,575,50,50,True)
+
+        all_enemies_group.add(meleeEnemie1)
+        all_enemies_group.add(meleeEnemie2)
+        all_enemies_group.add(meleeEnemie3)
+        all_enemies_group.add(rangedenemie1)
+        all_enemies_group.add(rangedenemie2)
+        all_enemies_group.add(firstBoss)
+
+    
 
     block_size = 96
     block2_size = 64 
