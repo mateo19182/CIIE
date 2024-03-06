@@ -1076,14 +1076,33 @@ def collide_fireball(fireball_group,enemies_group,objects):
         for enemy in enemies_group:
             if pygame.sprite.collide_mask(fireball,enemy):
                 enemy.take_damage()
-                enemy.is_alive = False        
+                enemy.is_alive = False
+                fireball.kill()    
                 
         for obj in objects:
             if pygame.sprite.collide_mask(fireball,obj):
                 fireball.kill()
                 fireball.update()
+                
+def collide_enemie(player,enemie,objects,volume):
     
-def handle_move(partida,volume,player,enemies_group,boss,checkpoint,checkpoint_end,objects,arrow_group,fireball_group,delta):
+    if(pygame.sprite.collide_mask(player,enemie)):
+        if enemie.is_alive:
+            player.get_hit(volume.sounds_volume)
+                
+    for obj in objects:
+        if(pygame.sprite.collide_mask(enemie,obj)):
+            enemie.fall = False
+            return
+                
+    enemie.fall = True
+
+    enemie.y += enemie.GRAVITY
+    enemie.rect.y = enemie.y
+
+    player.update()
+    
+def handle_move(partida,volume,player,enemies_group,boss,meleeEnemies_group,checkpoint,checkpoint_end,objects,arrow_group,fireball_group,delta):
     vertical_collide = handle_vertical_colission(player,objects,player.y_vel)
     if player.lives.lives <= 0:
         player.die(window,partida,volume)
@@ -1098,6 +1117,10 @@ def handle_move(partida,volume,player,enemies_group,boss,checkpoint,checkpoint_e
     collide_checkpoint(player,checkpoint, partida)
     collide_end(player,checkpoint_end, partida, volume)
     collide_fireball(fireball_group,enemies_group,objects)
+    
+    for meleeEnemie in meleeEnemies_group:
+        collide_enemie(player,meleeEnemie,objects,volume)
+    
     if partida.level==2:
         collide_explosion(boss.explosions, player, volume)
         
@@ -1350,6 +1373,7 @@ def play(window, partida, volume):
     lives = Lives(partida.lives)
     
     all_enemies_group = pygame.sprite.Group()
+    meleeEnemies_group = pygame.sprite.Group()
     arrow_group = pygame.sprite.Group()
     fireball_group = pygame.sprite.Group()
 
@@ -1379,6 +1403,10 @@ def play(window, partida, volume):
         all_enemies_group.add(rangedenemie1)
         all_enemies_group.add(rangedenemie2)
         all_enemies_group.add(firstBoss)
+        
+        meleeEnemies_group.add(meleeEnemie1)
+        meleeEnemies_group.add(meleeEnemie2)
+        meleeEnemies_group.add(meleeEnemie3)
 
     elif partida.level == 2:
         background,bg_image, heart_image, coin_image, gem_image = resource_manager.get_background("Cave2.png")
@@ -1390,8 +1418,8 @@ def play(window, partida, volume):
             checkpoint_activated = True
         
         player = Player(400,400,50,50, lives,fireball_group,partida.coins,partida.gems)
-        rangedenemie1 = RangedEnemies(900-distance,500,100,100,4,arrow_group,"HalflingRanger")
-        rangedenemie2 = RangedEnemies(6135-distance,230,100,100,4,arrow_group,"HalflingRanger")
+        rangedenemie1 = RangedEnemies(900-distance,500,100,100,4,arrow_group,"GnomeTinkerer")
+        rangedenemie2 = RangedEnemies(6135-distance,230,100,100,4,arrow_group,"GnomeTinkerer")
         meleeEnemie1 = MeleeEnemie(800-distance,625,100,100,"HalflingRogue")
         meleeEnemie2 = MeleeEnemie(4375-distance,525,100,100,"HalflingRogue")
         meleeEnemie3 = MeleeEnemie(8320-distance,500,100,100,"HalflingRogue")
@@ -1407,6 +1435,10 @@ def play(window, partida, volume):
         all_enemies_group.add(rangedenemie1)
         all_enemies_group.add(rangedenemie2)
         all_enemies_group.add(firstBoss)
+        
+        meleeEnemies_group.add(meleeEnemie1)
+        meleeEnemies_group.add(meleeEnemie2)
+        meleeEnemies_group.add(meleeEnemie3)
 
     
 
@@ -1619,7 +1651,7 @@ def play(window, partida, volume):
         checkpoint.loop()
         checkpoint_end.loop()
         
-        handle_move(partida,volume,player,all_enemies_group,firstBoss,checkpoint,checkpoint_end,objects,arrow_group,fireball_group,delta_time)
+        handle_move(partida,volume,player,all_enemies_group,firstBoss,meleeEnemies_group,checkpoint,checkpoint_end,objects,arrow_group,fireball_group,delta_time)
         draw(window,background,bg_image,heart_image, coin_image, gem_image,arrow_group,fireball_group,player,objects,checkpoint,checkpoint_end,
              coins,gems,all_enemies_group,mercader,option1_mercader,option2_mercader,option3_mercader,offset_x)
 
