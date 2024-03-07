@@ -1471,29 +1471,25 @@ def play(window, partida, volume):
             checkpoint_activated = True
         
         player = Player(400,400,50,50, lives,fireball_group,partida.coins,partida.gems)
-        rangedenemie1 = RangedEnemies(900-distance,500,100,100,4,arrow_group,"GnomeTinkerer")
-        rangedenemie2 = RangedEnemies(6135-distance,230,100,100,4,arrow_group,"GnomeTinkerer")
-        meleeEnemie1 = MeleeEnemie(800-distance,625,100,100,"HalflingRogue")
+        rangedenemie1 = RangedEnemies(945-distance,335,100,100,30,arrow_group,"GnomeTinkerer")
+        rangedenemie2 = RangedEnemies(6553-distance,530,100,100,30,arrow_group,"GnomeTinkerer")
+        meleeEnemie1 = MeleeEnemie(1400-distance,625,100,100,"HalflingRogue")
         meleeEnemie2 = MeleeEnemie(4375-distance,525,100,100,"HalflingRogue")
-        meleeEnemie3 = MeleeEnemie(8320-distance,500,100,100,"HalflingRogue")
-        mercader = Mercader(2700-distance, 625, 100, 100) 
-        firstBoss = SecondBoss(8500-distance,450,100,100)
+        mercader = Mercader(2700-distance, 655, 100, 100) 
+        firstBoss = SecondBoss(8500-distance,480,100,100)
         
-        checkpoint = Checkpoint(7700-distance,375,50,50, checkpoint_activated)
+        checkpoint = Checkpoint(7700-distance,480,50,50, checkpoint_activated)
         checkpoint_end = Checkpoint(9000-distance,575,50,50,True)
 
         all_enemies_group.add(meleeEnemie1)
         all_enemies_group.add(meleeEnemie2)
-        all_enemies_group.add(meleeEnemie3)
         all_enemies_group.add(rangedenemie1)
         all_enemies_group.add(rangedenemie2)
         all_enemies_group.add(firstBoss)
         
         meleeEnemies_group.add(meleeEnemie1)
         meleeEnemies_group.add(meleeEnemie2)
-        meleeEnemies_group.add(meleeEnemie3)
-
-    
+        
 
     block_size = 96
     block2_size = 64 
@@ -1726,7 +1722,7 @@ def play(window, partida, volume):
 
         if((player.rect.right - offset_x >= WIDTH - scroll_area_width) and player.x_vel > 0) or (
             (player.rect.left - offset_x <= scroll_area_width) and player.x_vel < 0):
-                offset_x += player.x_vel / FPS 
+                offset_x += player.x_vel  / FPS
     
     pygame.quit()
     quit()
