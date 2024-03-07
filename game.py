@@ -346,6 +346,20 @@ class Block4(Object):
         block = resource_manager.get_block4(size)
         self.image.blit(block, (0, 0))
         self.mask = pygame.mask.from_surface(self.image) 
+
+class Block5(Object):
+    def __init__(self, x, y, size):
+        super().__init__(x, y, size, size)
+        block = resource_manager.get_block5(size)
+        self.image.blit(block, (0, 0))
+        self.mask = pygame.mask.from_surface(self.image) 
+
+class Block6(Object):
+    def __init__(self, x, y, size):
+        super().__init__(x, y, size, size)
+        block = resource_manager.get_block5(size)
+        self.image.blit(block, (0, 0))
+        self.mask = pygame.mask.from_surface(self.image)         
         
 class Platform(Object):
     def __init__(self,x,y,size):
@@ -1461,7 +1475,7 @@ def play(window, partida, volume):
         meleeEnemies_group.add(meleeEnemie2)
         meleeEnemies_group.add(meleeEnemie3)
 
-    elif partida.level == 2:
+    elif partida.level == 2 or partida.level == 3:
         background,bg_image, heart_image, coin_image, gem_image = resource_manager.get_background("Cave2.png")
 
         ########## CONSTRUIR ENEMIGOS PARA NIVEL 2 (AHORA MISMO ESTA COMO NIVEL 1)#############
@@ -1495,6 +1509,7 @@ def play(window, partida, volume):
     block2_size = 64 
     block3_size = 64 
     block4_size = 32 
+    block5_size = 30 
 
     plat_size = 100
 
@@ -1634,8 +1649,42 @@ def play(window, partida, volume):
         
         
         objects = [*mini_spike1,*spike1,*floor,*column,*column2,*column3,*column4,*column5,*column6,*column7,*plat1,*plat2,*plat3,*plat4,*plat5,*plat6,*plat7,*plat8,*plat9,*plat10,*plat11,*plat12,*plat13,*plat14,*plat15,*plat16,*plat17,*plat18,*plat19,*plat20,*plat21,*plat22,*plat23,*plat24,*plat25,*plat26,*plat27,*plat28,*plat29,*plat30,*plat31,*plat32,*plat33,*plat34,*plat35,*plat36,*plat37,*plat38,*plat39]
+############################################# NIVEL 3 - CASTILLO ###############################################################
+    elif partida.level == 3:
+         floor = [Block5(i*block2_size-distance,HEIGHT - block2_size ,block2_size)for i in range(-10,8)]
+         floor2 = [Block5(i*block2_size-distance + 3700,HEIGHT - block2_size - 320 ,block2_size)for i in range(0,6)]
+         floor3 = [Block5(i*block2_size-distance + 4084,HEIGHT - block2_size - 320 + i*block2_size,block2_size)for i in range(0,5)]
+         floor4 = [Block5(i*block2_size-distance + 4400,HEIGHT - block2_size - 64 ,block2_size)for i in range(0,20)]
 
-    
+
+         plat1 = [Block5(i*block4_size-distance + 1000,HEIGHT - block2_size - 384,block4_size)for i in range(0,10)]
+         plat2 = [Block5(i*block4_size-distance + 1672,HEIGHT - block2_size - 384,block4_size)for i in range(0,10)]
+         plat3 = [Block5(i*block4_size-distance + 300,HEIGHT - block2_size - 448,block4_size)for i in range(0,3)]
+         plat4 = [Block5(i*block4_size-distance + 700,HEIGHT - block2_size - 640,block4_size)for i in range(0,4)]
+         plat5 = [Block5(i*block4_size-distance,HEIGHT - block2_size - 150,block4_size)for i in range(0,3)]
+         
+         plat6 = [Block5(3*i*block4_size-distance + 2100 ,HEIGHT - block2_size - 100 - 4*i*block2_size,block4_size)for i in range(0,5)]
+         plat7 = [Block5(3*i*block4_size-distance + 2500 ,HEIGHT - block2_size - 100 - 4*i*block2_size,block4_size)for i in range(0,5)]
+         plat8 = [Block5(3*i*block4_size-distance + 2900 ,HEIGHT - block2_size - 100 - 4*i*block2_size,block4_size)for i in range(0,5)]
+         
+         plat9 = [Block5(3*i*block4_size-distance + 2350 ,HEIGHT - block2_size - 200 - 4*i*block2_size,block4_size)for i in range(0,3)]
+         plat10 = [Block5(3*i*block4_size-distance + 2750 ,HEIGHT - block2_size - 200 - 4*i*block2_size,block4_size)for i in range(0,3)]
+         plat11 = [Block5(3*i*block4_size-distance + 3150 ,HEIGHT - block2_size - 200 - 4*i*block2_size,block4_size)for i in range(0,3)]
+         
+         plat12 = [Block5(3*i*block4_size-distance + 3300 ,HEIGHT - block2_size - 100 - 4*i*block2_size,block4_size)for i in range(0,2)]
+         plat13 = [Block5(3*i*block4_size-distance + 3550 ,HEIGHT - block2_size - 200 - 4*i*block2_size,block4_size)for i in range(0,2)]
+         
+         plat14 = [Block5(i*block4_size-distance + 4450,HEIGHT - block2_size - 400 ,block4_size)for i in range(0,3)]
+         plat15 = [Block5(i*block4_size-distance + 4720,HEIGHT - block2_size - 550 ,block4_size)for i in range(0,3)]
+
+        # Los cuadrados voladores sueltos harán daño al jugador como los pinchos
+         spike1 = [Block5(i*block4_size-distance + 1480 ,HEIGHT - block2_size - 600,block4_size)for i in range(0,1)]
+         spike2 = [Block5(distance + 4600 ,HEIGHT - block2_size - 300 - 6*i*block2_size,block4_size)for i in range(0,2)]
+
+
+         objects = [*floor, *floor2, *floor3, *floor4, *plat1, *plat2, *plat3, *plat4, *plat5, *plat6, *plat7, *plat8, *plat9, *plat10, *plat11, *plat12, *plat13, *plat14, *plat15, *spike1, *spike2]
+
+
 
 
     coin_size = 40  
