@@ -1057,7 +1057,7 @@ def collide_checkpoint(player,checkpoint,partida):
 
 def collide_end(player,checkpoint,partida,volume):
     if(pygame.sprite.collide_mask(player,checkpoint)):
-        partida.lives = 3
+        partida.lives = 3 #player.lives.lives
         partida.coins = player.coins
         partida.gems = player.gems
         if partida.level != 2:
@@ -1212,6 +1212,59 @@ def show_loading_screen():
     window.blit(Load4, where)
     pygame.display.update()                
         
+
+def pause_screen(window,partida,volume):
+    # Dibujamos pantalla gris transparente
+    surface = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA, 32)
+    surface.fill((128, 128, 128))
+    surface.set_alpha(128) 
+    window.blit(surface, (0, 0))
+
+    pause = True
+    while pause:
+
+        PAUSE_MOUSE_POS = pygame.mouse.get_pos()
+
+        PAUSE_TEXT = resource_manager.get_font(75).render("PAUSE MENU", True, "#b68f40")
+        PAUSE_RECT = PAUSE_TEXT.get_rect(center=(500, 150))
+        window.blit(PAUSE_TEXT, PAUSE_RECT)
+        
+        RESUME_BUTTON = Button(image=None, pos=(500, 300), 
+                            text_input="RESUME", font=resource_manager.get_font(50), base_color="Black", hovering_color="Green")
+        RESUME_BUTTON.changeColor(PAUSE_MOUSE_POS)
+        RESUME_BUTTON.update(window)
+
+        RESTART_BUTTON = Button(image=None, pos=(500, 450), 
+                            text_input="RESTART", font=resource_manager.get_font(50), base_color="Black", hovering_color="Green")
+        RESTART_BUTTON.changeColor(PAUSE_MOUSE_POS)
+        RESTART_BUTTON.update(window)
+
+        RESTART2_BUTTON = Button(image=None, pos=(500, 600), 
+                            text_input="LAST CHECKPOINT", font=resource_manager.get_font(50), base_color="Black", hovering_color="Green")
+        RESTART2_BUTTON.changeColor(PAUSE_MOUSE_POS)
+        RESTART2_BUTTON.update(window)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pause = False
+                break
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE or event.key == pygame.K_ESCAPE:
+                    return
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if RESUME_BUTTON.checkForInput(PAUSE_MOUSE_POS):
+                    return
+                if RESTART_BUTTON.checkForInput(PAUSE_MOUSE_POS):
+                    partida_new = Partida()
+                    play(window, partida_new, volume)
+                if RESTART2_BUTTON.checkForInput(PAUSE_MOUSE_POS):
+                    partida.lives = 3
+                    play(window, partida, volume)    
+        pygame.display.update()    
+
+    pygame.quit()
+    quit()
 
 
 def death_menu(window, partida, volume):
@@ -1395,7 +1448,7 @@ def play(window, partida, volume):
         mercader = Mercader(2700-distance, 625, 100, 100) 
         firstBoss = Boss(8500-distance,450,100,100)
         checkpoint = Checkpoint(7700-distance,375,50,50, checkpoint_activated)
-        checkpoint_end = Checkpoint(8700-distance,575,50,50,True)
+        checkpoint_end = Checkpoint(9000-distance,575,50,50,True)
 
         all_enemies_group.add(meleeEnemie1)
         all_enemies_group.add(meleeEnemie2)
@@ -1427,7 +1480,7 @@ def play(window, partida, volume):
         firstBoss = SecondBoss(8500-distance,450,100,100)
         
         checkpoint = Checkpoint(7700-distance,375,50,50, checkpoint_activated)
-        checkpoint_end = Checkpoint(8700-distance,575,50,50,True)
+        checkpoint_end = Checkpoint(9000-distance,575,50,50,True)
 
         all_enemies_group.add(meleeEnemie1)
         all_enemies_group.add(meleeEnemie2)
@@ -1633,6 +1686,10 @@ def play(window, partida, volume):
                     negociate_sound = mixer.Sound(resource_manager.get_sound("negociate"))
                     negociate_sound.play()
                     negociate_sound.set_volume(volume.sounds_volume)
+                if event.key == pygame.K_ESCAPE:
+                    partida.coins = player.coins
+                    partida.gems = player.gems
+                    pause_screen(window, partida, volume)     
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if option1_mercader.checkForInput(MENU_MOUSE_POS):
