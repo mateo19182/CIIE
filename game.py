@@ -1861,7 +1861,12 @@ def play(window, partida, volume):
          floor = [Block5(i*block2_size-distance,HEIGHT - block2_size ,block2_size)for i in range(-10,8)]
          floor2 = [Block5(i*block2_size-distance + 3700,HEIGHT - block2_size - 320 ,block2_size)for i in range(0,6)]
          floor3 = [Block5(i*block2_size-distance + 4084,HEIGHT - block2_size - 320 + i*block2_size,block2_size)for i in range(0,5)]
-         floor4 = [Block5(i*block2_size-distance + 4400,HEIGHT - block2_size - 64 ,block2_size)for i in range(0,20)]
+         floor4 = [Block5(i*block2_size-distance + 4404,HEIGHT - block2_size - 64 ,block2_size)for i in range(0,10)]
+         floor5 = [Block5(i*block2_size-distance + 6000,HEIGHT - block2_size - 64 ,block2_size)for i in range(0,5)]
+         floor6 = [Block5(i*block2_size-distance + 7000,HEIGHT - block2_size - 64 ,block2_size)for i in range(0,5)]
+         floor7 = [Block5(i*block2_size-distance + 9200,HEIGHT - block2_size - 320 + i*block2_size,block2_size)for i in range(0,6)]
+         floor8 = [Block5(i*block2_size-distance + 9584,HEIGHT - block2_size  ,block2_size)for i in range(0,15)]
+         
 
 
          plat1 = [Block5(i*block4_size-distance + 1000,HEIGHT - block2_size - 384,block4_size)for i in range(0,10)]
@@ -1884,12 +1889,39 @@ def play(window, partida, volume):
          plat14 = [Block5(i*block4_size-distance + 4450,HEIGHT - block2_size - 400 ,block4_size)for i in range(0,3)]
          plat15 = [Block5(i*block4_size-distance + 4720,HEIGHT - block2_size - 550 ,block4_size)for i in range(0,3)]
 
+         plat16 = [Block5(i*block4_size-distance + 5100,HEIGHT - block2_size - 550 + i*block4_size,block4_size)for i in range(0,3)]
+         plat17 = [Block5(i*block4_size-distance + 5192,HEIGHT - block2_size - 454 ,block4_size)for i in range(0,10)]
+
+         plat18 = [Block5(10*i*block4_size-distance + 5800,HEIGHT - block2_size - 600 - i*block4_size ,block4_size)for i in range(0,3)]
+         
+         
+
+         plat19 = [Block5(i*block4_size-distance + 5650,HEIGHT - block2_size - 200 ,block4_size)for i in range(0,5)]
+
+         plat20 = [Block5(i*block4_size-distance + 6500,HEIGHT - block2_size - 300 ,block4_size)for i in range(0,2)]
+         plat21= [Block5(i*block4_size-distance + 6600,HEIGHT - block2_size , block4_size)for i in range(0,3)]
+         plat22 = [Block5(i*block4_size-distance + 6500,HEIGHT - block2_size - 300 ,block4_size)for i in range(0,2)]
+         plat23 = [Block5(i*block4_size-distance + 6700,HEIGHT - block2_size - 600 ,block4_size)for i in range(0,10)]
+
+         plat24 = [Block5(i*block4_size-distance + 7200,HEIGHT - block2_size - 400 ,block4_size)for i in range(0,4)]
+
+         plat25 = [Block5(5*i*block4_size-distance + 7500 ,HEIGHT - block2_size - 100 - 4*i*block2_size,block4_size)for i in range(0,5)]
+         plat26 = [Block5(5*i*block4_size-distance + 8050 ,HEIGHT - block2_size - 100 - 4*i*block2_size,block4_size)for i in range(0,5)]
+         plat27 = [Block5(5*i*block4_size-distance + 8600 ,HEIGHT - block2_size - 100 - 4*i*block2_size,block4_size)for i in range(0,5)]   
+         plat28 = [Block5(5*i*block4_size-distance + 7800 ,HEIGHT - block2_size - 200 - 4*i*block2_size,block4_size)for i in range(0,3)]
+         plat29 = [Block5(5*i*block4_size-distance + 8350 ,HEIGHT - block2_size - 200 - 4*i*block2_size,block4_size)for i in range(0,3)]
+         plat30 = [Block5(5*i*block4_size-distance + 8900 ,HEIGHT - block2_size - 200 - 4*i*block2_size,block4_size)for i in range(0,2)]
+         
+
+         
+         
+
         # Los cuadrados voladores sueltos harán daño al jugador como los pinchos
          spike1 = [Block5(i*block4_size-distance + 1480 ,HEIGHT - block2_size - 600,block4_size)for i in range(0,1)]
          spike2 = [Block5(distance + 4600 ,HEIGHT - block2_size - 300 - 6*i*block2_size,block4_size)for i in range(0,2)]
 
 
-         objects = [*floor, *floor2, *floor3, *floor4, *plat1, *plat2, *plat3, *plat4, *plat5, *plat6, *plat7, *plat8, *plat9, *plat10, *plat11, *plat12, *plat13, *plat14, *plat15, *spike1, *spike2]
+         objects = [*floor, *floor2, *floor3, *floor4, *floor5,*floor6,*floor7,*floor8, *plat1, *plat2, *plat3, *plat4, *plat5, *plat6, *plat7, *plat8, *plat9, *plat10, *plat11, *plat12, *plat13, *plat14, *plat15,*plat16, *plat17, *plat18,*plat19,*plat20,*plat21,*plat22,*plat23,*plat24,*plat25,*plat26,*plat27,*plat28,*plat29,*plat30, *spike1, *spike2]
 
 
 
