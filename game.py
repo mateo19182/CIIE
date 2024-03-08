@@ -740,6 +740,138 @@ class SecondBoss(pygame.sprite.Sprite):
         self.explosions.draw(window) 
 
 
+class ThirdBoss(pygame.sprite.Sprite):
+    SPRITES = resource_manager.load_sprite_sheets("Enemies", "ThirdBoss", 140, 140, False)
+    ANIMATION_DELAY = 20
+    GRAVITY = 5
+    DAMAGE_COOLDOWN = 500
+    MOVE_SPEED = 2
+    DETECTION_RANGE = 500  
+    def __init__(self, x, y, width, height):
+        super().__init__()
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.animation_count = 0
+        self.frame_count = 0
+        self.rect = pygame.Rect(x, y, width, height)
+        self.mask = None
+        self.sprite = None
+        self.orientation = "left"
+        self.x_vel = 0
+        self.fall = False
+        self.vida = 3
+        self.is_alive = True
+        self.last_damage_time = 0
+        self.state = "IDLE"  # Initial state
+        
+    def loop(self, player, volume):
+        self.frame_count += 1
+        if self.detect_player2(player):
+            self.state = "WALK"
+            if self.detect_player(player):
+                self.state = "ATTACK"
+            else:
+                self.approach_player(player)
+
+        self.die()
+        self.update_sprite()
+        
+    def take_damage(self):
+        current_time = pygame.time.get_ticks()
+        
+        if current_time - self.last_damage_time > self.DAMAGE_COOLDOWN:
+            self.vida -= 1
+            self.last_damage_time = current_time
+            self.state = "HURT" if self.vida > 0 else "DEATH"
+            self.update_sprite()
+            if self.vida <= 0:
+                #self.is_alive = False
+                self.state = "DEATH"
+    
+    def detect_player(self, player):
+        distance_x = abs(self.rect.centerx - player.rect.centerx)
+        attack_distance_x = 100
+        if distance_x <= attack_distance_x:
+            return True
+        else:
+            return False
+    def detect_player2(self, player):
+        distance_x = abs(self.rect.centerx - player.rect.centerx)
+        attack_distance_x = self.DETECTION_RANGE
+        if distance_x <= attack_distance_x:
+            return True
+        else:
+            return False
+
+    def approach_player(self, player):
+        player_x = player.rect.centerx 
+        boss_x = self.rect.centerx
+        if boss_x < player_x:
+            self.x_vel = self.MOVE_SPEED 
+            self.orientation = "left"
+        elif boss_x > player_x:
+            self.x_vel = -self.MOVE_SPEED 
+            self.orientation = "right"
+        else:
+            self.x_vel = 0 
+        self.x += self.x_vel
+        if(self.sprite!=None):
+            self.sprite = pygame.transform.flip(self.sprite, self.orientation == "left", False)
+        self.rect.x = self.x
+
+
+    def update_sprite(self):
+        if self.state == "DEATH":
+            sprites = self.SPRITES["DEATH"]
+        elif self.state == "HURT":
+            sprites = self.SPRITES["HURT"]
+        elif self.state == "ATTACK":
+            sprites = self.SPRITES["ATTACK"]
+        elif self.state == "WALK":
+            sprites = self.SPRITES["WALK"]
+        else:  
+            sprites = self.SPRITES.get(self.state, self.SPRITES["IDLE"])
+            
+        sprite_index = (self.animation_count // self.ANIMATION_DELAY) % len(sprites)
+        self.sprite = sprites[sprite_index]
+        self.sprite = pygame.transform.scale(self.sprite, (64 * 8, 64 * 8))
+        if self.orientation == "left":
+            self.sprite = pygame.transform.flip(self.sprite, True, False)
+        self.animation_count += 1
+        
+        if sprite_index == 0 and self.state == "HURT":
+            self.state = "IDLE" 
+        if sprite_index == 3 and self.state == "DEATH":
+            self.is_alive = False
+            if (not self.is_alive):
+                self.kill()
+
+
+        self.update()
+    
+    def update(self):
+        self.rect.x = self.x
+        self.rect.y = self.y 
+        self.rect = self.sprite.get_rect(topleft=(self.rect.x, self.rect.y))
+        self.mask = pygame.mask.from_surface(self.sprite)
+        
+    def die(self):
+        if self.vida == 0:
+            self.state = "DEATH"
+        
+    def draw(self, window, offset_x):
+        window.blit(self.sprite, (self.rect.x - offset_x, self.rect.y))
+        
+        bar_width = 300
+        bar_height = 10
+        bar_x = self.rect.x - offset_x
+        bar_y = self.rect.y - 20
+        pygame.draw.rect(window, (255, 0, 0), (bar_x, bar_y, bar_width, bar_height))
+        pygame.draw.rect(window, (0, 255, 0), (bar_x, bar_y, bar_width * (self.vida / 3), bar_height))
+
+
 class Mercader(pygame.sprite.Sprite):
     SPRITES = resource_manager.load_sprite_sheets("Mercader","Mercader",16,16,False)
     ANIMATION_DELAY = 10
@@ -1566,7 +1698,7 @@ def play(window, partida, volume):
         meleeEnemie2 = MeleeEnemie(4375-distance,525,100,100,"HalflingRogue")
         mercader = Mercader(2700-distance, 655, 100, 100) 
         firstBoss = SecondBoss(8500-distance,480,100,100)
-        
+        thirdBoss = ThirdBoss(10-distance,390,100,100)
         checkpoint = Checkpoint(7700-distance,480,50,50, checkpoint_activated)
         checkpoint_end = CheckpointEnd(9000-distance,575,50,50)
 
@@ -1575,7 +1707,7 @@ def play(window, partida, volume):
         all_enemies_group.add(rangedenemie1)
         all_enemies_group.add(rangedenemie2)
         all_enemies_group.add(firstBoss)
-        
+        all_enemies_group.add(thirdBoss)
         meleeEnemies_group.add(meleeEnemie1)
         meleeEnemies_group.add(meleeEnemie2)
         
@@ -1597,7 +1729,7 @@ def play(window, partida, volume):
         floor = [Block(i*block_size-distance,HEIGHT - block_size ,block_size)for i in range(-WIDTH // block_size,WIDTH*2 // block_size)]
         floor2 = [Block(i*block_size-distance,HEIGHT - block_size ,block_size)for i in range(5 + WIDTH*2 // block_size,WIDTH*4 // block_size)]
         floor3 = [Block(i*block_size + 7200-distance,HEIGHT - block_size ,block_size)for i in range(0,30)]
-
+        
         column = [Block(block_size + 3000-distance,HEIGHT - block_size - (100*i),block_size)for i in range(1,7)]
         column2 = [Block(block_size + 7100-distance,HEIGHT - block_size - (100*i),block_size)for i in range(1,5)]
         column3 = [Block(block_size + 7200-distance,HEIGHT - block_size - (100*i),block_size)for i in range(1,5)]
