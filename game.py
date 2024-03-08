@@ -60,6 +60,8 @@ class Player(pygame.sprite.Sprite):
         self.last_ranged_time = 0
         self.frame_count = 0
         self.dead = False
+        self.fallen = False
+        self.death_menu = False
 
     def jump(self,volume):
         self.y_vel = -self.GRAVITY / 3
@@ -95,6 +97,12 @@ class Player(pygame.sprite.Sprite):
             self.animation_count = 0
             
     def loop(self,delta, enemies, window, partida, volume):
+
+        if self.death_menu:
+            partida.coins = self.coins
+            partida.gems = self.gems
+            death_menu(window, partida, volume)
+
         self.y_vel += min(30, (self.fall_count * delta * self.GRAVITY))
         self.move(self.x_vel,self.y_vel, delta, window, partida, volume)
         self.fall_count += 1
@@ -177,9 +185,6 @@ class Player(pygame.sprite.Sprite):
             mixer.music.stop()
             death_sound.play()
             death_sound.set_volume(volume.sounds_volume)
-            partida.coins = self.coins
-            partida.gems = self.gems
-            death_menu(window, partida, volume)
         
     def check_attack(self, enemies):
         if self.melee_active:
@@ -215,7 +220,13 @@ class Player(pygame.sprite.Sprite):
         sprite_index = (self.animation_count // self.ANIMATION_DELAY) % len(sprites)
         
         if sprite_sheet == "die": 
-            sprite_index = len(sprites) - 1        
+            if self.fallen and sprite_index == len(sprites) -1: 
+                # Si ha pasado el tiempo de otra caida abrimos menu
+                self.death_menu = True
+            if self.fallen or sprite_index == len(sprites) -1: 
+                # Si ya se cayó lo dejamos en el suelo
+                sprite_index = len(sprites) - 1
+                self.fallen = True
         self.sprite = sprites[sprite_index]
         self.animation_count +=1
         if sprite_sheet == "hit" and self.animation_count == 3:
@@ -966,6 +977,44 @@ class Checkpoint(pygame.sprite.Sprite):
         window.blit(self.sprite,(self.rect.x - offset_x,self.rect.y))
 
 
+class CheckpointEnd(pygame.sprite.Sprite):
+    ANIMATION_DELAY = 3
+    
+    def __init__(self,x,y,width,height):
+        super().__init__()
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.animation_count = 0
+        self.frame_count = 0
+        self.rect = pygame.Rect(x,y,width,height)
+        self.sprite = None
+        
+    def loop(self):
+        self.frame_count += 1
+        self.update_sprite()
+        
+    def update_sprite(self):
+
+        sprites = resource_manager.load_sprite_sheets("Items","End",64,64,False)
+        sprites = sprites["end"]
+        sprite_index = (self.animation_count // self.ANIMATION_DELAY) % len(sprites)
+        self.sprite = sprites[sprite_index]
+        self.animation_count += 1
+
+        if(sprite_index == 0):
+            self.frame_count = 0
+            
+        self.update()
+        
+    def update(self):
+        self.rect = self.sprite.get_rect(topleft = (self.rect.x,self.rect.y))
+        self.mask = pygame.mask.from_surface(self.sprite)
+        
+    def draw(self,window,offset_x):
+        window.blit(self.sprite,(self.rect.x - offset_x,self.rect.y))
+
 def draw(window,background,bg_image,heart_image, coin_image,gem_image,arrow_group,fireball_group, player,objects,checkpoint,checkpoint_end,
         coins,gems,all_enemies_group,mercader,opt1,opt2,opt3,offset_x):
     for tile in background:
@@ -1074,10 +1123,16 @@ def collide_end(player,checkpoint,partida,volume):
         partida.lives = 3 #player.lives.lives
         partida.coins = player.coins
         partida.gems = player.gems
-        if partida.level != 2:
+        if partida.level != 3:
             partida.level += 1
             partida.checkpoint = 0
-            show_loading_screen()
+            if partida.level == 2:
+                text = "Level 2: Cave"
+                message = "Our warrior is closer to revenge, keep going!"
+            else:
+                text = "Level 3: Dragon island"
+                message = "Last step, be ready to fight the dragon!"    
+            show_loading_screen(text, message)
             play(window, partida, volume)    
 
 def collide_explosion(explosions, player, volume):
@@ -1196,7 +1251,7 @@ def outOfWindow(group,offset_x):
                 element.kill()
 
 
-def show_loading_screen():
+def show_loading_screen(level_text, message):
     window.fill("white")
     Load1 = pygame.image.load('assets/Progress_Bar/1.jpg')
     Load2 = pygame.image.load('assets/Progress_Bar/2.jpg')
@@ -1206,6 +1261,14 @@ def show_loading_screen():
     LOADING_TEXT = resource_manager.get_font(75).render("LOADING", True, "#b68f40")
     LOADING_RECT = LOADING_TEXT.get_rect(center=(515, 180))
     SCREEN.blit(LOADING_TEXT, LOADING_RECT)
+
+    LEVEL_TEXT = resource_manager.get_font(40).render(level_text, True, "#b68f40")
+    LEVEL_RECT = LEVEL_TEXT.get_rect(center=(515, 290))
+    SCREEN.blit(LEVEL_TEXT, LEVEL_RECT)
+
+    MESSAGE_TEXT = resource_manager.get_font(20).render(message, True, "#b68f40")
+    MESSAGE_RECT = MESSAGE_TEXT.get_rect(center=(515, 650))
+    SCREEN.blit(MESSAGE_TEXT,MESSAGE_RECT)
 
     where = (120, 360)
     progress = 0
@@ -1314,7 +1377,16 @@ def death_menu(window, partida, volume):
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if REPLAY_BUTTON.checkForInput(MENU_MOUSE_POS):
-                    show_loading_screen()
+                    if partida.level == 1:
+                        text = "Level 1: Forest"
+                        message = "The adventure begins, the dragon waits"
+                    elif partida.level == 2:
+                        text = "Level 2: Cave"
+                        message = "Our warrior is closer to revenge, keep going!"
+                    else:
+                        text = "Level 3: Dragon island"
+                        message = "Last step, be ready to fight the dragon!"  
+                    show_loading_screen(text,message)
                     play(window, partida, volume)
                 if MENU_BUTTON.checkForInput(MENU_MOUSE_POS):
                     main_menu(window, volume)
@@ -1462,7 +1534,7 @@ def play(window, partida, volume):
         mercader = Mercader(2700-distance, 625, 100, 100) 
         firstBoss = Boss(8500-distance,450,100,100)
         checkpoint = Checkpoint(7700-distance,375,50,50, checkpoint_activated)
-        checkpoint_end = Checkpoint(9000-distance,575,50,50,True)
+        checkpoint_end = CheckpointEnd(9000-distance,575,50,50)
 
         all_enemies_group.add(meleeEnemie1)
         all_enemies_group.add(meleeEnemie2)
@@ -1493,7 +1565,7 @@ def play(window, partida, volume):
         firstBoss = SecondBoss(8500-distance,480,100,100)
         
         checkpoint = Checkpoint(7700-distance,480,50,50, checkpoint_activated)
-        checkpoint_end = Checkpoint(9000-distance,575,50,50,True)
+        checkpoint_end = CheckpointEnd(9000-distance,575,50,50)
 
         all_enemies_group.add(meleeEnemie1)
         all_enemies_group.add(meleeEnemie2)
@@ -1812,7 +1884,9 @@ def main_menu(window, volume):
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if PLAY_BUTTON.checkForInput(MENU_MOUSE_POS):
-                    show_loading_screen()
+                    text = "Level 1: Forest"
+                    message = "The adventure begins, the dragon awaits"  
+                    show_loading_screen(text, message)
                     partida = Partida()
                     play(window,partida,volume)
                 if OPTIONS_BUTTON.checkForInput(MENU_MOUSE_POS):
