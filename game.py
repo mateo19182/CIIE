@@ -80,7 +80,7 @@ class Player(pygame.sprite.Sprite):
         self.rect.x += dx  * delta
         self.rect.y += dy * delta
         if self.rect.y > HEIGHT + 100 :
-            self.die(window, partida, volume)
+            self.die(partida, volume, True)
 
     def move_left(self,vel):
         self.x_vel = -vel
@@ -142,7 +142,7 @@ class Player(pygame.sprite.Sprite):
 
     def collect_gem(self,volume):
         self.gems += 1 
-        gem_sound = mixer.Sound(resource_manager.get_sound("coin"))
+        gem_sound = mixer.Sound(resource_manager.get_sound("gem"))
         gem_sound.play() 
         gem_sound.set_volume(volume)   
 
@@ -175,8 +175,9 @@ class Player(pygame.sprite.Sprite):
             projectile = Fireball(self.rect, self.direction)
             self.projectiles.add(projectile)
 
-    def die(self, window, partida, volume):
+    def die(self, partida, volume, fall):
         if not self.dead : 
+            self.dead = True
             self.update_sprite()
             self.x_vel = 0
             self.y_vel = 0
@@ -185,6 +186,8 @@ class Player(pygame.sprite.Sprite):
             mixer.music.stop()
             death_sound.play()
             death_sound.set_volume(volume.sounds_volume)
+            if fall:
+                death_menu(window, partida, volume)
         
     def check_attack(self, enemies):
         if self.melee_active:
@@ -1174,7 +1177,7 @@ def collide_enemie(player,enemie,objects,volume):
 def handle_move(partida,volume,player,enemies_group,boss,meleeEnemies_group,checkpoint,checkpoint_end,objects,arrow_group,fireball_group,delta):
     vertical_collide = handle_vertical_colission(player,objects,player.y_vel)
     if player.lives.lives <= 0:
-        player.die(window,partida,volume)
+        player.die(partida, volume, False)
         return 
     keys = pygame.key.get_pressed()
     player.x_vel = 0
