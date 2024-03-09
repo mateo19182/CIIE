@@ -1169,9 +1169,6 @@ def draw(window,background,bg_image,heart_image, coin_image,gem_image,arrow_grou
     for fireball in fireball_group:
         fireball.draw(window,offset_x)
         
-        
-    
-        
     mercader.draw(window,offset_x,opt1,opt2,opt3)
     
     checkpoint.draw(window,offset_x)
@@ -1384,6 +1381,10 @@ def outOfWindow(group,offset_x):
     for element in group:
         if element.rect.right - offset_x < 0 or element.rect.left - offset_x > WIDTH:
                 element.kill()
+
+def putCoins(x,y,num_coins,coins):
+    for i in range(num_coins):
+        coins.append(Coin(x + i * 50,y,40))
 
 
 def show_loading_screen(level_text, message):
@@ -1632,7 +1633,6 @@ def options(window,volumen):
                     scroll_bar2.fill((200,  200,  200))  # Reset the scroll bar background
                     scroll_bar2.blit(thumb2, (0, scroll_bar_height2 - thumb_height2))       
 
-
         pygame.display.update()
 
 
@@ -1779,6 +1779,42 @@ def play(window, partida, volume):
 
         objects = [*floor,*floor2,*floor3,*column,*column2,*column3,*column4,*column5,*column6,*column7,*column8,*column9,*column10 ,*plat1,*plat2,*plat3,*plat4,*plat5,*plat6,*plat7,*plat8,*plat9,*plat10,*plat11,*plat12,*plat13,*plat14,*plat15,*plat16,*plat17,*plat18,*plat19,*plat20,*plat21]
 
+        gem1 = Gem(-950,650,40)
+        gem2 = Gem(-1000,650,40)
+        gem3 = Gem(425,25,40)
+        gem4 = Gem(6630,650,40)
+        
+        gems = [gem1,gem2,gem3,gem4]
+        gems = pygame.sprite.Group(gems)
+
+
+        # coin1 = Coin(1115,200,40)
+        # coin2 = Coin(920,200,40)
+        # coin3 = Coin(725,200,40)
+
+        # coins = [coin1,coin2,coin3]
+
+        coins = []
+
+        putCoins(1115,200,1,coins)
+        putCoins(920,200,1,coins)
+        putCoins(725,200,1,coins)
+        putCoins(1325,350,3,coins)
+        putCoins(2075,500,3,coins)
+        putCoins(4225,250,3,coins)
+        putCoins(4730,400,3,coins)
+        putCoins(2525,500,1,coins)
+        putCoins(2850,400,1,coins)
+        putCoins(2625,200,1,coins)
+        putCoins(2950,100,1,coins)
+        putCoins(5335,650,3,coins)
+        putCoins(5720,450,3,coins)
+        putCoins(6485,50,3,coins)
+        putCoins(6835,250,3,coins)
+
+        coins = pygame.sprite.Group(coins)
+ 
+
 ########################################### FIN NIVEL 1 #############################################################################################
 
     elif partida.level == 2:
@@ -1922,27 +1958,7 @@ def play(window, partida, volume):
 
 
          objects = [*floor, *floor2, *floor3, *floor4, *floor5,*floor6,*floor7,*floor8, *plat1, *plat2, *plat3, *plat4, *plat5, *plat6, *plat7, *plat8, *plat9, *plat10, *plat11, *plat12, *plat13, *plat14, *plat15,*plat16, *plat17, *plat18,*plat19,*plat20,*plat21,*plat22,*plat23,*plat24,*plat25,*plat26,*plat27,*plat28,*plat29,*plat30, *spike1, *spike2]
-
-
-
-
-    coin_size = 40  
-    num_coins = 10
-    coins = [
-        Coin(random.randint(0, WIDTH - coin_size)-distance, random.randint(100, 650), coin_size)
-        for _ in range(num_coins)
-    ]
-    coins = pygame.sprite.Group(coins)  
-
-    gem_size = 40  
-    num_gems = 2
-    gems = [
-        Gem(random.randint(0, WIDTH - gem_size)-distance, random.randint(100, 650), gem_size)
-        for _ in range(num_gems)
-    ]
-    gems = pygame.sprite.Group(gems)  
-
-
+ 
 
     while run: 
 
