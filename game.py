@@ -371,9 +371,16 @@ class Block5(Object):
 class Block6(Object):
     def __init__(self, x, y, size):
         super().__init__(x, y, size, size)
-        block = resource_manager.get_block5(size)
+        block = resource_manager.get_block6(size)
         self.image.blit(block, (0, 0))
-        self.mask = pygame.mask.from_surface(self.image)         
+        self.mask = pygame.mask.from_surface(self.image) 
+
+class Spikeball(Object):
+    def __init__(self, x, y, size):
+        super().__init__(x, y, size, size)
+        block = resource_manager.get_spikeball(size)
+        self.image.blit(block, (0, 0))
+        self.mask = pygame.mask.from_surface(self.image)  
         
 class Platform(Object):
     def __init__(self,x,y,size):
@@ -1215,7 +1222,7 @@ def collide(player,objects,dx,delta, window, partida, volume):
                 player.wall_jump = True
                 player.y_vel *= 0.5
                 #player.jump_count=0
-            if isinstance(obj, Block3) or isinstance(obj, Block4):
+            if isinstance(obj, Block3) or isinstance(obj, Block4) or isinstance(obj, Spikeball):
                 player.get_hit(volume.sounds_volume) 
             break
 
@@ -1716,7 +1723,8 @@ def play(window, partida, volume):
     block2_size = 64 
     block3_size = 64 
     block4_size = 32 
-    block5_size = 30 
+    spikeball_size = 64
+    block10_size = 96 
 
     plat_size = 100
 
@@ -1895,16 +1903,18 @@ def play(window, partida, volume):
 ############################################# NIVEL 3 - CASTILLO ###############################################################
     elif partida.level == 3:
          floor = [Block5(i*block2_size-distance,HEIGHT - block2_size ,block2_size)for i in range(-10,8)]
-         floor2 = [Block5(i*block2_size-distance + 3700,HEIGHT - block2_size - 320 ,block2_size)for i in range(0,6)]
-         floor3 = [Block5(i*block2_size-distance + 4084,HEIGHT - block2_size - 320 + i*block2_size,block2_size)for i in range(0,5)]
-         floor4 = [Block5(i*block2_size-distance + 4404,HEIGHT - block2_size - 64 ,block2_size)for i in range(0,10)]
          floor5 = [Block5(i*block2_size-distance + 6000,HEIGHT - block2_size - 64 ,block2_size)for i in range(0,5)]
          floor6 = [Block5(i*block2_size-distance + 7000,HEIGHT - block2_size - 64 ,block2_size)for i in range(0,5)]
          floor7 = [Block5(i*block2_size-distance + 9200,HEIGHT - block2_size - 320 + i*block2_size,block2_size)for i in range(0,6)]
          floor8 = [Block5(i*block2_size-distance + 9584,HEIGHT - block2_size  ,block2_size)for i in range(0,15)]
          
-
-
+         build0 = [Block6(i*block2_size-distance + 3700,HEIGHT - block2_size - 256 ,block2_size)for i in range(0,6)]
+         build1 = [Block6(i*block2_size-distance + 3700,HEIGHT - block2_size - 256 ,block2_size)for i in range(0,7)]
+         build2 = [Block6(i*block2_size-distance + 3700,HEIGHT - block2_size - 192 ,block2_size)for i in range(0,8)]
+         build3 = [Block6(i*block2_size-distance + 3700,HEIGHT - block2_size - 128 ,block2_size)for i in range(0,9)]
+         build4 = [Block6(i*block2_size-distance + 3700,HEIGHT - block2_size - 64 ,block2_size)for i in range(0,19)]
+         build5 = [Block6(i*block2_size-distance + 3700,HEIGHT - block2_size ,block2_size)for i in range(0,19)]
+         
          plat1 = [Block5(i*block4_size-distance + 1000,HEIGHT - block2_size - 384,block4_size)for i in range(0,10)]
          plat2 = [Block5(i*block4_size-distance + 1672,HEIGHT - block2_size - 384,block4_size)for i in range(0,10)]
          plat3 = [Block5(i*block4_size-distance + 300,HEIGHT - block2_size - 448,block4_size)for i in range(0,3)]
@@ -1930,8 +1940,6 @@ def play(window, partida, volume):
 
          plat18 = [Block5(10*i*block4_size-distance + 5800,HEIGHT - block2_size - 600 - i*block4_size ,block4_size)for i in range(0,3)]
          
-         
-
          plat19 = [Block5(i*block4_size-distance + 5650,HEIGHT - block2_size - 200 ,block4_size)for i in range(0,5)]
 
          plat20 = [Block5(i*block4_size-distance + 6500,HEIGHT - block2_size - 300 ,block4_size)for i in range(0,2)]
@@ -1939,7 +1947,7 @@ def play(window, partida, volume):
          plat22 = [Block5(i*block4_size-distance + 6500,HEIGHT - block2_size - 300 ,block4_size)for i in range(0,2)]
          plat23 = [Block5(i*block4_size-distance + 6700,HEIGHT - block2_size - 600 ,block4_size)for i in range(0,10)]
 
-         plat24 = [Block5(i*block4_size-distance + 7200,HEIGHT - block2_size - 400 ,block4_size)for i in range(0,4)]
+         plat24 = [Block5(i*block4_size-distance + 7250,HEIGHT - block2_size - 500 ,block4_size)for i in range(0,5)]
 
          plat25 = [Block5(5*i*block4_size-distance + 7500 ,HEIGHT - block2_size - 100 - 4*i*block2_size,block4_size)for i in range(0,5)]
          plat26 = [Block5(5*i*block4_size-distance + 8050 ,HEIGHT - block2_size - 100 - 4*i*block2_size,block4_size)for i in range(0,5)]
@@ -1948,17 +1956,33 @@ def play(window, partida, volume):
          plat29 = [Block5(5*i*block4_size-distance + 8350 ,HEIGHT - block2_size - 200 - 4*i*block2_size,block4_size)for i in range(0,3)]
          plat30 = [Block5(5*i*block4_size-distance + 8900 ,HEIGHT - block2_size - 200 - 4*i*block2_size,block4_size)for i in range(0,2)]
          
-
-         
-         
-
         # Los cuadrados voladores sueltos harán daño al jugador como los pinchos
-         spike1 = [Block5(i*block4_size-distance + 1480 ,HEIGHT - block2_size - 600,block4_size)for i in range(0,1)]
-         spike2 = [Block5(distance + 4600 ,HEIGHT - block2_size - 300 - 6*i*block2_size,block4_size)for i in range(0,2)]
+         spike1 = [Spikeball(i*block4_size-distance + 1480 ,HEIGHT - block2_size - 600,block2_size)for i in range(0,1)]
+         spike2 = [Spikeball(2*i*block4_size - distance + 4600 ,HEIGHT - block2_size - 350 - 2*i*block4_size,block2_size)for i in range(0,3)]
+         spike3 = [Spikeball(40*i - distance + 5850 ,HEIGHT - block2_size - 500 - 3*i,block2_size)for i in range(0,20)]
+
+         objects = [*build0,*build1,*build2,*build3,*build4,*build5, *floor, *floor5,*floor6,*floor7,*floor8, *plat1, *plat2, *plat3, *plat4, *plat5, *plat6, *plat7, *plat8, *plat9, *plat10, *plat11, *plat12, *plat13, *plat14, *plat15,*plat16, *plat17, *plat18,*plat19,*plat20,*plat21,*plat22,*plat23,*plat24,*plat25,*plat26,*plat27,*plat28,*plat29,*plat30, *spike1, *spike2, *spike3]
 
 
-         objects = [*floor, *floor2, *floor3, *floor4, *floor5,*floor6,*floor7,*floor8, *plat1, *plat2, *plat3, *plat4, *plat5, *plat6, *plat7, *plat8, *plat9, *plat10, *plat11, *plat12, *plat13, *plat14, *plat15,*plat16, *plat17, *plat18,*plat19,*plat20,*plat21,*plat22,*plat23,*plat24,*plat25,*plat26,*plat27,*plat28,*plat29,*plat30, *spike1, *spike2]
- 
+
+
+    coin_size = 40  
+    num_coins = 10
+    coins = [
+        Coin(random.randint(0, WIDTH - coin_size)-distance, random.randint(100, 650), coin_size)
+        for _ in range(num_coins)
+    ]
+    coins = pygame.sprite.Group(coins)  
+
+    gem_size = 40  
+    num_gems = 2
+    gems = [
+        Gem(random.randint(0, WIDTH - gem_size)-distance, random.randint(100, 650), gem_size)
+        for _ in range(num_gems)
+    ]
+    gems = pygame.sprite.Group(gems)  
+
+
 
     while run: 
 
