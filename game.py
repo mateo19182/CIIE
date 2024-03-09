@@ -234,6 +234,7 @@ class Player(pygame.sprite.Sprite):
         self.animation_count +=1
         if sprite_sheet == "hit" and self.animation_count == 3:
             self.hit = False
+            self.animation_count = 0
             
         if(sprite_index == 0):
             self.frame_count = 0
@@ -546,12 +547,6 @@ class MeleeEnemie(pygame.sprite.Sprite):
             self.sprite = pygame.transform.flip(self.sprite,False,False)
 
         self.update()
-        
-    def move_left(self, vel):
-        self.x_vel = -vel
-
-    def move_right(self, vel):
-        self.x_vel = vel
 
     def update(self):
         self.rect.x += self.x_vel
@@ -560,7 +555,83 @@ class MeleeEnemie(pygame.sprite.Sprite):
         
     def draw(self,window,offset_x):
         window.blit(self.sprite,(self.rect.x - offset_x,self.rect.y))
+
+class Skull(pygame.sprite.Sprite):
+    ANIMATION_DELAY = 10
+    GRAVITY = 5
+
+    def __init__(self,x,y,width,height,sprite_sheet_name):
+        super().__init__()
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.animation_count = 0
+        self.frame_count = 0
+        self.rect = pygame.Rect(x,y,width,height)
+        self.mask = None
+        self.sprite = None
+        self.orientation = "left"
+        self.x_vel = 0
+        self.y_vel = 0
+        self.is_alive = True
+        self.sprite_sheet_name = sprite_sheet_name
         
+    def loop(self,player,volume):
+        self.frame_count += 1
+        
+        dx = player.rect.x - self.rect.x
+        dy = player.rect.y - self.rect.y
+        distance = math.sqrt(dx**2 + dy**2)
+        
+        max_velocity = 2
+    
+        if distance < 500:
+            ratio = min(1, distance / 150)
+            self.x_vel = ratio * max_velocity * (dx / distance)
+            self.y_vel = ratio * max_velocity * (dy / distance) 
+        else:
+            self.x_vel = 0
+            self.y_vel = 0 
+            
+        self.update_sprite(player)
+
+    def take_damage(self):
+        self.kill()
+        self.update_sprite(self)
+
+    def update_sprite(self,player):
+        sprite_sheet = "idle"
+        sprites = resource_manager.load_sprite_sheets("Enemies",self.sprite_sheet_name,64,64,False)
+        sprites = sprites[sprite_sheet]
+        sprite_index = (self.animation_count // self.ANIMATION_DELAY) % len(sprites)
+        self.sprite = sprites[sprite_index]
+        self.sprite = pygame.transform.scale(self.sprite,(16 * 5, 16 * 5))
+        self.animation_count += 1
+
+        if(sprite_index == 0):
+            self.frame_count = 0
+
+        dx = player.rect.x - self.rect.x
+
+        if dx < 0:
+            self.orientation = "left"
+            self.sprite = pygame.transform.flip(self.sprite,True,False)
+        elif dx > 0:
+            self.orientation = "right"
+            self.sprite = pygame.transform.flip(self.sprite,False,False)
+
+        self.update()
+        
+    def update(self):
+        self.rect.x += self.x_vel
+        self.rect.y += self.y_vel
+        self.rect = self.sprite.get_rect(topleft = (self.rect.x,self.rect.y))
+        self.mask = pygame.mask.from_surface(self.sprite)
+        
+    def draw(self,window,offset_x):
+        window.blit(self.sprite,(self.rect.x - offset_x,self.rect.y))
+
 class Boss(pygame.sprite.Sprite):
     SPRITES = resource_manager.load_sprite_sheets("Enemies","Boss",32,32,False)
     ANIMATION_DELAY = 20
@@ -696,8 +767,8 @@ class SecondBoss(pygame.sprite.Sprite):
 
     def attack(self, player):
         if self.state == "Attack" and self.frame_count == 140:
-            print("PUM!")
             self.create_explosion(player)
+            self.frame_count = 0
             self.state = "Idle" 
 
     def create_explosion(self, player):
@@ -1047,7 +1118,6 @@ class Explosion(pygame.sprite.Sprite):
         return images
 
     def update(self):
-        print(self.rect)
         self.current_frame += self.animation_speed
         if self.current_frame >= len(self.images):
             self.kill()
@@ -1327,7 +1397,7 @@ def handle_move(partida,volume,player,enemies_group,boss,meleeEnemies_group,chec
     
     if partida.level==2:
         collide_explosion(boss.explosions, player, volume)
-        
+    
     if keys[pygame.K_a] and not collide_left:
         player.move_left(PLAYER_VEL)
         player.melee_active = False
@@ -1669,11 +1739,12 @@ def play(window, partida, volume):
         mercader = Mercader(2700-distance, 625, 100, 100) 
         firstBoss = Boss(8500-distance,450,100,100)
         checkpoint = Checkpoint(7700-distance,375,50,50, checkpoint_activated)
-        checkpoint_end = CheckpointEnd(9000-distance,575,50,50)
+        checkpoint_end = CheckpointEnd(9500-distance,550,50,50)
 
         all_enemies_group.add(meleeEnemie1)
         all_enemies_group.add(meleeEnemie2)
         all_enemies_group.add(meleeEnemie3)
+
         all_enemies_group.add(rangedenemie1)
         all_enemies_group.add(rangedenemie2)
         all_enemies_group.add(firstBoss)
@@ -1695,21 +1766,24 @@ def play(window, partida, volume):
         rangedenemie1 = RangedEnemies(945-distance,335,100,100,30,arrow_group,"GnomeTinkerer")
         rangedenemie2 = RangedEnemies(6553-distance,530,100,100,30,arrow_group,"GnomeTinkerer")
         meleeEnemie1 = MeleeEnemie(1400-distance,625,100,100,"HalflingRogue")
-        meleeEnemie2 = MeleeEnemie(4375-distance,525,100,100,"HalflingRogue")
+        meleeEnemie2 = MeleeEnemie(300-distance,525,100,100,"HalflingRogue")
         mercader = Mercader(2700-distance, 655, 100, 100) 
         firstBoss = SecondBoss(8500-distance,480,100,100)
-        thirdBoss = ThirdBoss(10-distance,390,100,100)
+        thirdBoss = ThirdBoss(9000-distance,390,100,100)
         checkpoint = Checkpoint(7700-distance,480,50,50, checkpoint_activated)
         checkpoint_end = CheckpointEnd(9000-distance,575,50,50)
+        meleeEnemie4 = Skull(100-distance,500,1000,1000,"Skull")
 
         all_enemies_group.add(meleeEnemie1)
         all_enemies_group.add(meleeEnemie2)
+        all_enemies_group.add(meleeEnemie4)
         all_enemies_group.add(rangedenemie1)
         all_enemies_group.add(rangedenemie2)
         all_enemies_group.add(firstBoss)
         all_enemies_group.add(thirdBoss)
         meleeEnemies_group.add(meleeEnemie1)
         meleeEnemies_group.add(meleeEnemie2)
+        meleeEnemies_group.add(meleeEnemie4)
         
 
     block_size = 96
