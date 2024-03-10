@@ -99,17 +99,31 @@ def get_block5(size):
     rect = pygame.Rect(40,0,size,size)
     surface.blit(image,(0,0),rect)
 
-    return pygame.transform.scale2x(surface)    
+    return pygame.transform.scale2x(surface)  
 
+ 
 def get_block6(size):
     #path = join("assets","Terrain","Terrain.png")
     path = join("assets","Lv3_Assets.png")
     image = pygame.image.load(path).convert_alpha()
     surface = pygame.Surface((size,size),pygame.SRCALPHA,32)
-    rect = pygame.Rect(40,0,size,size)
+    rect = pygame.Rect(32,16,size,size)
     surface.blit(image,(0,0),rect)
 
-    return pygame.transform.scale2x(surface)   
+    scaled = pygame.transform.scale2x(surface)
+
+    return pygame.transform.scale2x(scaled)  
+
+
+def get_spikeball(size):
+    #path = join("assets","Terrain","Terrain.png")
+    path = join("assets","Ruedas_Pinchos.png")
+    image = pygame.image.load(path).convert_alpha()
+    surface = pygame.Surface((size,size),pygame.SRCALPHA,32)
+    rect = pygame.Rect(96,32,size,size)
+    surface.blit(image,(0,0),rect)
+
+    return pygame.transform.scale2x(surface) 
 
 
 
