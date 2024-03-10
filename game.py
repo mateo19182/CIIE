@@ -1467,6 +1467,9 @@ def putCoins(x,y,num_coins,coins):
     for i in range(num_coins):
         coins.append(Coin(x + i * 50,y,40))
 
+def putGems(x,y,num_gems,gems):
+    for i in range(num_gems):
+        gems.append(Gem(x + i * 50,y,40))
 
 def show_loading_screen(level_text, message):
     window.fill("white")
@@ -1777,17 +1780,19 @@ def play(window, partida, volume):
         rangedenemie1 = RangedEnemies(945-distance,335,100,100,30,arrow_group,"GnomeTinkerer")
         rangedenemie2 = RangedEnemies(6553-distance,530,100,100,30,arrow_group,"GnomeTinkerer")
         meleeEnemie1 = MeleeEnemie(1400-distance,625,100,100,"HalflingRogue")
-        meleeEnemie2 = MeleeEnemie(300-distance,525,100,100,"Skeleton")
+        meleeEnemie2 = MeleeEnemie(4375-distance,525,100,100,"HalflingRogue")
         mercader = Mercader(2700-distance, 655, 100, 100) 
         firstBoss = SecondBoss(8500-distance,480,100,100)
         thirdBoss = ThirdBoss(9000-distance,390,100,100)
         checkpoint = Checkpoint(7700-distance,480,50,50, checkpoint_activated)
         checkpoint_end = CheckpointEnd(9000-distance,575,50,50)
-        meleeEnemie4 = Skull(1000-distance,10,1000,1000,"Skull")
+        meleeEnemie4 = Skull(5950 - distance,350,1000,1000,"Skull")
+        meleeEnemie5 = Skull(6050 - distance,350,1000,1000,"Skull")
 
         all_enemies_group.add(meleeEnemie1)
         all_enemies_group.add(meleeEnemie2)
         all_enemies_group.add(meleeEnemie4)
+        all_enemies_group.add(meleeEnemie5)
         all_enemies_group.add(rangedenemie1)
         all_enemies_group.add(rangedenemie2)
         all_enemies_group.add(firstBoss)
@@ -1795,6 +1800,8 @@ def play(window, partida, volume):
         meleeEnemies_group.add(meleeEnemie1)
         meleeEnemies_group.add(meleeEnemie2)
         meleeEnemies_group.add(meleeEnemie4)
+        meleeEnemies_group.add(meleeEnemie5)
+        
         
 
     block_size = 96
@@ -1870,15 +1877,13 @@ def play(window, partida, volume):
         gem3 = Gem(425,25,40)
         gem4 = Gem(6630,650,40)
         
-        gems = [gem1,gem2,gem3,gem4]
+        gems = []
+        
+        putGems(-1000,650,1,gems)
+        putGems(425,25,1,gems)
+        putGems(6630,650,1,gems)
+
         gems = pygame.sprite.Group(gems)
-
-
-        # coin1 = Coin(1115,200,40)
-        # coin2 = Coin(920,200,40)
-        # coin3 = Coin(725,200,40)
-
-        # coins = [coin1,coin2,coin3]
 
         coins = []
 
@@ -1978,6 +1983,27 @@ def play(window, partida, volume):
         
         
         objects = [*mini_spike1,*spike1,*floor,*column,*column2,*column3,*column4,*column5,*column6,*column7,*plat1,*plat2,*plat3,*plat4,*plat5,*plat6,*plat7,*plat8,*plat9,*plat10,*plat11,*plat12,*plat13,*plat14,*plat15,*plat16,*plat17,*plat18,*plat19,*plat20,*plat21,*plat22,*plat23,*plat24,*plat25,*plat26,*plat27,*plat28,*plat29,*plat30,*plat31,*plat32,*plat33,*plat34,*plat35,*plat36,*plat37,*plat38,*plat39]
+
+        gems = []
+
+        putGems(2100,682,1,gems)
+        putGems(2370,106,1,gems)
+
+        gems = pygame.sprite.Group(gems)
+
+
+        coins = []
+
+        putCoins(1450,487,4,coins)
+        putCoins(2050,106,5,coins)
+        putCoins(3050,683,8,coins)
+        putCoins(3975,42,4,coins)
+        putCoins(3975,234,5,coins)
+        putCoins(3975,490,6,coins)
+        putCoins(6850,363,15,coins)
+
+        coins = pygame.sprite.Group(coins)
+
 ############################################# NIVEL 3 - CASTILLO ###############################################################
     elif partida.level == 3:
          floor = [Block5(i*block2_size-distance,HEIGHT - block2_size ,block2_size)for i in range(-10,8)]
@@ -2040,26 +2066,25 @@ def play(window, partida, volume):
 
          objects = [*build0,*build1,*build2,*build3,*build4,*build5, *floor, *floor5,*floor6,*floor7,*floor8, *plat1, *plat2, *plat3, *plat4, *plat5, *plat6, *plat7, *plat8, *plat9, *plat10, *plat11, *plat12, *plat13, *plat14, *plat15,*plat16, *plat17, *plat18,*plat19,*plat20,*plat21,*plat22,*plat23,*plat24,*plat25,*plat26,*plat27,*plat28,*plat29,*plat30, *spike1, *spike2, *spike3]
 
+         gems = []
+
+         putGems(2100,682,1,gems)
+         putGems(2370,106,1,gems)
+
+         gems = pygame.sprite.Group(gems)
 
 
+         coins = []
 
-    coin_size = 40  
-    num_coins = 10
-    coins = [
-        Coin(random.randint(0, WIDTH - coin_size)-distance, random.randint(100, 650), coin_size)
-        for _ in range(num_coins)
-    ]
-    coins = pygame.sprite.Group(coins)  
+         putCoins(1450,487,4,coins)
+         putCoins(2050,106,5,coins)
+         putCoins(3050,683,8,coins)
+         putCoins(3975,42,4,coins)
+         putCoins(3975,234,5,coins)
+         putCoins(3975,490,6,coins)
+         putCoins(6850,363,15,coins)
 
-    gem_size = 40  
-    num_gems = 2
-    gems = [
-        Gem(random.randint(0, WIDTH - gem_size)-distance, random.randint(100, 650), gem_size)
-        for _ in range(num_gems)
-    ]
-    gems = pygame.sprite.Group(gems)  
-
-
+         coins = pygame.sprite.Group(coins)   
 
     while run: 
 
@@ -2101,6 +2126,9 @@ def play(window, partida, volume):
                     negociation3(player, volume.sounds_volume)  
                     
         player.loop(delta_time, all_enemies_group, window, partida, volume)
+
+        # print("PLAYER X = ",player.rect.x)
+        # print("PLAYER Y = ",player.rect.y)
         
         for enemy in all_enemies_group:
             enemy.loop(player,volume)
