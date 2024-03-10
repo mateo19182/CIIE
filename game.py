@@ -534,7 +534,10 @@ class MeleeEnemie(pygame.sprite.Sprite):
 
     def update_sprite(self,player):
         sprite_sheet = "idle"
-        sprites = resource_manager.load_sprite_sheets("Enemies",self.sprite_sheet_name,16,16,False)
+        if self.sprite_sheet_name=="Skeleton":
+            sprites = resource_manager.load_sprite_sheets("Enemies",self.sprite_sheet_name,32,32,False)
+        else:
+            sprites = resource_manager.load_sprite_sheets("Enemies",self.sprite_sheet_name,16,16,False)
         sprites = sprites[sprite_sheet]
         sprite_index = (self.animation_count // self.ANIMATION_DELAY) % len(sprites)
         self.sprite = sprites[sprite_index]
@@ -565,7 +568,7 @@ class MeleeEnemie(pygame.sprite.Sprite):
 
 class Skull(pygame.sprite.Sprite):
     ANIMATION_DELAY = 10
-    GRAVITY = 5
+    GRAVITY = 1
 
     def __init__(self,x,y,width,height,sprite_sheet_name):
         super().__init__()
@@ -1375,8 +1378,9 @@ def collide_enemie(player,enemie,objects,volume):
                 
     enemie.fall = True
 
-    enemie.y += enemie.GRAVITY
-    enemie.rect.y = enemie.y
+    if enemie.GRAVITY > 1:
+        enemie.y += enemie.GRAVITY
+        enemie.rect.y = enemie.y
 
     player.update()
     
@@ -1773,13 +1777,13 @@ def play(window, partida, volume):
         rangedenemie1 = RangedEnemies(945-distance,335,100,100,30,arrow_group,"GnomeTinkerer")
         rangedenemie2 = RangedEnemies(6553-distance,530,100,100,30,arrow_group,"GnomeTinkerer")
         meleeEnemie1 = MeleeEnemie(1400-distance,625,100,100,"HalflingRogue")
-        meleeEnemie2 = MeleeEnemie(300-distance,525,100,100,"HalflingRogue")
+        meleeEnemie2 = MeleeEnemie(300-distance,525,100,100,"Skeleton")
         mercader = Mercader(2700-distance, 655, 100, 100) 
         firstBoss = SecondBoss(8500-distance,480,100,100)
         thirdBoss = ThirdBoss(9000-distance,390,100,100)
         checkpoint = Checkpoint(7700-distance,480,50,50, checkpoint_activated)
         checkpoint_end = CheckpointEnd(9000-distance,575,50,50)
-        meleeEnemie4 = Skull(100-distance,500,1000,1000,"Skull")
+        meleeEnemie4 = Skull(1000-distance,10,1000,1000,"Skull")
 
         all_enemies_group.add(meleeEnemie1)
         all_enemies_group.add(meleeEnemie2)
@@ -2030,7 +2034,6 @@ def play(window, partida, volume):
          plat29 = [Block5(5*i*block4_size-distance + 8350 ,HEIGHT - block2_size - 200 - 4*i*block2_size,block4_size)for i in range(0,3)]
          plat30 = [Block5(5*i*block4_size-distance + 8900 ,HEIGHT - block2_size - 200 - 4*i*block2_size,block4_size)for i in range(0,2)]
          
-        # Los cuadrados voladores sueltos harán daño al jugador como los pinchos
          spike1 = [Spikeball(i*block4_size-distance + 1480 ,HEIGHT - block2_size - 600,block2_size)for i in range(0,1)]
          spike2 = [Spikeball(2*i*block4_size - distance + 4600 ,HEIGHT - block2_size - 350 - 2*i*block4_size,block2_size)for i in range(0,3)]
          spike3 = [Spikeball(40*i - distance + 5850 ,HEIGHT - block2_size - 500 - 3*i,block2_size)for i in range(0,20)]
