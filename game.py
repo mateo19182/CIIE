@@ -1,30 +1,28 @@
-import random
 import time
 import math
 import pygame, sys, pickle
-
-import resource_manager
-
-from os import listdir
-from os.path import isfile, join
-from button import Button
-from partida import Partida, Volume
-from pygame import mixer
-
-
 pygame.init()
 
 SCREEN = pygame.display.set_mode((1000, 800))
 pygame.display.set_caption("Platformer")
+import resource_manager
+import build_levels
+from NPCs import Mercader, Boss, MeleeEnemie, RangedEnemies, SecondBoss, ThirdBoss, Skull
+from objects import Object, Block, Block2, Block3, Block4, Block5, Block6, Spikeball,  Platform
+from items import Coin, Gem, Lives, Checkpoint, CheckpointEnd, Sign, Fireball, Arrow, Explosion
 
-WIDTH, HEIGHT = 1000, 800
+from os import listdir
+from os.path import isfile, join
+from button import Button
+from partida import Partida, Volume, WIDTH, HEIGHT
+from pygame import mixer
+
 FPS = 60
 PLAYER_VEL = 5 * FPS
 TIMER = 0
 LEVEL = 1
 BAR_WIDTH = 300
 BAR_HEIGHT = 20
-
 
 window = pygame.display.set_mode((WIDTH,HEIGHT))
 
@@ -263,1024 +261,6 @@ class Player(pygame.sprite.Sprite):
 
     def draw(self,window,offset_x):
         window.blit(self.sprite,(self.rect.x - offset_x,self.rect.y))
-        
-class Object(pygame.sprite.Sprite):
-    def __init__(self,x,y,width,height,name=None):
-        super().__init__()
-        self.rect = pygame.Rect(int(x),int(y),int(width),int(height))
-        self.image = pygame.Surface((width,height),pygame.SRCALPHA)
-        self.width = width
-        self.height = height
-        self.name = name
-
-    def draw(self,window,offset_x):
-        window.blit(self.image,(self.rect.x - offset_x,self.rect.y))
-
-class Lives:
-    def __init__(self,num):
-        self.observers = []
-        self._lives = num
-
-    def attach(self, observer):
-        self.observers.append(observer)
-
-    def detach(self, observer):
-        self.observers.remove(observer)
-
-    def notify(self):
-        for observer in self.observers:
-            observer.update(self)
-
-    @property
-    def lives(self):
-        return self._lives
-
-    @lives.setter
-    def lives(self, value):
-        self._lives = value
-        self.notify()
-
-class Coin(pygame.sprite.Sprite):
-    def __init__(self, x, y, size):
-        super().__init__()
-        self.images = [pygame.transform.scale(pygame.image.load(f'assets/Collectibles/coin_{i}.png'), (size, size)) for i in range(6)]
-        self.index = 0
-        self.image = self.images[self.index]
-        self.rect = self.image.get_rect()
-        self.rect.x = x
-        self.rect.y = y
-        self.frame_count = 0 
-
-    def update(self):
-        self.frame_count += 1 
-        if self.frame_count >= 5:
-            self.frame_count = 0
-            self.index = (self.index + 1) % len(self.images)
-            self.image = self.images[self.index]
-
-    def draw(self,window,offset_x):
-        window.blit(self.image,(self.rect.x - offset_x,self.rect.y))
-
-
-class Gem(pygame.sprite.Sprite):
-    def __init__(self, x, y, size):
-        super().__init__()
-        self.images = [pygame.transform.scale(pygame.image.load(f'assets/Collectibles/gem{i}.png'), (size, size)) for i in range(8)]
-        self.index = 0
-        self.image = self.images[self.index]
-        self.rect = self.image.get_rect()
-        self.rect.x = x
-        self.rect.y = y
-        self.frame_count = 0 
-
-    def update(self):
-        self.frame_count += 1 
-        if self.frame_count >= 5:
-            self.frame_count = 0
-            self.index = (self.index + 1) % len(self.images)
-            self.image = self.images[self.index]
-
-    def draw(self,window,offset_x):
-        window.blit(self.image,(self.rect.x - offset_x,self.rect.y))
-
-
-class Block(Object):
-    def __init__(self, x, y, size):
-        super().__init__(x, y, size, size)
-        block = resource_manager.get_block(size)
-        self.image.blit(block, (0, 0))
-        self.mask = pygame.mask.from_surface(self.image)
-
-class Block2(Object):
-    def __init__(self, x, y, size):
-        super().__init__(x, y, size, size)
-        block = resource_manager.get_block2(size)
-        self.image.blit(block, (0, 0))
-        self.mask = pygame.mask.from_surface(self.image)
-
-class Block3(Object):
-    def __init__(self, x, y, size):
-        super().__init__(x, y, size, size)
-        block = resource_manager.get_block3(size)
-        self.image.blit(block, (0, 0))
-        self.mask = pygame.mask.from_surface(self.image)   
-
-class Block4(Object):
-    def __init__(self, x, y, size):
-        super().__init__(x, y, size, size)
-        block = resource_manager.get_block4(size)
-        self.image.blit(block, (0, 0))
-        self.mask = pygame.mask.from_surface(self.image) 
-
-class Block5(Object):
-    def __init__(self, x, y, size):
-        super().__init__(x, y, size, size)
-        block = resource_manager.get_block5(size)
-        self.image.blit(block, (0, 0))
-        self.mask = pygame.mask.from_surface(self.image) 
-
-class Block6(Object):
-    def __init__(self, x, y, size):
-        super().__init__(x, y, size, size)
-        block = resource_manager.get_block6(size)
-        self.image.blit(block, (0, 0))
-        self.mask = pygame.mask.from_surface(self.image) 
-
-class Spikeball(Object):
-    def __init__(self, x, y, size):
-        super().__init__(x, y, size, size)
-        block = resource_manager.get_spikeball(size)
-        self.image.blit(block, (0, 0))
-        self.mask = pygame.mask.from_surface(self.image)  
-        
-class Platform(Object):
-    def __init__(self,x,y,size):
-        super().__init__(x,y,size,size)
-        block = resource_manager.get_platform(size)
-        self.image.blit(block,(0,0))
-        self.mask = pygame.mask.from_surface(self.image)
-
-
-class RangedEnemies(pygame.sprite.Sprite):
-    ANIMATION_DELAY = 4
-    ARROW_FRAME = 25
-    SHOOT_DISTANCE = 300
-    SHOOT_HEIGHT_THRESHOLD = 20
-
-    def __init__(self,x,y,width,height,delay,arrows,sprite_sheet_name):
-        super().__init__()
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
-        self.animation_count = 0
-        self.frame_count = 0
-        self.rect = pygame.Rect(x,y,width,height)
-        self.mask = None
-        self.sprite = None
-        self.arrows = arrows
-        self.orientation = "left"
-        self.shoot = False
-        self.sprite_sheet_name = sprite_sheet_name
-        self.is_alive = True
-        self.delay = delay
-
-    def loop(self,player,volume):
-            self.frame_count += 1
-            if self.is_alive:
-                if self.should_shoot(player):
-                    self.shoot = True
-                    if self.frame_count == self.ARROW_FRAME:
-                        self.shoot_arrow(volume.sounds_volume)
-
-            self.update_sprite(player)
-        
-    def should_shoot(self, player):
-        dx = player.rect.x - self.rect.x
-        dy = player.rect.y - self.rect.y
-        distance = math.sqrt(dx ** 2 + dy ** 2)
-
-        return distance < self.SHOOT_DISTANCE and abs(dy) <= self.SHOOT_HEIGHT_THRESHOLD
-    
-    def take_damage(self,volume):
-        self.kill()
-        death_sound = mixer.Sound(resource_manager.get_sound("arrow_girl_death"))
-        death_sound.play()
-        death_sound.set_volume(volume.sounds_volume)
-        self.update_sprite(self)
-
-    def shoot_arrow(self,volume):
-        if self.sprite_sheet_name == "GnomeTinkerer":
-            arrow = Wrench(self.rect,self.orientation)
-        else:
-            arrow = Arrow(self.rect,self.orientation)
-        self.arrows.add(arrow)
-        arrow_sound = mixer.Sound(resource_manager.get_sound("arrow"))
-        arrow_sound.play()
-        arrow_sound.set_volume(volume)
-
-    def update_sprite(self,player):
-        
-        if self.shoot:
-            sprite_sheet = "shoot"
-            self.shoot = False
-            self.ANIMATION_DELAY = self.delay
-        else: 
-            sprite_sheet = "idle"
-            self.ANIMATION_DELAY = 9
-        
-        sprites = resource_manager.load_sprite_sheets("Enemies",self.sprite_sheet_name,16,16,False)
-        sprites = sprites[sprite_sheet]
-        sprite_index = (self.animation_count // self.ANIMATION_DELAY) % len(sprites)
-        self.sprite = sprites[sprite_index]
-        self.sprite = pygame.transform.scale(self.sprite,(16 * 5, 16 * 5))
-        self.animation_count += 1
-
-        if(sprite_index == 0):
-            self.frame_count = 0
-
-        dx = player.rect.x - self.x
-
-        if dx < 0:
-            self.orientation = "left"
-            self.sprite = pygame.transform.flip(self.sprite,True,False)
-        elif dx > 0:
-            self.orientation = "right"
-            self.sprite = pygame.transform.flip(self.sprite,False,False)
-
-        self.update()
-
-    def update(self):
-        self.rect = self.sprite.get_rect(topleft = (self.rect.x,self.rect.y))
-        self.mask = pygame.mask.from_surface(self.sprite)
-
-    def draw(self,window,offset_x):
-        window.blit(self.sprite,(self.rect.x - offset_x,self.rect.y))
-        
-class MeleeEnemie(pygame.sprite.Sprite):
-    ANIMATION_DELAY = 20
-    GRAVITY = 8
-    
-    def __init__(self,x,y,width,height,sprite_sheet_name):
-        super().__init__()
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
-        self.animation_count = 0
-        self.frame_count = 0
-        self.rect = pygame.Rect(x,y,width,height)
-        self.mask = None
-        self.sprite = None
-        self.orientation = "left"
-        self.x_vel = 0
-        self.fall = False
-        self.is_alive = True
-        self.sprite_sheet_name = sprite_sheet_name
-        
-    def loop(self,player,volume):
-        self.frame_count += 1
-        
-        dx = player.rect.x - self.rect.x
-        dy = player.rect.y - self.rect.y
-        distance = math.sqrt(dx**2 + dy**2)
-        
-        max_velocity = 2
-    
-        if distance < 300:
-            ratio = min(1, distance / 150)
-            self.x_vel = ratio * max_velocity * (dx / distance)
-        else:
-            self.x_vel = 0
-
-        if not self.fall:
-            self.rect.x += self.x_vel
-            
-        self.update_sprite(player)
-
-    def take_damage(self,volume):
-        self.kill()
-        death_sound = mixer.Sound(resource_manager.get_sound("melee_enemie_death"))
-        death_sound.play()
-        death_sound.set_volume(volume.sounds_volume)
-        self.update_sprite(self)
-
-    def update_sprite(self,player):
-        sprite_sheet = "idle"
-        if self.sprite_sheet_name=="Skeleton":
-            sprites = resource_manager.load_sprite_sheets("Enemies",self.sprite_sheet_name,32,32,False)
-        else:
-            sprites = resource_manager.load_sprite_sheets("Enemies",self.sprite_sheet_name,16,16,False)
-        sprites = sprites[sprite_sheet]
-        sprite_index = (self.animation_count // self.ANIMATION_DELAY) % len(sprites)
-        self.sprite = sprites[sprite_index]
-        self.sprite = pygame.transform.scale(self.sprite,(16 * 5, 16 * 5))
-        self.animation_count += 1
-
-        if(sprite_index == 0):
-            self.frame_count = 0
-
-        dx = player.rect.x - self.rect.x
-
-        if dx < 0:
-            self.orientation = "left"
-            self.sprite = pygame.transform.flip(self.sprite,True,False)
-        elif dx > 0:
-            self.orientation = "right"
-            self.sprite = pygame.transform.flip(self.sprite,False,False)
-
-        self.update()
-
-    def update(self):
-        self.rect.x += self.x_vel
-        self.rect = self.sprite.get_rect(topleft = (self.rect.x,self.rect.y))
-        self.mask = pygame.mask.from_surface(self.sprite)
-        
-    def draw(self,window,offset_x):
-        window.blit(self.sprite,(self.rect.x - offset_x,self.rect.y))
-
-class Skull(pygame.sprite.Sprite):
-    ANIMATION_DELAY = 10
-    GRAVITY = 1
-
-    def __init__(self,x,y,width,height,sprite_sheet_name):
-        super().__init__()
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
-        self.animation_count = 0
-        self.frame_count = 0
-        self.rect = pygame.Rect(x,y,width,height)
-        self.mask = None
-        self.sprite = None
-        self.orientation = "left"
-        self.x_vel = 0
-        self.y_vel = 0
-        self.is_alive = True
-        self.sprite_sheet_name = sprite_sheet_name
-        
-    def loop(self,player,volume):
-        self.frame_count += 1
-        
-        dx = player.rect.x - self.rect.x
-        dy = player.rect.y - self.rect.y
-        distance = math.sqrt(dx**2 + dy**2)
-        
-        max_velocity = 2
-    
-        if distance < 500:
-            ratio = min(1, distance / 150)
-            self.x_vel = ratio * max_velocity * (dx / distance)
-            self.y_vel = ratio * max_velocity * (dy / distance) 
-        else:
-            self.x_vel = 0
-            self.y_vel = 0 
-            
-        self.update_sprite(player)
-
-    def take_damage(self,volume):
-        self.kill()
-        death_sound = mixer.Sound(resource_manager.get_sound("skeleton_death"))
-        death_sound.play()
-        death_sound.set_volume(volume.sounds_volume)
-        self.update_sprite(self)
-
-    def update_sprite(self,player):
-        sprite_sheet = "idle"
-        sprites = resource_manager.load_sprite_sheets("Enemies",self.sprite_sheet_name,64,64,False)
-        sprites = sprites[sprite_sheet]
-        sprite_index = (self.animation_count // self.ANIMATION_DELAY) % len(sprites)
-        self.sprite = sprites[sprite_index]
-        self.sprite = pygame.transform.scale(self.sprite,(16 * 5, 16 * 5))
-        self.animation_count += 1
-
-        if(sprite_index == 0):
-            self.frame_count = 0
-
-        dx = player.rect.x - self.rect.x
-
-        if dx < 0:
-            self.orientation = "left"
-            self.sprite = pygame.transform.flip(self.sprite,True,False)
-        elif dx > 0:
-            self.orientation = "right"
-            self.sprite = pygame.transform.flip(self.sprite,False,False)
-
-        self.update()
-        
-    def update(self):
-        self.rect.x += self.x_vel
-        self.rect.y += self.y_vel
-        self.rect = self.sprite.get_rect(topleft = (self.rect.x,self.rect.y))
-        self.mask = pygame.mask.from_surface(self.sprite)
-        
-    def draw(self,window,offset_x):
-        window.blit(self.sprite,(self.rect.x - offset_x,self.rect.y))
-
-class Boss(pygame.sprite.Sprite):
-    SPRITES = resource_manager.load_sprite_sheets("Enemies","Boss",32,32,False)
-    ANIMATION_DELAY = 20
-    GRAVITY = 5
-    DAMAGE_COOLDOWN = 500
-    
-    def __init__(self,x,y,width,height):
-        super().__init__()
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
-        self.animation_count = 0
-        self.frame_count = 0
-        self.rect = pygame.Rect(x,y,width,height)
-        self.mask = None
-        self.sprite = None
-        self.orientation = "left"
-        self.x_vel = 0
-        self.fall = False
-        self.vida = 3
-        self.is_alive = True
-        self.last_damage_time = 0
-        
-    def loop(self,player,volume):
-        self.frame_count += 1
-        
-        self.die()
-            
-        self.update_sprite()
-        
-    def take_damage(self,volume):
-        current_time = pygame.time.get_ticks()
-        
-        if current_time - self.last_damage_time > self.DAMAGE_COOLDOWN:
-            self.vida -= 1
-            self.last_damage_time = current_time
-            if self.vida <= 0:
-                self.is_alive = False
-                death_sound = mixer.Sound(resource_manager.get_sound("boss_death"))
-                death_sound.play()
-                death_sound.set_volume(volume.sounds_volume)
-                self.kill()
-                self.update_sprite()
-        
-    def update_sprite(self):
-        sprites = self.SPRITES["Attack"]
-        sprite_index = (self.animation_count // self.ANIMATION_DELAY) % len(sprites)
-        self.sprite = sprites[sprite_index]
-        self.sprite = pygame.transform.scale(self.sprite,(32 * 8, 32 * 8))
-        self.sprite = pygame.transform.flip(self.sprite,True,False)
-        self.animation_count += 1
-
-        if(sprite_index == 0):
-            self.frame_count = 0
-
-        self.update()
-
-    def update(self):
-        self.rect.x += self.x_vel
-        self.rect = self.sprite.get_rect(topleft = (self.rect.x,self.rect.y))
-        self.mask = pygame.mask.from_surface(self.sprite)
-            
-    def die(self):
-        if self.vida == 0:
-            self.is_alive = False
-        
-    def draw(self,window,offset_x):
-        window.blit(self.sprite,(self.rect.x - offset_x,self.rect.y))
-        
-        bar_width = 300
-        bar_height = 10 
-        bar_x = self.rect.x - offset_x 
-        bar_y = self.rect.y - 20
-        pygame.draw.rect(window, (255, 0, 0), (bar_x, bar_y, bar_width, bar_height))
-        pygame.draw.rect(window, (0, 255, 0), (bar_x, bar_y, bar_width * (self.vida / 3), bar_height))
-
-class SecondBoss(pygame.sprite.Sprite):
-    SPRITES = resource_manager.load_sprite_sheets("Enemies", "SecondBoss", 32, 32, False)
-    ANIMATION_DELAY = 20
-    GRAVITY = 5
-    DAMAGE_COOLDOWN = 500
-    
-    def __init__(self, x, y, width, height):
-        super().__init__()
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
-        self.animation_count = 0
-        self.frame_count = 0
-        self.rect = pygame.Rect(x, y, width, height)
-        self.mask = None
-        self.sprite = None
-        self.orientation = "left"
-        self.x_vel = 0
-        self.fall = False
-        self.vida = 3
-        self.is_alive = True
-        self.last_damage_time = 0
-        self.explosions = pygame.sprite.Group()  
-        self.state = "Idle"
-        self.player_proximity_threshold = 1000 
-
-    def loop(self, player, volume):
-        self.frame_count += 1
-        self.check_proximity(player)
-        self.die()
-        self.update_sprite()
-        self.attack(player)
-
-    def check_proximity(self, player):
-        distance_to_player = math.hypot(player.rect.x - self.rect.x, player.rect.y - self.rect.y)
-        if distance_to_player < self.player_proximity_threshold:
-            if self.state == "Idle" and self.frame_count >= 100: 
-                self.state = "Attack"
-                self.frame_count = 0 
-        else:
-            self.state = "Idle"
-
-    def update_sprite(self):
-        if self.state == "Attack":
-            sprites = self.SPRITES["Attack"]
-        else:
-            sprites = self.SPRITES["Idle"]
-        sprite_index = (self.animation_count // self.ANIMATION_DELAY) % len(sprites)
-        self.sprite = sprites[sprite_index]
-        self.sprite = pygame.transform.scale(self.sprite, (32 * 8, 32 * 8))
-        self.sprite = pygame.transform.flip(self.sprite, True, False)
-        self.animation_count += 1
-
-        if sprite_index == 0 and self.state == "Attack":
-            self.frame_count = 0
-
-        self.update()
-
-    def attack(self, player):
-        if self.state == "Attack" and self.frame_count == 140:
-            self.create_explosion(player)
-            self.frame_count = 0
-            self.state = "Idle" 
-
-    def create_explosion(self, player):
-        explosion_x = player.rect.x + random.randint(-50, 50)
-        explosion_y = player.rect.y + random.randint(-50, 50)
-        explosion = Explosion(explosion_x, explosion_y)
-        self.explosions.add(explosion) 
-
-    def take_damage(self,volume):
-        current_time = pygame.time.get_ticks()
-        
-        if current_time - self.last_damage_time > self.DAMAGE_COOLDOWN:
-            self.vida -= 1
-            self.last_damage_time = current_time
-            if self.vida <= 0:
-                self.is_alive = False
-                death_sound = mixer.Sound(resource_manager.get_sound("boss_death"))
-                death_sound.play()
-                death_sound.set_volume(volume.sounds_volume)
-                self.kill()
-                self.update_sprite()
-        
-    def update(self):
-        self.rect.x += self.x_vel
-        self.rect = self.sprite.get_rect(topleft = (self.rect.x, self.rect.y))
-        self.mask = pygame.mask.from_surface(self.sprite)
-        super().update()
-        self.explosions.update()
-                
-    def die(self):
-        if self.vida == 0:
-            self.is_alive = False
-        
-    def draw(self, window, offset_x):
-        window.blit(self.sprite, (self.rect.x - offset_x, self.rect.y))
-        
-        bar_width = 300
-        bar_height = 10 
-        bar_x = self.rect.x - offset_x 
-        bar_y = self.rect.y - 20
-        pygame.draw.rect(window, (255, 0, 0), (bar_x, bar_y, bar_width, bar_height))
-        pygame.draw.rect(window, (0, 255, 0), (bar_x, bar_y, bar_width * (self.vida / 3), bar_height))
-        self.explosions.draw(window) 
-
-
-class ThirdBoss(pygame.sprite.Sprite):
-    SPRITES = resource_manager.load_sprite_sheets("Enemies", "ThirdBoss", 140, 140, False)
-    ANIMATION_DELAY = 20
-    GRAVITY = 5
-    DAMAGE_COOLDOWN = 500
-    MOVE_SPEED = 2
-    DETECTION_RANGE = 500  
-    def __init__(self, x, y, width, height):
-        super().__init__()
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
-        self.animation_count = 0
-        self.frame_count = 0
-        self.rect = pygame.Rect(x, y, width, height)
-        self.mask = None
-        self.sprite = None
-        self.orientation = "left"
-        self.x_vel = 0
-        self.fall = False
-        self.vida = 3
-        self.is_alive = True
-        self.last_damage_time = 0
-        self.state = "IDLE"  # Initial state
-        
-    def loop(self, player, volume):
-        self.frame_count += 1
-        if self.detect_player2(player):
-            self.state = "WALK"
-            if self.detect_player(player):
-                self.state = "ATTACK"
-            else:
-                self.approach_player(player)
-
-        self.die()
-        self.update_sprite()
-        
-    def take_damage(self):
-        current_time = pygame.time.get_ticks()
-        
-        if current_time - self.last_damage_time > self.DAMAGE_COOLDOWN:
-            self.vida -= 1
-            self.last_damage_time = current_time
-            self.state = "HURT" if self.vida > 0 else "DEATH"
-            self.update_sprite()
-            if self.vida <= 0:
-                #self.is_alive = False
-                self.state = "DEATH"
-    
-    def detect_player(self, player):
-        distance_x = abs(self.rect.centerx - player.rect.centerx)
-        attack_distance_x = 100
-        if distance_x <= attack_distance_x:
-            return True
-        else:
-            return False
-    def detect_player2(self, player):
-        distance_x = abs(self.rect.centerx - player.rect.centerx)
-        attack_distance_x = self.DETECTION_RANGE
-        if distance_x <= attack_distance_x:
-            return True
-        else:
-            return False
-
-    def approach_player(self, player):
-        player_x = player.rect.centerx 
-        boss_x = self.rect.centerx
-        if boss_x < player_x:
-            self.x_vel = self.MOVE_SPEED 
-            self.orientation = "left"
-        elif boss_x > player_x:
-            self.x_vel = -self.MOVE_SPEED 
-            self.orientation = "right"
-        else:
-            self.x_vel = 0 
-        self.x += self.x_vel
-        if(self.sprite!=None):
-            self.sprite = pygame.transform.flip(self.sprite, self.orientation == "left", False)
-        self.rect.x = self.x
-
-
-    def update_sprite(self):
-        if self.state == "DEATH":
-            sprites = self.SPRITES["DEATH"]
-        elif self.state == "HURT":
-            sprites = self.SPRITES["HURT"]
-        elif self.state == "ATTACK":
-            sprites = self.SPRITES["ATTACK"]
-        elif self.state == "WALK":
-            sprites = self.SPRITES["WALK"]
-        else:  
-            sprites = self.SPRITES.get(self.state, self.SPRITES["IDLE"])
-            
-        sprite_index = (self.animation_count // self.ANIMATION_DELAY) % len(sprites)
-        self.sprite = sprites[sprite_index]
-        self.sprite = pygame.transform.scale(self.sprite, (64 * 8, 64 * 8))
-        if self.orientation == "left":
-            self.sprite = pygame.transform.flip(self.sprite, True, False)
-        self.animation_count += 1
-        
-        if sprite_index == 0 and self.state == "HURT":
-            self.state = "IDLE" 
-        if sprite_index == 3 and self.state == "DEATH":
-            self.is_alive = False
-            if (not self.is_alive):
-                self.kill()
-
-
-        self.update()
-    
-    def update(self):
-        self.rect.x = self.x
-        self.rect.y = self.y 
-        self.rect = self.sprite.get_rect(topleft=(self.rect.x, self.rect.y))
-        self.mask = pygame.mask.from_surface(self.sprite)
-        
-    def die(self):
-        if self.vida == 0:
-            self.state = "DEATH"
-        
-    def draw(self, window, offset_x):
-        window.blit(self.sprite, (self.rect.x - offset_x, self.rect.y))
-        
-        bar_width = 300
-        bar_height = 10
-        bar_x = self.rect.x - offset_x
-        bar_y = self.rect.y - 20
-        pygame.draw.rect(window, (255, 0, 0), (bar_x, bar_y, bar_width, bar_height))
-        pygame.draw.rect(window, (0, 255, 0), (bar_x, bar_y, bar_width * (self.vida / 3), bar_height))
-
-
-class Mercader(pygame.sprite.Sprite):
-    SPRITES = resource_manager.load_sprite_sheets("Mercader","Mercader",16,16,False)
-    ANIMATION_DELAY = 10
-
-    def __init__(self,x,y,width,height):
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
-        self.animation_count = 0
-        self.frame_count = 0
-        self.rect = pygame.Rect(x,y,width,height)
-        self.mask = None
-        self.sprite = None
-        self.orientation = "left"
-        self.close = False
-        self.negociating = False
-
-    def loop(self,player,offset_x):
-        self.frame_count += 1
-
-        self.update_sprite(player)
-
-
-    def update_sprite(self,player):
-        sprites = self.SPRITES["OverworkedVillagerIdleSide"]
-        sprite_index = (self.animation_count // self.ANIMATION_DELAY) % len(sprites)
-        self.sprite = sprites[sprite_index]
-        self.sprite = pygame.transform.scale(self.sprite,(16 * 5, 16 * 5))
-        self.animation_count += 1
-
-        if(sprite_index == 0):
-            self.frame_count = 0
-
-        dx = player.rect.x - self.x
-        dy = player.rect.y - self.y
-
-        if dx < 0:
-            self.orientation = "left"
-            self.sprite = pygame.transform.flip(self.sprite,True,False)
-        elif dx > 0:
-            self.orientation = "right"
-            self.sprite = pygame.transform.flip(self.sprite,False,False)
-
-        if dx > -100 and dx < 100 and dy > -100 and dy < 100:
-            self.close = True
-        else:
-            self.close = False
-            self.negociating = False
-
-        self.update()
-
-    def update(self):
-        self.rect = self.sprite.get_rect(topleft = (self.rect.x,self.rect.y))
-        self.mask = pygame.mask.from_surface(self.sprite)
-
-    def show_dialog(self,window,offset_x):
-        dialog_surface = pygame.Surface((320, 20))
-        dialog_surface.set_alpha(128)
-        window.blit(dialog_surface, (self.rect.x - offset_x-90,self.rect.y-15))
-        text = pygame.font.Font("assets/font.ttf", 15).render("Press N to negociate", True, "#b68f40")
-        window.blit(text, (self.rect.x - offset_x-80,self.rect.y-10))
-
-    def show_dialog_negociating(self,window,offset_x,opt1,opt2,opt3):
-        dialog_surface = pygame.Surface((320, 20))
-        dialog_surface.set_alpha(128)
-        for button in [opt1, opt2, opt3]:
-            button.changeColor(pygame.mouse.get_pos())
-            button.update(window)
-
-    def draw(self,window,offset_x,opt1,opt2,opt3):
-        window.blit(self.sprite,(self.rect.x - offset_x,self.rect.y))
-        if self.close:
-            if self.negociating:
-                self.show_dialog_negociating(window,offset_x,opt1,opt2,opt3)
-            else:
-                self.show_dialog(window,offset_x)
-
-
-class Arrow(pygame.sprite.Sprite):
-    def __init__(self, enemy_rect,orientation):
-        super().__init__()
-        self.image = pygame.image.load("assets/Items/Arrow/Arrow.png")
-        self.image = pygame.transform.scale(self.image, (16 * 5, 16 * 5))  # Ajusta el tamaño aquí
-
-        if(orientation == "right"):
-            self.rect = self.image.get_rect(midleft=(enemy_rect.midright[0] - 70, enemy_rect.centery + 10))  # Posiciona la flecha al lado derecho y un poco más abajo del centro del enemigo
-            self.velocity = (3, 0)  # Ajusta la velocidad de la flecha
-        else:
-            self.image = pygame.transform.flip(self.image,True,False)
-            self.rect = self.image.get_rect(midleft=(enemy_rect.midright[0] - 90, enemy_rect.centery + 10))  # Posiciona la flecha al lado derecho y un poco más abajo del centro del enemigo
-            self.velocity = (-3, 0)  # Ajusta la velocidad de la flecha
-            
-    def is_offscreen(self,offset_x):
-        return self.rect.right - offset_x < 0 or self.rect.left - offset_x > WIDTH or self.rect.bottom < 0 or self.rect.top > HEIGHT
-    
-    def update(self):
-        self.rect.move_ip(self.velocity)
-
-    def draw(self, screen,offset_x):
-        screen.blit(self.image, (self.rect.x - offset_x, self.rect.y))      
-
-class Wrench(pygame.sprite.Sprite):
-    def __init__(self, enemy_rect, orientation):
-        super().__init__()
-        self.original_image = pygame.image.load("assets/Items/Wrench/wrench.png")
-        self.original_image = pygame.transform.scale(self.original_image, (16 * 5, 16 * 5))
-        self.angle = 0 
-        self.image = self.original_image.copy()
-
-        if orientation == "right":
-            self.rect = self.image.get_rect(midleft=(enemy_rect.midright[0] - 70, enemy_rect.centery + 10))
-            self.velocity = (3, 0)
-        else:
-            self.image = pygame.transform.flip(self.image, True, False)
-            self.rect = self.image.get_rect(midleft=(enemy_rect.midright[0] - 90, enemy_rect.centery + 10))
-            self.velocity = (-3, 0)
-            
-    def is_offscreen(self, offset_x):
-        return self.rect.right - offset_x < 0 or self.rect.left - offset_x > WIDTH or self.rect.bottom < 0 or self.rect.top > HEIGHT
-    
-    def update(self):
-        self.rect.move_ip(self.velocity)
-        self.angle += 3
-        self.image = pygame.transform.rotate(self.original_image, self.angle)
-        self.rect = self.image.get_rect(center=self.rect.center)
-
-    def draw(self, screen, offset_x):
-        screen.blit(self.image, (self.rect.x - offset_x, self.rect.y))
-
-class Fireball(pygame.sprite.Sprite):
-    def __init__(self, initial_rect, direction):
-        super().__init__()
-        self.image = pygame.image.load("assets/Items/Fireball/fireball.png")
-        self.image = pygame.transform.scale(self.image, (32 * 2, 32 * 2))
-        self.rect = self.image.get_rect(center=initial_rect.center)
-
-        self.speed = 10
-        self.direction = direction
-                
-        if self.direction == "right":
-            self.velocity = self.speed
-        else: 
-            self.image = pygame.transform.flip(self.image, True, False)
-            self.velocity = -self.speed
-
-    def update(self):
-        self.rect.x += self.velocity
-        
-    def draw(self, screen, offset_x):
-        screen.blit(self.image, (self.rect.x - offset_x, self.rect.y))
-        
-
-class Explosion(pygame.sprite.Sprite):
-    def __init__(self, x, y):
-        super().__init__()
-        self.sprite_sheet = pygame.image.load('assets/Enemies/SecondBoss/Explosion.png').convert_alpha()
-        self.images = self.load_explosion_images()
-        self.current_frame = 0
-        self.image = self.images[self.current_frame] 
-        self.rect = self.image.get_rect(center=(x, y))
-        self.animation_speed = 0.2 
-
-    def load_explosion_images(self):
-        images = []
-        for i in range(0, self.sprite_sheet.get_width(), 32): 
-            image = self.sprite_sheet.subsurface(pygame.Rect(i, 0, 32, 32))
-            scaled_image = pygame.transform.scale(image, (128, 128))
-            images.append(scaled_image)
-        return images
-
-    def update(self):
-        self.current_frame += self.animation_speed
-        if self.current_frame >= len(self.images):
-            self.kill()
-        else:
-            self.image = self.images[int(self.current_frame)]
-class Checkpoint(pygame.sprite.Sprite):
-    ANIMATION_DELAY = 3
-    
-    def __init__(self,x,y,width,height,active):
-        super().__init__()
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
-        self.animation_count = 0
-        self.frame_count = 0
-        self.rect = pygame.Rect(x,y,width,height)
-        self.sprite = None
-        self.activated = active
-        self.activate_idle = active
-
-    def activate(self):
-        self.activated = True
-        
-    def loop(self):
-        self.frame_count += 1
-        self.update_sprite()
-        
-    def update_sprite(self):
-        
-        if self.activated:
-            sprite_sheet = "flag_out"
-        elif not self.activated: 
-            sprite_sheet = "no_flag"
-            
-        if self.activate_idle:
-            sprite_sheet = "idle"
-
-        sprites = resource_manager.load_sprite_sheets("Items","Checkpoint",64,64,False)
-        sprites = sprites[sprite_sheet]
-        sprite_index = (self.animation_count // self.ANIMATION_DELAY) % len(sprites)
-        self.sprite = sprites[sprite_index]
-        self.animation_count += 1
-        
-        if sprite_index == 25:
-            self.activate_idle = True
-            self.deactivate()
-
-        if(sprite_index == 0):
-            self.frame_count = 0
-            
-        self.update()
-        
-    def update(self):
-        self.rect = self.sprite.get_rect(topleft = (self.rect.x,self.rect.y))
-        self.mask = pygame.mask.from_surface(self.sprite)
-            
-    def deactivate(self):
-        self.activated = False
-        
-    def draw(self,window,offset_x):
-        window.blit(self.sprite,(self.rect.x - offset_x,self.rect.y))
-
-
-class CheckpointEnd(pygame.sprite.Sprite):
-    ANIMATION_DELAY = 3
-    
-    def __init__(self,x,y,width,height):
-        super().__init__()
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
-        self.animation_count = 0
-        self.frame_count = 0
-        self.rect = pygame.Rect(x,y,width,height)
-        self.sprite = None
-        
-    def loop(self):
-        self.frame_count += 1
-        self.update_sprite()
-        
-    def update_sprite(self):
-
-        sprites = resource_manager.load_sprite_sheets("Items","End",64,64,False)
-        sprites = sprites["end"]
-        sprite_index = (self.animation_count // self.ANIMATION_DELAY) % len(sprites)
-        self.sprite = sprites[sprite_index]
-        self.animation_count += 1
-
-        if(sprite_index == 0):
-            self.frame_count = 0
-            
-        self.update()
-        
-    def update(self):
-        self.rect = self.sprite.get_rect(topleft = (self.rect.x,self.rect.y))
-        self.mask = pygame.mask.from_surface(self.sprite)
-        
-    def draw(self,window,offset_x):
-        window.blit(self.sprite,(self.rect.x - offset_x,self.rect.y))
-
-class Sign(pygame.sprite.Sprite):
-    
-    def __init__(self,x,y,width,height):
-        super().__init__()
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
-        self.rect = pygame.Rect(x,y,width,height)
-        self.sprite = pygame.transform.scale(pygame.image.load(join("assets","Other","Sign.png")), (170,100))
-        close = False
-
-    def loop(self,player):
-        dx = player.rect.x - self.x
-        dy = player.rect.y - self.y
-
-        if dx > -100 and dx < 200 and dy > -150 and dy < 100:
-            self.close = True
-        else:
-            self.close = False
-
-    def show_dialog(self,window,offset_x):
-        dialog_surface = pygame.Surface((240, 20))
-        dialog_surface.set_alpha(128)
-        window.blit(dialog_surface, (self.rect.x - offset_x-30,self.rect.y-15))
-        text = pygame.font.Font("assets/font.ttf", 15).render("Press R to read", True, "#b68f40")
-        window.blit(text, (self.rect.x - offset_x-20,self.rect.y-10))        
-        
-    def draw(self,window,offset_x):
-        window.blit(self.sprite,(self.rect.x - offset_x,self.rect.y))  
-        if self.close:
-            self.show_dialog(window,offset_x)        
 
 def draw(window,background,bg_image,heart_image, coin_image,gem_image,arrow_group,fireball_group, player,sign,objects,checkpoint,checkpoint_end,
         coins,gems,all_enemies_group,mercader,opt1,opt2,opt3,offset_x):
@@ -1319,7 +299,7 @@ def draw(window,background,bg_image,heart_image, coin_image,gem_image,arrow_grou
         gem.draw(window, offset_x)    
         
     pygame.display.update()
-    
+
 def handle_vertical_colission(player,objects,dy):
     collided_objects = []
     
@@ -1377,7 +357,7 @@ def collide_arrow(player,arrows,objects,volume):
                 arrow.kill()
                 arrow.update()
     player.update()
-    
+
 def collide_checkpoint(player,checkpoint,partida,volume):
     if(pygame.sprite.collide_mask(player,checkpoint)):
         if not checkpoint.activated:
@@ -1421,7 +401,7 @@ def collide_fireball(fireball_group,enemies_group,objects,volume):
             if pygame.sprite.collide_mask(fireball,obj):
                 fireball.kill()
                 fireball.update()
-                
+
 def collide_enemie(player,enemie,objects,volume):
     
     if(pygame.sprite.collide_mask(player,enemie)):
@@ -1440,7 +420,7 @@ def collide_enemie(player,enemie,objects,volume):
         enemie.rect.y = enemie.y
 
     player.update()
-    
+
 def handle_move(partida,volume,player,enemies_group,boss,meleeEnemies_group,checkpoint,checkpoint_end,objects,arrow_group,fireball_group,delta):
     vertical_collide = handle_vertical_colission(player,objects,player.y_vel)
     if player.lives.lives <= 0:
@@ -1484,6 +464,7 @@ def handle_move(partida,volume,player,enemies_group,boss,meleeEnemies_group,chec
 
 
     #to_check = [*vertical_collide]
+
 def draw_bar(lives, coins, gems, heart_image, coin_image, gem_image):
     for i in range(lives):
         SCREEN.blit(heart_image, (50 + i * 35, 45))
@@ -1519,7 +500,7 @@ def negociation3(player,volume):
         deal_sound = mixer.Sound(resource_manager.get_sound("done_deal"))
         deal_sound.play()
         deal_sound.set_volume(volume)   
-    
+
 def outOfWindow(group,offset_x):
     for element in group:
         if element.rect.right - offset_x < 0 or element.rect.left - offset_x > WIDTH:
@@ -1533,9 +514,7 @@ def putGems(x,y,num_gems,gems):
     for i in range(num_gems):
         gems.append(Gem(x + i * 50,y,40))
 
-
 def read_sign(level):
-    # Dibujamos pantalla gris transparente
     surface = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA, 32)
     surface.fill((128, 128, 128))
     surface.set_alpha(200) 
@@ -1609,7 +588,6 @@ def read_sign(level):
     pygame.quit()
     quit()
 
-
 def show_loading_screen(level_text, message):
     window.fill("white")
     Load1 = pygame.image.load('assets/Progress_Bar/1.jpg')
@@ -1647,7 +625,6 @@ def show_loading_screen(level_text, message):
         pygame.time.wait(40)
     window.blit(Load4, where)
     pygame.display.update()                
-        
 
 def pause_screen(window,partida,volume):
     # Dibujamos pantalla gris transparente
@@ -1702,7 +679,6 @@ def pause_screen(window,partida,volume):
     pygame.quit()
     quit()
 
-
 def death_menu(window, partida, volume):
 
     
@@ -1751,7 +727,6 @@ def death_menu(window, partida, volume):
                     main_menu(window, volume)
 
         pygame.display.update()
-
 
 def options(window,volumen):
     dragging_thumb = False
@@ -1857,7 +832,6 @@ def options(window,volumen):
                     scroll_bar2.blit(thumb2, (0, scroll_bar_height2 - thumb_height2))       
 
         pygame.display.update()
-
 
 def play(window, partida, volume):
 
@@ -1985,7 +959,7 @@ def play(window, partida, volume):
     
     run = True
     if partida.level == 1:
-   ############################################# NIVEL 1 - BOSQUE ############################################################### 
+    ############################################# NIVEL 1 - BOSQUE ############################################################### 
         floor = [Block(i*block_size-distance,HEIGHT - block_size ,block_size)for i in range(-WIDTH // block_size,WIDTH*2 // block_size)]
         floor2 = [Block(i*block_size-distance,HEIGHT - block_size ,block_size)for i in range(5 + WIDTH*2 // block_size,WIDTH*4 // block_size)]
         floor3 = [Block(i*block_size + 7200-distance,HEIGHT - block_size ,block_size)for i in range(0,30)]
@@ -2066,7 +1040,6 @@ def play(window, partida, volume):
         putCoins(6835 - distance,250,3,coins)
 
         coins = pygame.sprite.Group(coins)
- 
 
 ########################################### FIN NIVEL 1 #############################################################################################
 
@@ -2266,7 +1239,7 @@ def play(window, partida, volume):
                 break
 
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE and player.jump_count < 2:
+                if event.key == pygame.K_SPACE and player.jump_count < 2 and player.dead == False:
                     player.jump(volume.sounds_volume)  
                 if event.key == pygame.K_n and mercader.close:
                     mercader.negociating = True 
@@ -2323,7 +1296,6 @@ def play(window, partida, volume):
     
     pygame.quit()
     quit()
-
 
 def main_menu(window, volume):
 
