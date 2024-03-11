@@ -429,9 +429,6 @@ class RangedEnemies(pygame.sprite.Sprite):
                     if self.frame_count == self.ARROW_FRAME:
                         self.shoot_arrow(volume.sounds_volume)
 
-                for arrow in self.arrows:
-                    arrow.update()
-
             self.update_sprite(player)
         
     def should_shoot(self, player):
@@ -2285,6 +2282,9 @@ def play(window, partida, volume):
                     negociation3(player, volume.sounds_volume)  
                     
         player.loop(delta_time, all_enemies_group, window, partida, volume)
+        
+        for arrow in arrow_group:
+            arrow.update()
 
         for enemy in all_enemies_group:
             enemy.loop(player,volume)
