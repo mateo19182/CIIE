@@ -62,6 +62,7 @@ class Player(pygame.sprite.Sprite):
         self.dead = False
         self.fallen = False
         self.death_menu = False
+        self.out_of_range = False
 
     def jump(self,volume):
         self.y_vel = -self.GRAVITY / 3
@@ -80,7 +81,10 @@ class Player(pygame.sprite.Sprite):
         self.rect.x += dx  * delta
         self.rect.y += dy * delta
         if self.rect.y > HEIGHT + 100 :
-            self.die(partida, volume, True)
+            #if self.out_of_range:
+                self.die(partida, volume, True)
+            #else:
+            #    self.out_of_range = True    
 
     def move_left(self,vel):
         self.x_vel = -vel
@@ -615,8 +619,11 @@ class Skull(pygame.sprite.Sprite):
             
         self.update_sprite(player)
 
-    def take_damage(self):
+    def take_damage(self,volume):
         self.kill()
+        death_sound = mixer.Sound(resource_manager.get_sound("skeleton_death"))
+        death_sound.play()
+        death_sound.set_volume(volume.sounds_volume)
         self.update_sprite(self)
 
     def update_sprite(self,player):
