@@ -15,8 +15,6 @@ class Object(pygame.sprite.Sprite):
     def draw(self,window,offset_x):
         window.blit(self.image,(self.rect.x - offset_x,self.rect.y))
 
-
-
 class Block(Object):
     def __init__(self, x, y, size):
         super().__init__(x, y, size, size)
@@ -65,7 +63,7 @@ class Spikeball(Object):
         block = resource_manager.get_spikeball(size)
         self.image.blit(block, (0, 0))
         self.mask = pygame.mask.from_surface(self.image)  
-        
+
 class Platform(Object):
     def __init__(self,x,y,size):
         super().__init__(x,y,size,size)

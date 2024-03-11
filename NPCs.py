@@ -101,7 +101,7 @@ class RangedEnemies(pygame.sprite.Sprite):
 
     def draw(self,window,offset_x):
         window.blit(self.sprite,(self.rect.x - offset_x,self.rect.y))
-        
+
 class MeleeEnemie(pygame.sprite.Sprite):
     ANIMATION_DELAY = 20
     GRAVITY = 8
@@ -655,3 +655,28 @@ class Mercader(pygame.sprite.Sprite):
                 self.show_dialog_negociating(window,offset_x,opt1,opt2,opt3)
             else:
                 self.show_dialog(window,offset_x)
+
+
+def negociation1(player,volume):
+    if player.coins >= 10 and player.lives.lives < 3 :
+        player.coins -= 10
+        player.lives.lives += 1
+        deal_sound = mixer.Sound(resource_manager.get_sound("done_deal"))
+        deal_sound.play()
+        deal_sound.set_volume(volume)
+
+def negociation2(player,volume):
+    if player.coins >= 15 and player.lives.lives < 2 :
+        player.coins -= 15
+        player.lives.lives += 2
+        deal_sound = mixer.Sound(resource_manager.get_sound("done_deal"))
+        deal_sound.play()
+        deal_sound.set_volume(volume)
+
+def negociation3(player,volume):
+    if player.gems >= 1 :
+        player.coins += 10
+        player.gems -= 1
+        deal_sound = mixer.Sound(resource_manager.get_sound("done_deal"))
+        deal_sound.play()
+        deal_sound.set_volume(volume)   
