@@ -73,7 +73,7 @@ class Arrow(pygame.sprite.Sprite):
     def __init__(self, enemy_rect,orientation):
         super().__init__()
         self.image = pygame.image.load("assets/Items/Arrow/Arrow.png")
-        self.image = pygame.transform.scale(self.image, (16 * 5, 16 * 5))  # Ajusta el tamaño aquí
+        self.image = pygame.transform.scale(self.image, (5 * 5, 1 * 5))  # Ajusta el tamaño aquí
 
         if(orientation == "right"):
             self.rect = self.image.get_rect(midleft=(enemy_rect.midright[0] - 70, enemy_rect.centery + 10))  # Posiciona la flecha al lado derecho y un poco más abajo del centro del enemigo
@@ -86,6 +86,9 @@ class Arrow(pygame.sprite.Sprite):
     def is_offscreen(self,offset_x):
         return self.rect.right - offset_x < 0 or self.rect.left - offset_x > WIDTH or self.rect.bottom < 0 or self.rect.top > HEIGHT
     
+    def loop(self):
+        self.update()
+    
     def update(self):
         self.rect.move_ip(self.velocity)
 
@@ -96,7 +99,7 @@ class Wrench(pygame.sprite.Sprite):
     def __init__(self, enemy_rect, orientation):
         super().__init__()
         self.original_image = pygame.image.load("assets/Items/Wrench/wrench.png")
-        self.original_image = pygame.transform.scale(self.original_image, (16 * 5, 16 * 5))
+        self.original_image = pygame.transform.scale(self.original_image, (5 * 5, 9 * 5))
         self.angle = 0 
         self.image = self.original_image.copy()
 
@@ -108,6 +111,9 @@ class Wrench(pygame.sprite.Sprite):
             self.rect = self.image.get_rect(midleft=(enemy_rect.midright[0] - 90, enemy_rect.centery + 10))
             self.velocity = (-3, 0)
             
+    def loop(self):
+        self.update()
+                    
     def is_offscreen(self, offset_x):
         return self.rect.right - offset_x < 0 or self.rect.left - offset_x > WIDTH or self.rect.bottom < 0 or self.rect.top > HEIGHT
     
@@ -124,7 +130,7 @@ class Fireball(pygame.sprite.Sprite):
     def __init__(self, initial_rect, direction):
         super().__init__()
         self.image = pygame.image.load("assets/Items/Fireball/fireball.png")
-        self.image = pygame.transform.scale(self.image, (32 * 2, 32 * 2))
+        self.image = pygame.transform.scale(self.image, (20 * 2, 13 * 2))
         self.rect = self.image.get_rect(center=initial_rect.center)
 
         self.speed = 10

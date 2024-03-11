@@ -113,12 +113,12 @@ def collide_boss(player,boss,dx, delta, window, partida, volume):
 
 def collide_arrow(player,arrows,objects,volume):
     for arrow in arrows:
-        if pygame.sprite.collide_mask(player,arrow):
+        if pygame.sprite.collide_rect(player,arrow):
             arrow.kill()
             player.get_hit(volume.sounds_volume)
             
         for obj in objects:
-            if pygame.sprite.collide_mask(arrow,obj):
+            if pygame.sprite.collide_rect(arrow,obj):
                 arrow.kill()
                 arrow.update()
     player.update()
@@ -157,13 +157,13 @@ def collide_explosion(explosions, player, volume):
 def collide_fireball(fireball_group,enemies_group,objects,volume):
     for fireball in fireball_group:
         for enemy in enemies_group:
-            if pygame.sprite.collide_mask(fireball,enemy):
+            if pygame.sprite.collide_rect(fireball,enemy):
                 enemy.take_damage(volume)
                 enemy.is_alive = False
                 fireball.kill()    
                 
         for obj in objects:
-            if pygame.sprite.collide_mask(fireball,obj):
+            if pygame.sprite.collide_rect(fireball,obj):
                 fireball.kill()
                 fireball.update()
 
@@ -1006,7 +1006,7 @@ def play(window, partida, volume):
         player.loop(delta_time, all_enemies_group, window, partida, volume)
         
         for arrow in arrow_group:
-            arrow.update()
+            arrow.loop()
 
         for enemy in all_enemies_group:
             enemy.loop(player,volume)
