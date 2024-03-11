@@ -111,7 +111,7 @@ class Player(pygame.sprite.Sprite):
             projectile.update()
         
         self.update_sprite()
-        self.check_attack(enemies)
+        self.check_attack(enemies,volume)
 
     def landed(self):
         self.fall_count = 0
@@ -146,7 +146,7 @@ class Player(pygame.sprite.Sprite):
         gem_sound.play() 
         gem_sound.set_volume(volume)   
 
-    def melee_attack(self):
+    def melee_attack(self,volume):
         current_time = time.time()
         if current_time - self.last_melee_time < self.MELEE_COOLDOWN:
             return
@@ -155,6 +155,9 @@ class Player(pygame.sprite.Sprite):
         self.last_melee_time = current_time
         self.animation_count = 0
         self.update_sprite()
+        melee_sound = mixer.Sound(resource_manager.get_sound("melee"))
+        melee_sound.play() 
+        melee_sound.set_volume(volume) 
 
     def get_melee_hitbox(self):
         melee_hitbox_size = (12, 12)
@@ -163,7 +166,7 @@ class Player(pygame.sprite.Sprite):
         #melee_hitbox.x -= self.x_vel
         return melee_hitbox
     
-    def ranged_attack(self):
+    def ranged_attack(self,volume):
         current_time = time.time()
         if current_time - self.last_ranged_time >= self.MELEE_COOLDOWN:
             self.last_ranged_time = current_time
@@ -172,6 +175,9 @@ class Player(pygame.sprite.Sprite):
             self.update_sprite()
             
         if self.frame_count == 21:
+            fire_sound = mixer.Sound(resource_manager.get_sound("fireball"))
+            fire_sound.play() 
+            fire_sound.set_volume(volume) 
             projectile = Fireball(self.rect, self.direction)
             self.projectiles.add(projectile)
 
@@ -189,12 +195,12 @@ class Player(pygame.sprite.Sprite):
             if fall:
                 death_menu(window, partida, volume)
         
-    def check_attack(self, enemies):
+    def check_attack(self, enemies,volume):
         if self.melee_active:
             hitbox = self.get_melee_hitbox()
             for enemy in enemies:
                 if hitbox.colliderect(enemy.rect):
-                    enemy.take_damage()  
+                    enemy.take_damage(volume)  
                     break 
 
     def update_sprite(self):
@@ -435,8 +441,11 @@ class RangedEnemies(pygame.sprite.Sprite):
 
         return distance < self.SHOOT_DISTANCE and abs(dy) <= self.SHOOT_HEIGHT_THRESHOLD
     
-    def take_damage(self):
+    def take_damage(self,volume):
         self.kill()
+        death_sound = mixer.Sound(resource_manager.get_sound("arrow_girl_death"))
+        death_sound.play()
+        death_sound.set_volume(volume.sounds_volume)
         self.update_sprite(self)
 
     def shoot_arrow(self,volume):
@@ -528,8 +537,11 @@ class MeleeEnemie(pygame.sprite.Sprite):
             
         self.update_sprite(player)
 
-    def take_damage(self):
+    def take_damage(self,volume):
         self.kill()
+        death_sound = mixer.Sound(resource_manager.get_sound("melee_enemie_death"))
+        death_sound.play()
+        death_sound.set_volume(volume.sounds_volume)
         self.update_sprite(self)
 
     def update_sprite(self,player):
@@ -673,7 +685,7 @@ class Boss(pygame.sprite.Sprite):
             
         self.update_sprite()
         
-    def take_damage(self):
+    def take_damage(self,volume):
         current_time = pygame.time.get_ticks()
         
         if current_time - self.last_damage_time > self.DAMAGE_COOLDOWN:
@@ -681,6 +693,9 @@ class Boss(pygame.sprite.Sprite):
             self.last_damage_time = current_time
             if self.vida <= 0:
                 self.is_alive = False
+                death_sound = mixer.Sound(resource_manager.get_sound("boss_death"))
+                death_sound.play()
+                death_sound.set_volume(volume.sounds_volume)
                 self.kill()
                 self.update_sprite()
         
@@ -787,7 +802,7 @@ class SecondBoss(pygame.sprite.Sprite):
         explosion = Explosion(explosion_x, explosion_y)
         self.explosions.add(explosion) 
 
-    def take_damage(self):
+    def take_damage(self,volume):
         current_time = pygame.time.get_ticks()
         
         if current_time - self.last_damage_time > self.DAMAGE_COOLDOWN:
@@ -795,6 +810,9 @@ class SecondBoss(pygame.sprite.Sprite):
             self.last_damage_time = current_time
             if self.vida <= 0:
                 self.is_alive = False
+                death_sound = mixer.Sound(resource_manager.get_sound("boss_death"))
+                death_sound.play()
+                death_sound.set_volume(volume.sounds_volume)
                 self.kill()
                 self.update_sprite()
         
@@ -988,6 +1006,7 @@ class Mercader(pygame.sprite.Sprite):
             self.frame_count = 0
 
         dx = player.rect.x - self.x
+        dy = player.rect.y - self.y
 
         if dx < 0:
             self.orientation = "left"
@@ -996,12 +1015,8 @@ class Mercader(pygame.sprite.Sprite):
             self.orientation = "right"
             self.sprite = pygame.transform.flip(self.sprite,False,False)
 
-        if dx > -100:
-            if dx < 100:
-                self.close = True
-            else:
-                self.close = False
-                self.negociating = False
+        if dx > -100 and dx < 100 and dy > -100 and dy < 100:
+            self.close = True
         else:
             self.close = False
             self.negociating = False
@@ -1230,7 +1245,40 @@ class CheckpointEnd(pygame.sprite.Sprite):
     def draw(self,window,offset_x):
         window.blit(self.sprite,(self.rect.x - offset_x,self.rect.y))
 
-def draw(window,background,bg_image,heart_image, coin_image,gem_image,arrow_group,fireball_group, player,objects,checkpoint,checkpoint_end,
+class Sign(pygame.sprite.Sprite):
+    
+    def __init__(self,x,y,width,height):
+        super().__init__()
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.rect = pygame.Rect(x,y,width,height)
+        self.sprite = pygame.transform.scale(pygame.image.load(join("assets","Other","Sign.png")), (170,100))
+        close = False
+
+    def loop(self,player):
+        dx = player.rect.x - self.x
+        dy = player.rect.y - self.y
+
+        if dx > -100 and dx < 200 and dy > -150 and dy < 100:
+            self.close = True
+        else:
+            self.close = False
+
+    def show_dialog(self,window,offset_x):
+        dialog_surface = pygame.Surface((240, 20))
+        dialog_surface.set_alpha(128)
+        window.blit(dialog_surface, (self.rect.x - offset_x-30,self.rect.y-15))
+        text = pygame.font.Font("assets/font.ttf", 15).render("Press R to read", True, "#b68f40")
+        window.blit(text, (self.rect.x - offset_x-20,self.rect.y-10))        
+        
+    def draw(self,window,offset_x):
+        window.blit(self.sprite,(self.rect.x - offset_x,self.rect.y))  
+        if self.close:
+            self.show_dialog(window,offset_x)        
+
+def draw(window,background,bg_image,heart_image, coin_image,gem_image,arrow_group,fireball_group, player,sign,objects,checkpoint,checkpoint_end,
         coins,gems,all_enemies_group,mercader,opt1,opt2,opt3,offset_x):
     for tile in background:
         window.blit(bg_image,tile)
@@ -1248,6 +1296,8 @@ def draw(window,background,bg_image,heart_image, coin_image,gem_image,arrow_grou
         
     for fireball in fireball_group:
         fireball.draw(window,offset_x)
+
+    sign.draw(window,offset_x)    
         
     mercader.draw(window,offset_x,opt1,opt2,opt3)
     
@@ -1324,11 +1374,14 @@ def collide_arrow(player,arrows,objects,volume):
                 arrow.update()
     player.update()
     
-def collide_checkpoint(player,checkpoint,partida):
+def collide_checkpoint(player,checkpoint,partida,volume):
     if(pygame.sprite.collide_mask(player,checkpoint)):
-        if not checkpoint.activate_idle:
+        if not checkpoint.activated:
             checkpoint.activated = True
-        partida.checkpoint = 1     
+            death_sound = mixer.Sound(resource_manager.get_sound("checkpoint"))
+            death_sound.play()
+            death_sound.set_volume(volume.sounds_volume)
+            partida.checkpoint = 1     
 
 def collide_end(player,checkpoint,partida,volume):
     if(pygame.sprite.collide_mask(player,checkpoint)):
@@ -1352,11 +1405,11 @@ def collide_explosion(explosions, player, volume):
         if  pygame.sprite.collide_mask(expl,player):
             player.get_hit(volume.sounds_volume)
 
-def collide_fireball(fireball_group,enemies_group,objects):
+def collide_fireball(fireball_group,enemies_group,objects,volume):
     for fireball in fireball_group:
         for enemy in enemies_group:
             if pygame.sprite.collide_mask(fireball,enemy):
-                enemy.take_damage()
+                enemy.take_damage(volume)
                 enemy.is_alive = False
                 fireball.kill()    
                 
@@ -1396,9 +1449,9 @@ def handle_move(partida,volume,player,enemies_group,boss,meleeEnemies_group,chec
     
     collide_arrow(player,arrow_group,objects, volume)
     collide_boss(player,boss,PLAYER_VEL * 2, delta, window, partida, volume)
-    collide_checkpoint(player,checkpoint, partida)
+    collide_checkpoint(player,checkpoint, partida,volume)
     collide_end(player,checkpoint_end, partida, volume)
-    collide_fireball(fireball_group,enemies_group,objects)
+    collide_fireball(fireball_group,enemies_group,objects,volume)
     
     for meleeEnemie in meleeEnemies_group:
         collide_enemie(player,meleeEnemie,objects,volume)
@@ -1417,12 +1470,12 @@ def handle_move(partida,volume,player,enemies_group,boss,meleeEnemies_group,chec
         player.ranged_active = False
     elif keys[pygame.K_p]:
         if player.x_vel == 0 and player.y_vel == 0:
-            player.melee_attack()
+            player.melee_attack(volume.sounds_volume)
             player.ranged_active = False
 
     elif keys[pygame.K_o]:
         if player.x_vel == 0 and player.y_vel == 0:
-            player.ranged_attack()
+            player.ranged_attack(volume.sounds_volume)
             player.melee_active = False
 
 
@@ -1455,8 +1508,13 @@ def negociation2(player,volume):
         deal_sound.play()
         deal_sound.set_volume(volume)
 
-def negociation3(player):
-    text = "En proceso"    
+def negociation3(player,volume):
+    if player.gems >= 1 :
+        player.coins += 10
+        player.gems -= 1
+        deal_sound = mixer.Sound(resource_manager.get_sound("done_deal"))
+        deal_sound.play()
+        deal_sound.set_volume(volume)   
     
 def outOfWindow(group,offset_x):
     for element in group:
@@ -1470,6 +1528,83 @@ def putCoins(x,y,num_coins,coins):
 def putGems(x,y,num_gems,gems):
     for i in range(num_gems):
         gems.append(Gem(x + i * 50,y,40))
+
+
+def read_sign(level):
+    # Dibujamos pantalla gris transparente
+    surface = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA, 32)
+    surface.fill((128, 128, 128))
+    surface.set_alpha(200) 
+    window.blit(surface, (0, 0))
+
+    read = True
+    while read:
+
+        READ_MOUSE_POS = pygame.mouse.get_pos()
+
+        PAUSE_TEXT = resource_manager.get_font(35).render("The warrior and the Dragon", True, (100,0,0))
+        PAUSE_RECT = PAUSE_TEXT.get_rect(center=(500, 150))
+        window.blit(PAUSE_TEXT, PAUSE_RECT)
+
+        if level==1:
+            text = """        In the heart of a once-thriving village,
+        a dragon's wrath turned the land into ashes.
+        Among the ruins, a single knight remains, 
+        unbowed and determined. He bears the weight 
+        of his people's suffering. This is his tale,
+        a tale of vengeance and redemption. 
+        The dragon must be slain, not just for the
+        village, but for the soul of the knight 
+        himself. Will you stand with him,
+        or will you let the flames of 
+        vengeance consume you too?"""
+        elif level==2:
+            text = """        Once surpassed the forest, our warrior has
+        to descend into the heart of the earth,
+        where shadows dance and secrets lie hidden. 
+        The cave whispers tales of ancient times, 
+        where the veil between the known and the 
+        unknown is thin. With each step, our warrior
+        draws nearer to the dragon island, the
+        epicenter of vengeance. Good luck on your
+        journey at the cave, and beware the shadows 
+        that lurk within."""
+        else:
+            text = """        You have guided our warrior to his final
+        destination, after going through the perils
+        of the forest and the depths of the cave. 
+        Now, our warrior stands at the brink of 
+        the Dragon's Island, ready to quench their 
+        thirst for vengeance against the almighty 
+        dragon. Good luck, you will need it..."""    
+
+        lines = text.splitlines()
+        y = 270 # Posición inicial en el eje Y
+        for line in lines:
+            text_surface = resource_manager.get_font(20).render(line, True, (0,0,0)) #"#B68F40"
+            window.blit(text_surface, (-100, y))
+            y += resource_manager.get_font(20).get_linesize() + 10
+        
+        RESUME_BUTTON = Button(image=None, pos=(500, 680), 
+                            text_input="RESUME", font=resource_manager.get_font(50), base_color="Black", hovering_color="Green")
+        RESUME_BUTTON.changeColor(READ_MOUSE_POS)
+        RESUME_BUTTON.update(window)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                read = False
+                break
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE or event.key == pygame.K_ESCAPE:
+                    return
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if RESUME_BUTTON.checkForInput(READ_MOUSE_POS):
+                    return  
+        pygame.display.update()    
+
+    pygame.quit()
+    quit()
+
 
 def show_loading_screen(level_text, message):
     window.fill("white")
@@ -1745,6 +1880,7 @@ def play(window, partida, volume):
             checkpoint_activated = True
         
         player = Player(400,400,50,50, lives,fireball_group,partida.coins,partida.gems)
+        sign = Sign(300-distance,618,100,100)
         rangedenemie1 = RangedEnemies(900-distance,500,100,100,4,arrow_group,"HalflingRanger")
         rangedenemie2 = RangedEnemies(6135-distance,230,100,100,4,arrow_group,"HalflingRanger")
         meleeEnemie1 = MeleeEnemie(800-distance,625,100,100,"HalflingRogue")
@@ -1770,13 +1906,12 @@ def play(window, partida, volume):
     elif partida.level == 2:
         background,bg_image, heart_image, coin_image, gem_image = resource_manager.get_background("Cave2.png")
 
-        ########## CONSTRUIR ENEMIGOS PARA NIVEL 2 (AHORA MISMO ESTA COMO NIVEL 1)#############
-
         if partida.checkpoint == 1:
             distance = 7300
             checkpoint_activated = True
         
         player = Player(400,400,50,50, lives,fireball_group,partida.coins,partida.gems)
+        sign = Sign(700-distance,647,100,100)
         rangedenemie1 = RangedEnemies(945-distance,335,100,100,30,arrow_group,"GnomeTinkerer")
         rangedenemie2 = RangedEnemies(6553-distance,530,100,100,30,arrow_group,"GnomeTinkerer")
         meleeEnemie1 = MeleeEnemie(1400-distance,625,100,100,"HalflingRogue")
@@ -1808,6 +1943,7 @@ def play(window, partida, volume):
             distance = 8800
             checkpoint_activated = True
         player = Player(400,400,50,50, lives,fireball_group,partida.coins,partida.gems)
+        sign = Sign(300-distance,647,100,100)
         rangedenemie1 = RangedEnemies(1200-distance,270,100,100,30,arrow_group,"GnomeTinkerer")
         meleeEnemie1 = Skull(2875 - distance,350,1000,1000,"Skull")
         meleeEnemie2 = Skull(3525 - distance,350,1000,1000,"Skull")
@@ -2116,7 +2252,7 @@ def play(window, partida, volume):
         option2_mercader = Button(image=pygame.image.load("assets/OptionsMercader.png"), pos=(mercader.rect.x - offset_x+40,mercader.rect.y-30), 
                             text_input="15 Coins -> 2 Lifes", font=pygame.font.Font("assets/font.ttf", 15), base_color="#d7fcd4", hovering_color="White")
         option3_mercader = Button(image=pygame.image.load("assets/OptionsMercader.png"), pos=(mercader.rect.x - offset_x+40,mercader.rect.y-10), 
-                            text_input="1 Gem -> New aspect", font=pygame.font.Font("assets/font.ttf", 15), base_color="#d7fcd4", hovering_color="White")
+                            text_input="1 Gem -> 10 coins", font=pygame.font.Font("assets/font.ttf", 15), base_color="#d7fcd4", hovering_color="White")
         
         delta_time = clock.tick(FPS) / 1000.0
 
@@ -2133,6 +2269,8 @@ def play(window, partida, volume):
                     negociate_sound = mixer.Sound(resource_manager.get_sound("negociate"))
                     negociate_sound.play()
                     negociate_sound.set_volume(volume.sounds_volume)
+                if event.key == pygame.K_r and sign.close:
+                    read_sign(partida.level)            
                 if event.key == pygame.K_ESCAPE:
                     partida.coins = player.coins
                     partida.gems = player.gems
@@ -2154,9 +2292,10 @@ def play(window, partida, volume):
         mercader.loop(player,offset_x)
         checkpoint.loop()
         checkpoint_end.loop()
-        
+        sign.loop(player)
+
         handle_move(partida,volume,player,all_enemies_group,firstBoss,meleeEnemies_group,checkpoint,checkpoint_end,objects,arrow_group,fireball_group,delta_time)
-        draw(window,background,bg_image,heart_image, coin_image, gem_image,arrow_group,fireball_group,player,objects,checkpoint,checkpoint_end,
+        draw(window,background,bg_image,heart_image, coin_image, gem_image,arrow_group,fireball_group,player,sign,objects,checkpoint,checkpoint_end,
              coins,gems,all_enemies_group,mercader,option1_mercader,option2_mercader,option3_mercader,offset_x)
 
             
