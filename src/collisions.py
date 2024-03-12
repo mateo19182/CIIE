@@ -8,7 +8,7 @@ def handle_vertical_colission(player,objects,dy):
     collided_objects = []
     
     for obj in objects:
-        if pygame.sprite.collide_mask(player,obj):
+        if pygame.sprite.collide_rect(player,obj):
             if dy > 0:
                 player.rect.bottom = obj.rect.top
                 player.landed()
@@ -27,7 +27,7 @@ def collide(player,objects,dx,delta, window, partida, volume):
     collided_object = None
 
     for obj in objects:
-        if pygame.sprite.collide_mask(player,obj):
+        if pygame.sprite.collide_rect(player,obj):
             collided_object = obj
             if player.y_vel > 0.5:
                 player.wall_jump = True

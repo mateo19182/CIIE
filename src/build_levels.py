@@ -108,8 +108,10 @@ def build_level(partida):
         plat20 = [Platform(3*i*block_size + 5500-distance,HEIGHT - block_size - 800 + (300 * i), plat_size)for i in range(0,2)]
 
         plat21 = [Platform(i*block_size + 5050-distance,HEIGHT - block_size - 425, plat_size)for i in range(0,1)]
+        
+        plat22 = [Platform(block_size - distance,HEIGHT - block_size + 400,plat_size)]
 
-        objects = [*floor,*floor2,*floor3,*column,*column2,*column3,*column4,*column5,*column6,*column7,*column8,*column9,*column10 ,*plat1,*plat2,*plat3,*plat4,*plat5,*plat6,*plat7,*plat8,*plat9,*plat10,*plat11,*plat12,*plat13,*plat14,*plat15,*plat16,*plat17,*plat18,*plat19,*plat20,*plat21]
+        objects = [*floor,*floor2,*floor3,*column,*column2,*column3,*column4,*column5,*column6,*column7,*column8,*column9,*column10 ,*plat1,*plat2,*plat3,*plat4,*plat5,*plat6,*plat7,*plat8,*plat9,*plat10,*plat11,*plat12,*plat13,*plat14,*plat15,*plat16,*plat17,*plat18,*plat19,*plat20,*plat21,*plat22]
         
         gems = []
         

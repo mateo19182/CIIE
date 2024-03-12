@@ -7,7 +7,7 @@ from items import Fireball
 
 class Player(pygame.sprite.Sprite):
     COLOR = (255,0,0)
-    GRAVITY = 2000
+    GRAVITY = 2100
     SPRITES = resource_manager.load_sprite_sheets("main", "",32,32,True)
 
     ANIMATION_DELAY = 8
