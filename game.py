@@ -471,7 +471,7 @@ def play(window, partida, volume):
     run = True
 
     mercader, player, sign, all_enemies_group, arrow_group, checkpoint, checkpoint_end, firstBoss, meleeEnemies_group, objects, fireball_group, background, bg_image, heart_image, coin_image, gem_image, coins, gems, option1_mercader, option2_mercader, option3_mercader = build_levels.build_level(partida)
-
+    
     while run: 
 
         MENU_MOUSE_POS = pygame.mouse.get_pos()
@@ -491,6 +491,13 @@ def play(window, partida, volume):
                     negociate_sound = mixer.Sound(resource_manager.get_sound("negociate"))
                     negociate_sound.play()
                     negociate_sound.set_volume(volume.sounds_volume)
+                    option1_mercader = Button(image=pygame.image.load("assets/OptionsMercader.png"), pos=(mercader.rect.x - offset_x+40,mercader.rect.y-50), 
+                            text_input="10 Coins -> 1 Life", font=pygame.font.Font("assets/font.ttf", 15), base_color="#d7fcd4", hovering_color="White")
+                    option2_mercader = Button(image=pygame.image.load("assets/OptionsMercader.png"), pos=(mercader.rect.x - offset_x+40,mercader.rect.y-30), 
+                                text_input="15 Coins -> 2 Lifes", font=pygame.font.Font("assets/font.ttf", 15), base_color="#d7fcd4", hovering_color="White")
+                    option3_mercader = Button(image=pygame.image.load("assets/OptionsMercader.png"), pos=(mercader.rect.x - offset_x+40,mercader.rect.y-10), 
+                                text_input="1 Gem -> 10 coins", font=pygame.font.Font("assets/font.ttf", 15), base_color="#d7fcd4", hovering_color="White")
+
                 if event.key == pygame.K_r and sign.close:
                     read_sign(partida.level)            
                 if event.key == pygame.K_ESCAPE:
@@ -521,7 +528,7 @@ def play(window, partida, volume):
 
         handle_move(partida,volume,player,all_enemies_group,firstBoss,meleeEnemies_group,checkpoint,checkpoint_end,objects,arrow_group,fireball_group,delta_time)
         draw(window,background,bg_image,heart_image, coin_image, gem_image,arrow_group,fireball_group,player,sign,objects,checkpoint,checkpoint_end,
-             coins,gems,all_enemies_group,mercader,option1_mercader,option2_mercader,option3_mercader,offset_x)
+            coins,gems,all_enemies_group,mercader,option1_mercader,option2_mercader,option3_mercader,offset_x)
 
         if pygame.sprite.spritecollideany(player, coins): 
             for _ in pygame.sprite.spritecollide(player, coins, True):

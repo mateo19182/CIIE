@@ -40,6 +40,7 @@ class Player(pygame.sprite.Sprite):
         self.fallen = False
         self.death_menu = False
         self.out_of_range = False
+        self.unlocked = 1
 
     def jump(self,volume):
         self.y_vel = -self.GRAVITY / 3
@@ -148,19 +149,21 @@ class Player(pygame.sprite.Sprite):
         return melee_hitbox
     
     def ranged_attack(self,volume):
+        if self.unlocked == 1:
+            return
         current_time = time.time()
         if current_time - self.last_ranged_time >= self.MELEE_COOLDOWN:
             self.last_ranged_time = current_time
             self.animation_count = 0
             self.ranged_active = True
             self.update_sprite()
-            
-        if self.frame_count == 21:
+        elif self.ranged_active and self.animation_count > 15 and len(self.projectiles) < 3:
             fire_sound = mixer.Sound(resource_manager.get_sound("fireball"))
             fire_sound.play() 
             fire_sound.set_volume(volume) 
             projectile = Fireball(self.rect, self.direction)
             self.projectiles.add(projectile)
+            self.ranged_active = False
 
     def die(self, partida, volume, fall):
         if not self.dead : 
