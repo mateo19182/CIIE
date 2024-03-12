@@ -301,3 +301,12 @@ class Sign(pygame.sprite.Sprite):
         window.blit(self.sprite,(self.rect.x - offset_x,self.rect.y))  
         if self.close:
             self.show_dialog(window,offset_x)        
+
+
+def putCoins(x,y,num_coins,coins):
+    for i in range(num_coins):
+        coins.append(Coin(x + i * 50,y,40))
+
+def putGems(x,y,num_gems,gems):
+    for i in range(num_gems):
+        gems.append(Gem(x + i * 50,y,40))

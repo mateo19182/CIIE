@@ -9,7 +9,6 @@ class Partida():
         self.gems = 0
         self.lives = 3
 
-
 class Volume():
     def __init__(self):
         super().__init__()
