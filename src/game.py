@@ -139,80 +139,6 @@ def outOfWindow(group,offset_x):
         if element.rect.right - offset_x < 0 or element.rect.left - offset_x > WIDTH:
                 element.kill()
 
-def read_sign(level):
-    surface = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA, 32)
-    surface.fill((128, 128, 128))
-    surface.set_alpha(200) 
-    window.blit(surface, (0, 0))
-
-    read = True
-    while read:
-
-        READ_MOUSE_POS = pygame.mouse.get_pos()
-
-        PAUSE_TEXT = resource_manager.get_font(35).render("The warrior and the Dragon", True, (100,0,0))
-        PAUSE_RECT = PAUSE_TEXT.get_rect(center=(500, 150))
-        window.blit(PAUSE_TEXT, PAUSE_RECT)
-
-        if level==1:
-            text = """        In the heart of a once-thriving village,
-        a dragon's wrath turned the land into ashes.
-        Among the ruins, a single knight remains, 
-        unbowed and determined. He bears the weight 
-        of his people's suffering. This is his tale,
-        a tale of vengeance and redemption. 
-        The dragon must be slain, not just for the
-        village, but for the soul of the knight 
-        himself. Will you stand with him,
-        or will you let the flames of 
-        vengeance consume you too?"""
-        elif level==2:
-            text = """        Once surpassed the forest, our warrior has
-        to descend into the heart of the earth,
-        where shadows dance and secrets lie hidden. 
-        The cave whispers tales of ancient times, 
-        where the veil between the known and the 
-        unknown is thin. With each step, our warrior
-        draws nearer to the dragon island, the
-        epicenter of vengeance. Good luck on your
-        journey at the cave, and beware the shadows 
-        that lurk within."""
-        else:
-            text = """        You have guided our warrior to his final
-        destination, after going through the perils
-        of the forest and the depths of the cave. 
-        Now, our warrior stands at the brink of 
-        the Dragon's Island, ready to quench their 
-        thirst for vengeance against the almighty 
-        dragon. Good luck, you will need it..."""    
-
-        lines = text.splitlines()
-        y = 270 # Posición inicial en el eje Y
-        for line in lines:
-            text_surface = resource_manager.get_font(20).render(line, True, (0,0,0)) #"#B68F40"
-            window.blit(text_surface, (-100, y))
-            y += resource_manager.get_font(20).get_linesize() + 10
-        
-        RESUME_BUTTON = Button(image=None, pos=(500, 680), 
-                            text_input="RESUME", font=resource_manager.get_font(50), base_color="Black", hovering_color="Green")
-        RESUME_BUTTON.changeColor(READ_MOUSE_POS)
-        RESUME_BUTTON.update(window)
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                read = False
-                break
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE or event.key == pygame.K_ESCAPE:
-                    return
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if RESUME_BUTTON.checkForInput(READ_MOUSE_POS):
-                    return  
-        pygame.display.update()    
-
-    pygame.quit()
-    quit()
-
 def show_loading_screen(level_text, message):
     window.fill("white")
     Load1 = pygame.image.load('assets/Progress_Bar/1.jpg')
@@ -251,58 +177,6 @@ def show_loading_screen(level_text, message):
     window.blit(Load4, where)
     pygame.display.update()                
 
-def pause_screen(window,partida,volume):
-    # Dibujamos pantalla gris transparente
-    surface = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA, 32)
-    surface.fill((128, 128, 128))
-    surface.set_alpha(128) 
-    window.blit(surface, (0, 0))
-
-    pause = True
-    while pause:
-
-        PAUSE_MOUSE_POS = pygame.mouse.get_pos()
-
-        PAUSE_TEXT = resource_manager.get_font(75).render("PAUSE MENU", True, "#b68f40")
-        PAUSE_RECT = PAUSE_TEXT.get_rect(center=(500, 150))
-        window.blit(PAUSE_TEXT, PAUSE_RECT)
-        
-        RESUME_BUTTON = Button(image=None, pos=(500, 300), 
-                            text_input="RESUME", font=resource_manager.get_font(50), base_color="Black", hovering_color="Green")
-        RESUME_BUTTON.changeColor(PAUSE_MOUSE_POS)
-        RESUME_BUTTON.update(window)
-
-        RESTART_BUTTON = Button(image=None, pos=(500, 450), 
-                            text_input="RESTART", font=resource_manager.get_font(50), base_color="Black", hovering_color="Green")
-        RESTART_BUTTON.changeColor(PAUSE_MOUSE_POS)
-        RESTART_BUTTON.update(window)
-
-        RESTART2_BUTTON = Button(image=None, pos=(500, 600), 
-                            text_input="LAST CHECKPOINT", font=resource_manager.get_font(50), base_color="Black", hovering_color="Green")
-        RESTART2_BUTTON.changeColor(PAUSE_MOUSE_POS)
-        RESTART2_BUTTON.update(window)
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pause = False
-                break
-
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE or event.key == pygame.K_ESCAPE:
-                    return
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if RESUME_BUTTON.checkForInput(PAUSE_MOUSE_POS):
-                    return
-                if RESTART_BUTTON.checkForInput(PAUSE_MOUSE_POS):
-                    partida_new = Partida()
-                    play(window, partida_new, volume)
-                if RESTART2_BUTTON.checkForInput(PAUSE_MOUSE_POS):
-                    partida.lives = 3
-                    play(window, partida, volume)    
-        pygame.display.update()    
-
-    pygame.quit()
-    quit()
 
 def death_menu(window, partida, volume):
 
@@ -469,8 +343,10 @@ def play(window, partida, volume):
     scroll_area_width = 400
     
     run = True
+    read = False
+    pause = False
 
-    mercader, player, sign, all_enemies_group, arrow_group, checkpoint, checkpoint_end, firstBoss, meleeEnemies_group, objects, fireball_group, background, bg_image, heart_image, coin_image, gem_image, coins, gems, option1_mercader, option2_mercader, option3_mercader = build_levels.build_level(partida)
+    mercader, player, sign, all_enemies_group, arrow_group, checkpoint, checkpoint_end, firstBoss, meleeEnemies_group, objects, fireball_group, background, bg_image, heart_image, coin_image, gem_image, coins, gems, option1_mercader, option2_mercader, option3_mercader, text = build_levels.build_level(partida)
     
     while run: 
 
@@ -478,15 +354,69 @@ def play(window, partida, volume):
 
         delta_time = clock.tick(FPS) / 1000.0
 
+        if read:
+            surface = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA, 32)
+            surface.fill((128, 128, 128))
+            surface.set_alpha(20) 
+            window.blit(surface, (0, 0))
+            PAUSE_TEXT = resource_manager.get_font(35).render("The warrior and the Dragon", True, (100,0,0))
+            PAUSE_RECT = PAUSE_TEXT.get_rect(center=(500, 150))
+            window.blit(PAUSE_TEXT, PAUSE_RECT)
+
+            lines = text.splitlines()
+            y = 270 # Posición inicial en el eje Y
+            for line in lines:
+                text_surface = resource_manager.get_font(20).render(line, True, (0,0,0)) #"#B68F40"
+                window.blit(text_surface, (-100, y))
+                y += resource_manager.get_font(20).get_linesize() + 10
+            
+            RESUME_BUTTON = Button(image=None, pos=(500, 680), 
+                                text_input="RESUME", font=resource_manager.get_font(50), base_color="Black", hovering_color="Green")
+            RESUME_BUTTON.changeColor(MENU_MOUSE_POS)
+            RESUME_BUTTON.update(window) 
+            pygame.display.update()
+
+        if pause:
+            surface = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA, 32)
+            surface.fill((128, 128, 128))
+            surface.set_alpha(20) 
+            window.blit(surface, (0, 0))   
+
+            PAUSE_MOUSE_POS = pygame.mouse.get_pos()
+
+            PAUSE_TEXT = resource_manager.get_font(75).render("PAUSE MENU", True, "#b68f40")
+            PAUSE_RECT = PAUSE_TEXT.get_rect(center=(500, 150))
+            window.blit(PAUSE_TEXT, PAUSE_RECT)
+            
+            RESUME_BUTTON = Button(image=None, pos=(500, 300), 
+                                text_input="RESUME", font=resource_manager.get_font(50), base_color="Black", hovering_color="Green")
+            RESUME_BUTTON.changeColor(PAUSE_MOUSE_POS)
+            RESUME_BUTTON.update(window)
+
+            RESTART_BUTTON = Button(image=None, pos=(500, 450), 
+                                text_input="RESTART", font=resource_manager.get_font(50), base_color="Black", hovering_color="Green")
+            RESTART_BUTTON.changeColor(PAUSE_MOUSE_POS)
+            RESTART_BUTTON.update(window)
+
+            RESTART2_BUTTON = Button(image=None, pos=(500, 600), 
+                                text_input="LAST CHECKPOINT", font=resource_manager.get_font(50), base_color="Black", hovering_color="Green")
+            RESTART2_BUTTON.changeColor(PAUSE_MOUSE_POS)
+            RESTART2_BUTTON.update(window) 
+            pygame.display.update()                
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
                 break
 
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE and player.jump_count < 2 and player.dead == False:
+                if (not read and not pause) and event.key == pygame.K_SPACE and player.jump_count < 2 and player.dead == False:
                     player.jump(volume.sounds_volume)  
-                if event.key == pygame.K_n and mercader.close:
+                if read and (event.key == pygame.K_SPACE or event.key == pygame.K_ESCAPE):
+                    read = False   
+                if pause and event.key == pygame.K_SPACE or event.key == pygame.K_ESCAPE:
+                    pause = False     
+                if (not read and not pause) and event.key == pygame.K_n and mercader.close:
                     mercader.negociating = True 
                     negociate_sound = mixer.Sound(resource_manager.get_sound("negociate"))
                     negociate_sound.play()
@@ -498,12 +428,12 @@ def play(window, partida, volume):
                     option3_mercader = Button(image=pygame.image.load("assets/OptionsMercader.png"), pos=(mercader.rect.x - offset_x+40,mercader.rect.y-10), 
                                 text_input="1 Gem -> 10 coins", font=pygame.font.Font("assets/font.ttf", 15), base_color="#d7fcd4", hovering_color="White")
 
-                if event.key == pygame.K_r and sign.close:
-                    read_sign(partida.level)            
-                if event.key == pygame.K_ESCAPE:
+                if (not read and not pause) and event.key == pygame.K_r and sign.close:
+                    read = True
+                if (not pause) and event.key == pygame.K_ESCAPE:
                     partida.coins = player.coins
                     partida.gems = player.gems
-                    pause_screen(window, partida, volume)     
+                    pause = True
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if option1_mercader.checkForInput(MENU_MOUSE_POS):
@@ -511,39 +441,50 @@ def play(window, partida, volume):
                 if option2_mercader.checkForInput(MENU_MOUSE_POS):
                     negociation2(player, volume.sounds_volume)
                 if option3_mercader.checkForInput(MENU_MOUSE_POS):
-                    negociation3(player, volume.sounds_volume)  
+                    negociation3(player, volume.sounds_volume)
+                if read and RESUME_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    read = False  
+                if pause and RESUME_BUTTON.checkForInput(PAUSE_MOUSE_POS):
+                    pause = False
+                if pause and RESTART_BUTTON.checkForInput(PAUSE_MOUSE_POS):
+                    partida_new = Partida()
+                    play(window, partida_new, volume)
+                if pause and RESTART2_BUTTON.checkForInput(PAUSE_MOUSE_POS):
+                    #partida.lives = 3
+                    play(window, partida, volume)       
 
-        player.loop(delta_time, all_enemies_group, window, partida, volume)
-        
-        for arrow in arrow_group:
-            arrow.loop()
-
-        for enemy in all_enemies_group:
-            enemy.loop(player,volume)
+        if not read and not pause:
+            player.loop(delta_time, all_enemies_group, window, partida, volume)
             
-        mercader.loop(player,offset_x)
-        checkpoint.loop()
-        checkpoint_end.loop()
-        sign.loop(player)
+            for arrow in arrow_group:
+                arrow.loop()
 
-        handle_move(partida,volume,player,all_enemies_group,firstBoss,meleeEnemies_group,checkpoint,checkpoint_end,objects,arrow_group,fireball_group,delta_time)
-        draw(window,background,bg_image,heart_image, coin_image, gem_image,arrow_group,fireball_group,player,sign,objects,checkpoint,checkpoint_end,
-            coins,gems,all_enemies_group,mercader,option1_mercader,option2_mercader,option3_mercader,offset_x)
-
-        if pygame.sprite.spritecollideany(player, coins): 
-            for _ in pygame.sprite.spritecollide(player, coins, True):
-                player.collect_coin(volume.sounds_volume) 
-
-        if pygame.sprite.spritecollideany(player, gems): 
-            for _ in pygame.sprite.spritecollide(player, gems, True):
-                player.collect_gem(volume.sounds_volume)
+            for enemy in all_enemies_group:
+                enemy.loop(player,volume)
                 
-        outOfWindow(fireball_group,offset_x)
-        outOfWindow(arrow_group,offset_x)
+            mercader.loop(player,offset_x)
+            checkpoint.loop()
+            checkpoint_end.loop()
+            sign.loop(player)
 
-        if((player.rect.right - offset_x >= WIDTH - scroll_area_width) and player.x_vel > 0) or (
-            (player.rect.left - offset_x <= scroll_area_width) and player.x_vel < 0):
-                offset_x += player.x_vel  / FPS
+            handle_move(partida,volume,player,all_enemies_group,firstBoss,meleeEnemies_group,checkpoint,checkpoint_end,objects,arrow_group,fireball_group,delta_time)
+            draw(window,background,bg_image,heart_image, coin_image, gem_image,arrow_group,fireball_group,player,sign,objects,checkpoint,checkpoint_end,
+                coins,gems,all_enemies_group,mercader,option1_mercader,option2_mercader,option3_mercader,offset_x)
+
+            if pygame.sprite.spritecollideany(player, coins): 
+                for _ in pygame.sprite.spritecollide(player, coins, True):
+                    player.collect_coin(volume.sounds_volume) 
+
+            if pygame.sprite.spritecollideany(player, gems): 
+                for _ in pygame.sprite.spritecollide(player, gems, True):
+                    player.collect_gem(volume.sounds_volume)
+                    
+            outOfWindow(fireball_group,offset_x)
+            outOfWindow(arrow_group,offset_x)
+
+            if((player.rect.right - offset_x >= WIDTH - scroll_area_width) and player.x_vel > 0) or (
+                (player.rect.left - offset_x <= scroll_area_width) and player.x_vel < 0):
+                    offset_x += player.x_vel  / FPS
     
     pygame.quit()
     quit()

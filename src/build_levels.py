@@ -386,5 +386,38 @@ def build_level(partida):
                     text_input="15 Coins -> 2 Lifes", font=pygame.font.Font("assets/font.ttf", 15), base_color="#d7fcd4", hovering_color="White")
     option3_mercader = button.Button(image=pygame.image.load("assets/OptionsMercader.png"), pos=(mercader.rect.x - offset_x+40,mercader.rect.y-10), 
                     text_input="1 Gem -> 10 coins", font=pygame.font.Font("assets/font.ttf", 15), base_color="#d7fcd4", hovering_color="White")
+    
+    if partida.level==1:
+        text = """        In the heart of a once-thriving village,
+        a dragon's wrath turned the land into ashes.
+        Among the ruins, a single knight remains, 
+        unbowed and determined. He bears the weight 
+        of his people's suffering. This is his tale,
+        a tale of vengeance and redemption. 
+        The dragon must be slain, not just for the
+        village, but for the soul of the knight 
+        himself. Will you stand with him,
+        or will you let the flames of 
+        vengeance consume you too?"""
+    elif partida.level==2:
+        text = """        Once surpassed the forest, our warrior has
+        to descend into the heart of the earth,
+        where shadows dance and secrets lie hidden. 
+        The cave whispers tales of ancient times, 
+        where the veil between the known and the 
+        unknown is thin. With each step, our warrior
+        draws nearer to the dragon island, the
+        epicenter of vengeance. Good luck on your
+        journey at the cave, and beware the shadows 
+        that lurk within."""
+    else:
+        text = """        You have guided our warrior to his final
+        destination, after going through the perils
+        of the forest and the depths of the cave. 
+        Now, our warrior stands at the brink of 
+        the Dragon's Island, ready to quench their 
+        thirst for vengeance against the almighty 
+        dragon. Good luck, you will need it..."""
+        
 
-    return mercader, player, sign, all_enemies_group, arrow_group, checkpoint, checkpoint_end, firstBoss, meleeEnemies_group, objects, fireball_group, background, bg_image, heart_image, coin_image, gem_image, coins, gems, option1_mercader, option2_mercader, option3_mercader
+    return mercader, player, sign, all_enemies_group, arrow_group, checkpoint, checkpoint_end, firstBoss, meleeEnemies_group, objects, fireball_group, background, bg_image, heart_image, coin_image, gem_image, coins, gems, option1_mercader, option2_mercader, option3_mercader, text
