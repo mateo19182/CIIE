@@ -31,7 +31,7 @@ def collide(player,objects,dx,delta, window, partida, volume):
             collided_object = obj
             if player.y_vel > 0.5:
                 player.wall_jump = True
-                player.y_vel *= 0.5
+                player.y_vel *= 0.7
                 #player.jump_count=0
             if isinstance(obj, Block3) or isinstance(obj, Block4) or isinstance(obj, Spikeball):
                 player.get_hit(volume.sounds_volume) 
@@ -73,7 +73,7 @@ def collide_checkpoint(player,checkpoint,partida,volume):
 
 def collide_explosion(explosions, player, volume):
     for expl in explosions:
-        if  pygame.sprite.collide_mask(expl,player):
+        if pygame.sprite.collide_circle(expl,player) and expl.current_frame > 7:
             player.get_hit(volume.sounds_volume)
 
 def collide_fireball(fireball_group,enemies_group,objects,volume):

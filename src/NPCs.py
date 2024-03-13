@@ -342,7 +342,7 @@ class Boss(pygame.sprite.Sprite):
 
 class SecondBoss(pygame.sprite.Sprite):
     SPRITES = resource_manager.load_sprite_sheets("Enemies", "SecondBoss", 32, 32, False)
-    ANIMATION_DELAY = 20
+    ANIMATION_DELAY = 15
     GRAVITY = 5
     DAMAGE_COOLDOWN = 500
     
@@ -360,7 +360,7 @@ class SecondBoss(pygame.sprite.Sprite):
         self.orientation = "left"
         self.x_vel = 0
         self.fall = False
-        self.vida = 3
+        self.vida = 7
         self.is_alive = True
         self.last_damage_time = 0
         self.explosions = pygame.sprite.Group()  
@@ -377,9 +377,7 @@ class SecondBoss(pygame.sprite.Sprite):
     def check_proximity(self, player):
         distance_to_player = math.hypot(player.rect.x - self.rect.x, player.rect.y - self.rect.y)
         if distance_to_player < self.player_proximity_threshold:
-            if self.state == "Idle" and self.frame_count >= 100: 
-                self.state = "Attack"
-                self.frame_count = 0 
+            self.state = "Attack"
         else:
             self.state = "Idle"
 
@@ -393,14 +391,13 @@ class SecondBoss(pygame.sprite.Sprite):
         self.sprite = pygame.transform.scale(self.sprite, (32 * 8, 32 * 8))
         self.sprite = pygame.transform.flip(self.sprite, True, False)
         self.animation_count += 1
-
+    
         if sprite_index == 0 and self.state == "Attack":
             self.frame_count = 0
-
         self.update()
 
     def attack(self, player):
-        if self.state == "Attack" and self.frame_count == 140:
+        if self.state == "Attack" and self.frame_count == 100:
             self.create_explosion(player)
             self.frame_count = 0
             self.state = "Idle" 
@@ -426,7 +423,6 @@ class SecondBoss(pygame.sprite.Sprite):
                 self.update_sprite()
         
     def update(self):
-        self.rect.x += self.x_vel
         self.rect = self.sprite.get_rect(topleft = (self.rect.x, self.rect.y))
         self.mask = pygame.mask.from_surface(self.sprite)
         super().update()
@@ -438,14 +434,15 @@ class SecondBoss(pygame.sprite.Sprite):
         
     def draw(self, window, offset_x):
         window.blit(self.sprite, (self.rect.x - offset_x, self.rect.y))
-        
+        for explosion in self.explosions:
+            explosion.draw(window, offset_x)
         bar_width = 300
         bar_height = 10 
         bar_x = self.rect.x - offset_x 
         bar_y = self.rect.y - 20
         pygame.draw.rect(window, (255, 0, 0), (bar_x, bar_y, bar_width, bar_height))
         pygame.draw.rect(window, (0, 255, 0), (bar_x, bar_y, bar_width * (self.vida / 3), bar_height))
-        self.explosions.draw(window) 
+        
 
 class ThirdBoss(pygame.sprite.Sprite):
     SPRITES = resource_manager.load_sprite_sheets("Enemies", "ThirdBoss", 140, 140, False)
@@ -492,9 +489,11 @@ class ThirdBoss(pygame.sprite.Sprite):
             self.vida -= 1
             self.last_damage_time = current_time
             self.state = "HURT" if self.vida > 0 else "DEATH"
+            mixer.Sound(resource_manager.get_sound("hit")).play()
             self.update_sprite()
             if self.vida <= 0:
                 #self.is_alive = False
+                mixer.Sound(resource_manager.get_sound("boss_death")).play()
                 self.state = "DEATH"
     
     def detect_player(self, player):

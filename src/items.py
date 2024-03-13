@@ -155,8 +155,8 @@ class Explosion(pygame.sprite.Sprite):
         self.images = self.load_explosion_images()
         self.current_frame = 0
         self.image = self.images[self.current_frame] 
-        self.rect = self.image.get_rect(center=(x, y))
-        self.animation_speed = 0.2 
+        self.rect = self.image.get_rect(topleft=(x, y))
+        self.animation_speed = 0.1
 
     def load_explosion_images(self):
         images = []
@@ -172,7 +172,8 @@ class Explosion(pygame.sprite.Sprite):
             self.kill()
         else:
             self.image = self.images[int(self.current_frame)]
-
+    def draw(self, screen, offset_x):
+        screen.blit(self.image, (self.rect.x - offset_x, self.rect.y))
 class Checkpoint(pygame.sprite.Sprite):
     ANIMATION_DELAY = 3
     
