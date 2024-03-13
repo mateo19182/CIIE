@@ -489,11 +489,15 @@ class ThirdBoss(pygame.sprite.Sprite):
             self.vida -= 1
             self.last_damage_time = current_time
             self.state = "HURT" if self.vida > 0 else "DEATH"
-            mixer.Sound(resource_manager.get_sound("hit")).play()
+            death_sound = mixer.Sound(resource_manager.get_sound("dragon_hurt"))
+            death_sound.play()
+            death_sound.set_volume(volume.sounds_volume)
             self.update_sprite()
             if self.vida <= 0:
                 #self.is_alive = False
-                mixer.Sound(resource_manager.get_sound("boss_death")).play()
+                death_sound = mixer.Sound(resource_manager.get_sound("boss_death"))
+                death_sound.play()
+                death_sound.set_volume(volume.sounds_volume)
                 self.state = "DEATH"
     
     def detect_player(self, player):
