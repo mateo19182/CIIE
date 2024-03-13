@@ -62,7 +62,7 @@ def draw(window,background,bg_image,heart_image, coin_image,gem_image,arrow_grou
 
 def collide_end(player,checkpoint,partida,volume):
     if(pygame.sprite.collide_mask(player,checkpoint)):
-        partida.lives = 3 #player.lives.lives
+        partida.lives = 3
         partida.coins = player.coins
         partida.gems = player.gems
         if partida.level != 3:
@@ -76,6 +76,8 @@ def collide_end(player,checkpoint,partida,volume):
                 message = "Last step, be ready to fight the dragon!"   
             show_loading_screen(text, message)
             play(window, partida, volume)    
+        else:
+            game_completed(window, partida,volume)    
 
 def handle_move(partida,volume,player,enemies_group,boss,meleeEnemies_group,checkpoint,checkpoint_end,objects,arrow_group,fireball_group,delta):
     vertical_collide = handle_vertical_colission(player,objects,player.y_vel)
@@ -175,7 +177,64 @@ def show_loading_screen(level_text, message):
         pygame.display.update()
         pygame.time.wait(40)
     window.blit(Load4, where)
-    pygame.display.update()                
+    pygame.display.update()   
+
+
+def game_completed(window, partida, volume):
+
+    
+    if not pygame.mixer.music.get_busy():
+        mixer.music.load(resource_manager.get_sound("menu"))
+        mixer.music.play(-1)
+        
+    while True:
+        SCREEN.fill("#333333")
+
+        MENU_MOUSE_POS = pygame.mouse.get_pos()
+
+        MENU_TEXT = resource_manager.get_font(60).render("CONGRATULATIONS!", True, "#b68f40")
+        MENU_RECT = MENU_TEXT.get_rect(center=(515, 200))
+
+        REPLAY_BUTTON = Button(image=pygame.image.load("assets/Play Rect.png"), pos=(300, 650), 
+                            text_input="REPLAY", font=resource_manager.get_font(55), base_color="#d7fcd4", hovering_color="White")
+        MENU_BUTTON = Button(image=pygame.image.load("assets/Play Rect.png"), pos=(715, 650), 
+                            text_input="MENU", font=resource_manager.get_font(55), base_color="#d7fcd4", hovering_color="White")
+
+        SCREEN.blit(MENU_TEXT, MENU_RECT)
+
+        text = """        You have helped our warrior defeat the dragon,
+        giving him the vengaence he seaked. Now,
+        he lives in peace. Great job! Feel free to 
+        return anytime."""
+
+        lines = text.splitlines()
+        y = 350 # Posición inicial en el eje Y
+        for line in lines:
+            text_surface = resource_manager.get_font(20).render(line, True, "#B68F40")
+            window.blit(text_surface, (-100, y))
+            y += resource_manager.get_font(20).get_linesize() + 10
+
+        #pygame.display.update()        
+
+        for button in [REPLAY_BUTTON, MENU_BUTTON]:
+            button.changeColor(MENU_MOUSE_POS)
+            button.update(SCREEN)
+        
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if REPLAY_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    text = "Level 1: Forest"
+                    message = "The adventure begins, the dragon waits" 
+                    partida_new= Partida()    
+                    show_loading_screen(text,message)
+                    play(window, partida_new, volume)
+                if MENU_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    main_menu(window, volume)
+
+        pygame.display.update()                 
 
 
 def death_menu(window, partida, volume):
@@ -186,17 +245,16 @@ def death_menu(window, partida, volume):
         mixer.music.play(-1)
         
     while True:
-        #SCREEN.blit(BG, (0, 0))
-        SCREEN.fill("black")
+        SCREEN.fill("#1a1a1a")
 
         MENU_MOUSE_POS = pygame.mouse.get_pos()
 
         MENU_TEXT = resource_manager.get_font(75).render("GAME OVER", True, "#b68f40")
-        MENU_RECT = MENU_TEXT.get_rect(center=(515, 120))
+        MENU_RECT = MENU_TEXT.get_rect(center=(515, 170))
 
-        REPLAY_BUTTON = Button(image=pygame.image.load("assets/Options Rect.png"), pos=(515, 300), 
+        REPLAY_BUTTON = Button(image=pygame.image.load("assets/Options Rect.png"), pos=(515, 400), 
                             text_input="REPLAY", font=resource_manager.get_font(75), base_color="#d7fcd4", hovering_color="White")
-        MENU_BUTTON = Button(image=pygame.image.load("assets/Play Rect.png"), pos=(515, 475), 
+        MENU_BUTTON = Button(image=pygame.image.load("assets/Play Rect.png"), pos=(515, 600), 
                             text_input="MENU", font=resource_manager.get_font(75), base_color="#d7fcd4", hovering_color="White")
 
         SCREEN.blit(MENU_TEXT, MENU_RECT)

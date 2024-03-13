@@ -485,7 +485,7 @@ class ThirdBoss(pygame.sprite.Sprite):
         self.die()
         self.update_sprite()
         
-    def take_damage(self):
+    def take_damage(self,volume):
         current_time = pygame.time.get_ticks()
         
         if current_time - self.last_damage_time > self.DAMAGE_COOLDOWN:
