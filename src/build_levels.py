@@ -71,7 +71,7 @@ def build_level(partida):
         column7 = [Block(block_size + 7600-distance,HEIGHT - block_size - (100*i),block_size)for i in range(1,3)]
         column8 = [Block(block_size + 7700-distance,HEIGHT - block_size - (100*i),block_size)for i in range(1,2)]
         column9 = [Block(block_size + 7800-distance,HEIGHT - block_size - (100*i),block_size)for i in range(1,2)]
-        column10 = [Block(block_size + 9000-distance,HEIGHT - block_size - (100*i),block_size)for i in range(1,7)]
+        column10 = [Block(block_size + 9700-distance,HEIGHT - block_size - (100*i),block_size)for i in range(1,7)]
             
 
         plat1 = [Platform(i*block_size + 800-distance,HEIGHT - block_size - 125, plat_size)for i in range(0,4)]

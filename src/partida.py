@@ -4,7 +4,7 @@ class Partida():
     def __init__(self):
         super().__init__()
         self.level = 1
-        self.checkpoint = 0
+        self.checkpoint = 1
         self.coins = 0
         self.gems = 0
         self.lives = 3
