@@ -3,7 +3,7 @@ WIDTH, HEIGHT = 1000, 800
 class Partida():
     def __init__(self):
         super().__init__()
-        self.level = 1
+        self.level = 3
         self.checkpoint = 1
         self.coins = 0
         self.gems = 0

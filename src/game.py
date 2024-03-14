@@ -179,7 +179,6 @@ def show_loading_screen(level_text, message):
     window.blit(Load4, where)
     pygame.display.update()   
 
-
 def game_completed(window, partida, volume):
 
     
@@ -235,7 +234,6 @@ def game_completed(window, partida, volume):
                     main_menu(window, volume)
 
         pygame.display.update()                 
-
 
 def death_menu(window, partida, volume):
 

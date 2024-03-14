@@ -516,6 +516,8 @@ class ThirdBoss(pygame.sprite.Sprite):
             return False
 
     def approach_player(self, player):
+        if self.state == "HURT" or self.state == "DEATH":
+            return
         player_x = player.rect.centerx 
         boss_x = self.rect.centerx
         if boss_x < player_x:
@@ -530,7 +532,6 @@ class ThirdBoss(pygame.sprite.Sprite):
         if(self.sprite!=None):
             self.sprite = pygame.transform.flip(self.sprite, self.orientation == "left", False)
         self.rect.x = self.x
-
 
     def update_sprite(self):
         if self.state == "DEATH":
@@ -551,13 +552,12 @@ class ThirdBoss(pygame.sprite.Sprite):
             self.sprite = pygame.transform.flip(self.sprite, True, False)
         self.animation_count += 1
         
-        if sprite_index == 0 and self.state == "HURT":
+        if sprite_index > 1 and self.state == "HURT":
             self.state = "IDLE" 
         if sprite_index == 3 and self.state == "DEATH":
             self.is_alive = False
             if (not self.is_alive):
                 self.kill()
-
 
         self.update()
     
