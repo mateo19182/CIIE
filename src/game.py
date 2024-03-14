@@ -401,6 +401,7 @@ def play(window, partida, volume):
     run = True
     read = False
     pause = False
+    controls = False
 
     mercader, player, sign, all_enemies_group, arrow_group, checkpoint, checkpoint_end, firstBoss, meleeEnemies_group, objects, fireball_group, background, bg_image, heart_image, coin_image, gem_image, coins, gems, option1_mercader, option2_mercader, option3_mercader, text = build_levels.build_level(partida)
     
@@ -410,26 +411,37 @@ def play(window, partida, volume):
 
         delta_time = clock.tick(FPS) / 1000.0
 
+        BACK_BUTTON = None
+
         if read:
+            distance=0
             surface = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA, 32)
             surface.fill((128, 128, 128))
             surface.set_alpha(20) 
             window.blit(surface, (0, 0))
+            if partida.level==2:
+                FIRE_TEXT = resource_manager.get_font(25).render("New attack! Fireball -> Key O", True, (100,0,100))
+                FIRE_RECT = FIRE_TEXT.get_rect(center=(500, 600))
+                window.blit(FIRE_TEXT, FIRE_RECT)
+                distance=30
+
             PAUSE_TEXT = resource_manager.get_font(35).render("The warrior and the Dragon", True, (100,0,0))
-            PAUSE_RECT = PAUSE_TEXT.get_rect(center=(500, 150))
+            PAUSE_RECT = PAUSE_TEXT.get_rect(center=(500, 150-distance))
             window.blit(PAUSE_TEXT, PAUSE_RECT)
 
             lines = text.splitlines()
-            y = 270 # Posición inicial en el eje Y
+            y = 270-distance # Posición inicial en el eje Y
             for line in lines:
                 text_surface = resource_manager.get_font(20).render(line, True, (0,0,0)) #"#B68F40"
                 window.blit(text_surface, (-100, y))
                 y += resource_manager.get_font(20).get_linesize() + 10
             
-            RESUME_BUTTON = Button(image=None, pos=(500, 680), 
+            RESUME_BUTTON = Button(image=None, pos=(500, 680+distance), 
                                 text_input="RESUME", font=resource_manager.get_font(50), base_color="Black", hovering_color="Green")
             RESUME_BUTTON.changeColor(MENU_MOUSE_POS)
             RESUME_BUTTON.update(window) 
+
+            
             pygame.display.update()
 
         if pause:
@@ -438,26 +450,48 @@ def play(window, partida, volume):
             surface.set_alpha(20) 
             window.blit(surface, (0, 0))   
 
-            PAUSE_MOUSE_POS = pygame.mouse.get_pos()
-
             PAUSE_TEXT = resource_manager.get_font(75).render("PAUSE MENU", True, "#b68f40")
             PAUSE_RECT = PAUSE_TEXT.get_rect(center=(500, 150))
             window.blit(PAUSE_TEXT, PAUSE_RECT)
-            
-            RESUME_BUTTON = Button(image=None, pos=(500, 300), 
-                                text_input="RESUME", font=resource_manager.get_font(50), base_color="Black", hovering_color="Green")
-            RESUME_BUTTON.changeColor(PAUSE_MOUSE_POS)
-            RESUME_BUTTON.update(window)
 
-            RESTART_BUTTON = Button(image=None, pos=(500, 450), 
-                                text_input="RESTART", font=resource_manager.get_font(50), base_color="Black", hovering_color="Green")
-            RESTART_BUTTON.changeColor(PAUSE_MOUSE_POS)
-            RESTART_BUTTON.update(window)
+            if not controls:
+                RESUME_BUTTON = Button(image=None, pos=(500, 300), 
+                                    text_input="RESUME", font=resource_manager.get_font(50), base_color="Black", hovering_color="Green")
+                RESUME_BUTTON.changeColor(MENU_MOUSE_POS)
+                RESUME_BUTTON.update(window)
 
-            RESTART2_BUTTON = Button(image=None, pos=(500, 600), 
-                                text_input="LAST CHECKPOINT", font=resource_manager.get_font(50), base_color="Black", hovering_color="Green")
-            RESTART2_BUTTON.changeColor(PAUSE_MOUSE_POS)
-            RESTART2_BUTTON.update(window) 
+                RESTART_BUTTON = Button(image=None, pos=(500, 435), 
+                                    text_input="RESTART", font=resource_manager.get_font(50), base_color="Black", hovering_color="Green")
+                RESTART_BUTTON.changeColor(MENU_MOUSE_POS)
+                RESTART_BUTTON.update(window)
+
+                RESTART2_BUTTON = Button(image=None, pos=(500, 565), 
+                                    text_input="LAST CHECKPOINT", font=resource_manager.get_font(50), base_color="Black", hovering_color="Green")
+                RESTART2_BUTTON.changeColor(MENU_MOUSE_POS)
+                RESTART2_BUTTON.update(window) 
+
+                CONTROLS_BUTTON = Button(image=None, pos=(500, 700), 
+                                    text_input="CONTROLS", font=resource_manager.get_font(50), base_color="Black", hovering_color="Green")
+                CONTROLS_BUTTON.changeColor(MENU_MOUSE_POS)
+                CONTROLS_BUTTON.update(window) 
+            else:
+                JUMP_TEXT = resource_manager.get_font(35).render("Space -> Jump", True, (0,0,0))
+                JUMP_RECT = JUMP_TEXT.get_rect(center=(500, 300))
+                window.blit(JUMP_TEXT, JUMP_RECT)    
+
+                ATTACK_TEXT = resource_manager.get_font(35).render("P -> Attack", True, (0,0,0))
+                ATTACK_RECT = ATTACK_TEXT.get_rect(center=(500, 450))
+                window.blit(ATTACK_TEXT, ATTACK_RECT)    
+
+                if partida.level >= 2:
+                    FIRE_TEXT = resource_manager.get_font(35).render("O -> Fireball", True, (0,0,0))
+                    FIRE_RECT = FIRE_TEXT.get_rect(center=(500, 600))
+                    window.blit(FIRE_TEXT, FIRE_RECT)
+
+                BACK_BUTTON = Button(image=None, pos=(500, 700), 
+                                    text_input="BACK", font=resource_manager.get_font(50), base_color="Black", hovering_color="Green")
+                BACK_BUTTON.changeColor(MENU_MOUSE_POS)
+                BACK_BUTTON.update(window) 
             pygame.display.update()                
 
         for event in pygame.event.get():
@@ -468,10 +502,19 @@ def play(window, partida, volume):
             if event.type == pygame.KEYDOWN:
                 if (not read and not pause) and event.key == pygame.K_SPACE and player.jump_count < 2 and player.dead == False:
                     player.jump(volume.sounds_volume)  
-                if read and (event.key == pygame.K_SPACE or event.key == pygame.K_ESCAPE):
+                if read and (event.key == pygame.K_SPACE):
                     read = False   
-                if pause and event.key == pygame.K_SPACE or event.key == pygame.K_ESCAPE:
+                if pause and (event.key == pygame.K_SPACE):
                     pause = False     
+                if event.key == pygame.K_ESCAPE:
+                    if pause:   
+                        pause = False 
+                    else:
+                        partida.coins = player.coins
+                        partida.gems = player.gems
+                        pause = True    
+                        if read:
+                            read=False
                 if (not read and not pause) and event.key == pygame.K_n and mercader.close:
                     mercader.negociating = True 
                     negociate_sound = mixer.Sound(resource_manager.get_sound("negociate"))
@@ -483,13 +526,8 @@ def play(window, partida, volume):
                                 text_input="15 Coins -> 2 Lifes", font=pygame.font.Font("assets/font.ttf", 15), base_color="#d7fcd4", hovering_color="White")
                     option3_mercader = Button(image=pygame.image.load("assets/OptionsMercader.png"), pos=(mercader.rect.x - offset_x+40,mercader.rect.y-10), 
                                 text_input="1 Gem -> 10 coins", font=pygame.font.Font("assets/font.ttf", 15), base_color="#d7fcd4", hovering_color="White")
-
                 if (not read and not pause) and event.key == pygame.K_r and sign.close:
                     read = True
-                if (not pause) and event.key == pygame.K_ESCAPE:
-                    partida.coins = player.coins
-                    partida.gems = player.gems
-                    pause = True
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if option1_mercader.checkForInput(MENU_MOUSE_POS):
@@ -500,14 +538,18 @@ def play(window, partida, volume):
                     negociation3(player, volume.sounds_volume)
                 if read and RESUME_BUTTON.checkForInput(MENU_MOUSE_POS):
                     read = False  
-                if pause and RESUME_BUTTON.checkForInput(PAUSE_MOUSE_POS):
+                if pause and RESUME_BUTTON.checkForInput(MENU_MOUSE_POS):
                     pause = False
-                if pause and RESTART_BUTTON.checkForInput(PAUSE_MOUSE_POS):
+                if pause and RESTART_BUTTON.checkForInput(MENU_MOUSE_POS):
                     partida_new = Partida()
                     play(window, partida_new, volume)
-                if pause and RESTART2_BUTTON.checkForInput(PAUSE_MOUSE_POS):
+                if pause and RESTART2_BUTTON.checkForInput(MENU_MOUSE_POS):
                     #partida.lives = 3
-                    play(window, partida, volume)       
+                    play(window, partida, volume)   
+                if pause and CONTROLS_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    controls = True  
+                if pause and controls and BACK_BUTTON is not None and BACK_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    controls = False              
 
         if not read and not pause:
             player.loop(delta_time, all_enemies_group, window, partida, volume)
