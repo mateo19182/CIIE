@@ -8,7 +8,7 @@ from pygame import mixer
 
 class RangedEnemies(pygame.sprite.Sprite):
     ANIMATION_DELAY = 4
-    ARROW_FRAME = 25
+    ARROW_FRAME = 36
     SHOOT_DISTANCE = 300
     SHOOT_HEIGHT_THRESHOLD = 20
 

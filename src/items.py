@@ -104,7 +104,7 @@ class Wrench(pygame.sprite.Sprite):
         self.image = self.original_image.copy()
 
         if orientation == "right":
-            self.rect = self.image.get_rect(midleft=(enemy_rect.midright[0] - 70, enemy_rect.centery + 10))
+            self.rect = self.image.get_rect(midleft=(enemy_rect.midright[0] + 10, enemy_rect.centery + 10))
             self.velocity = (3, 0)
         else:
             self.image = pygame.transform.flip(self.image, True, False)
