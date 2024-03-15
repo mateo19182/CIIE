@@ -1,7 +1,8 @@
 import pygame, sys
 pygame.init()
 
-SCREEN = pygame.display.set_mode((1000, 800))
+from partida import Partida, Volume, WIDTH, HEIGHT
+window = pygame.display.set_mode((WIDTH,HEIGHT))
 pygame.display.set_caption("Platformer")
 import resource_manager
 import build_levels
@@ -10,7 +11,6 @@ from NPCs import negociation1, negociation2, negociation3
 from collisions import collide, collide_arrow, collide_boss, collide_checkpoint, handle_vertical_colission, collide_enemie, collide_explosion, collide_fireball
 
 from button import Button
-from partida import Partida, Volume, WIDTH, HEIGHT
 from pygame import mixer
 
 FPS = 60
@@ -20,7 +20,6 @@ LEVEL = 1
 BAR_WIDTH = 300
 BAR_HEIGHT = 20
 
-window = pygame.display.set_mode((WIDTH,HEIGHT))
 
 def draw(window,background,bg_image,heart_image, coin_image,gem_image,arrow_group,fireball_group, player,sign,objects,checkpoint,checkpoint_end,
         coins,gems,all_enemies_group,mercader,opt1,opt2,opt3,offset_x):
@@ -126,15 +125,15 @@ def handle_move(partida,volume,player,enemies_group,boss,meleeEnemies_group,chec
 
 def draw_bar(lives, coins, gems, heart_image, coin_image, gem_image):
     for i in range(lives):
-        SCREEN.blit(heart_image, (50 + i * 35, 45))
+        window.blit(heart_image, (50 + i * 35, 45))
 
-    SCREEN.blit(coin_image, (50, 90)) 
+    window.blit(coin_image, (50, 90)) 
     coins_text = resource_manager.get_font(20).render(str(coins), True, (0, 0, 0))
-    SCREEN.blit(coins_text, (86, 93)) 
+    window.blit(coins_text, (86, 93)) 
 
-    SCREEN.blit(gem_image, (130, 90)) 
+    window.blit(gem_image, (130, 90)) 
     gem_text = resource_manager.get_font(20).render(str(gems), True, (0, 0, 0))
-    SCREEN.blit(gem_text, (166, 93)) 
+    window.blit(gem_text, (166, 93)) 
 
 def outOfWindow(group,offset_x):
     for element in group:
@@ -150,15 +149,15 @@ def show_loading_screen(level_text, message):
 
     LOADING_TEXT = resource_manager.get_font(75).render("LOADING", True, "#b68f40")
     LOADING_RECT = LOADING_TEXT.get_rect(center=(515, 180))
-    SCREEN.blit(LOADING_TEXT, LOADING_RECT)
+    window.blit(LOADING_TEXT, LOADING_RECT)
 
     LEVEL_TEXT = resource_manager.get_font(40).render(level_text, True, "#b68f40")
     LEVEL_RECT = LEVEL_TEXT.get_rect(center=(515, 290))
-    SCREEN.blit(LEVEL_TEXT, LEVEL_RECT)
+    window.blit(LEVEL_TEXT, LEVEL_RECT)
 
     MESSAGE_TEXT = resource_manager.get_font(20).render(message, True, "#b68f40")
     MESSAGE_RECT = MESSAGE_TEXT.get_rect(center=(515, 650))
-    SCREEN.blit(MESSAGE_TEXT,MESSAGE_RECT)
+    window.blit(MESSAGE_TEXT,MESSAGE_RECT)
 
     where = (120, 360)
     progress = 0
@@ -187,7 +186,7 @@ def game_completed(window, partida, volume):
         mixer.music.play(-1)
         
     while True:
-        SCREEN.fill("#333333")
+        window.fill("#333333")
 
         MENU_MOUSE_POS = pygame.mouse.get_pos()
 
@@ -199,7 +198,7 @@ def game_completed(window, partida, volume):
         MENU_BUTTON = Button(image=pygame.image.load("assets/Play Rect.png"), pos=(715, 650), 
                             text_input="MENU", font=resource_manager.get_font(55), base_color="#d7fcd4", hovering_color="White")
 
-        SCREEN.blit(MENU_TEXT, MENU_RECT)
+        window.blit(MENU_TEXT, MENU_RECT)
 
         text = """        You have helped our warrior defeat the dragon,
         giving him the vengaence he seaked. Now,
@@ -217,7 +216,7 @@ def game_completed(window, partida, volume):
 
         for button in [REPLAY_BUTTON, MENU_BUTTON]:
             button.changeColor(MENU_MOUSE_POS)
-            button.update(SCREEN)
+            button.update(window)
         
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -243,7 +242,7 @@ def death_menu(window, partida, volume):
         mixer.music.play(-1)
         
     while True:
-        SCREEN.fill("#1a1a1a")
+        window.fill("#1a1a1a")
 
         MENU_MOUSE_POS = pygame.mouse.get_pos()
 
@@ -255,11 +254,11 @@ def death_menu(window, partida, volume):
         MENU_BUTTON = Button(image=pygame.image.load("assets/Play Rect.png"), pos=(515, 600), 
                             text_input="MENU", font=resource_manager.get_font(75), base_color="#d7fcd4", hovering_color="White")
 
-        SCREEN.blit(MENU_TEXT, MENU_RECT)
+        window.blit(MENU_TEXT, MENU_RECT)
 
         for button in [REPLAY_BUTTON, MENU_BUTTON]:
             button.changeColor(MENU_MOUSE_POS)
-            button.update(SCREEN)
+            button.update(window)
         
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -291,11 +290,11 @@ def options(window,volumen):
         sound = volumen.sounds_volume
         OPTIONS_MOUSE_POS = pygame.mouse.get_pos()
 
-        SCREEN.fill("white")
+        window.fill("white")
 
         VOLUME_TEXT = resource_manager.get_font(75).render("MUSIC", True, "#b68f40")
         VOLUME_RECT = VOLUME_TEXT.get_rect(center=(400, 200))
-        SCREEN.blit(VOLUME_TEXT, VOLUME_RECT)
+        window.blit(VOLUME_TEXT, VOLUME_RECT)
 
         scroll_bar_width =  20
         scroll_bar_height =  200
@@ -314,7 +313,7 @@ def options(window,volumen):
 
         SOUND_TEXT = resource_manager.get_font(75).render("SOUND", True, "#b68f40")
         SOUND_RECT = SOUND_TEXT.get_rect(center=(400, 450))
-        SCREEN.blit(SOUND_TEXT, SOUND_RECT)
+        window.blit(SOUND_TEXT, SOUND_RECT)
 
         scroll_bar_width2 =  20
         scroll_bar_height2 =  200
@@ -334,7 +333,7 @@ def options(window,volumen):
                             text_input="BACK", font=resource_manager.get_font(75), base_color="Black", hovering_color="Green")
 
         OPTIONS_BACK.changeColor(OPTIONS_MOUSE_POS)
-        OPTIONS_BACK.update(SCREEN)
+        OPTIONS_BACK.update(window)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -482,7 +481,7 @@ def play(window, partida, volume):
 
                 VOLUME_TEXT = resource_manager.get_font(75).render("MUSIC", True, (0,0,0))
                 VOLUME_RECT = VOLUME_TEXT.get_rect(center=(400, 340))
-                SCREEN.blit(VOLUME_TEXT, VOLUME_RECT)
+                window.blit(VOLUME_TEXT, VOLUME_RECT)
 
                 scroll_bar_width =  20
                 scroll_bar_height =  200
@@ -501,7 +500,7 @@ def play(window, partida, volume):
 
                 SOUND_TEXT = resource_manager.get_font(75).render("SOUND", True, (0,0,0))
                 SOUND_RECT = SOUND_TEXT.get_rect(center=(400, 585))
-                SCREEN.blit(SOUND_TEXT, SOUND_RECT)
+                window.blit(SOUND_TEXT, SOUND_RECT)
 
                 scroll_bar_width2 =  20
                 scroll_bar_height2 =  200
@@ -521,7 +520,7 @@ def play(window, partida, volume):
                                     text_input="BACK", font=resource_manager.get_font(50), base_color="Black", hovering_color="Green")
 
                 OPTIONS_BACK.changeColor(MENU_MOUSE_POS)
-                OPTIONS_BACK.update(SCREEN)    
+                OPTIONS_BACK.update(window)    
             else:
                 RESUME_BUTTON = Button(image=None, pos=(500, 250), 
                                     text_input="RESUME", font=resource_manager.get_font(50), base_color="Black", hovering_color="Green")
@@ -713,8 +712,7 @@ def main_menu(window, volume):
         mixer.music.play(-1)
         
     while True:
-        #SCREEN.blit(BG, (0, 0))
-        SCREEN.fill("black")
+        window.fill("black")
 
         MENU_MOUSE_POS = pygame.mouse.get_pos()
 
@@ -728,11 +726,11 @@ def main_menu(window, volume):
         QUIT_BUTTON = Button(image=pygame.image.load("assets/Quit Rect.png"), pos=(515, 650), 
                             text_input="QUIT", font=resource_manager.get_font(75), base_color="#d7fcd4", hovering_color="White")
 
-        SCREEN.blit(MENU_TEXT, MENU_RECT)
+        window.blit(MENU_TEXT, MENU_RECT)
 
         for button in [PLAY_BUTTON, OPTIONS_BUTTON, QUIT_BUTTON]:
             button.changeColor(MENU_MOUSE_POS)
-            button.update(SCREEN)
+            button.update(window)
         
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
