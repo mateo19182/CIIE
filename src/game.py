@@ -402,6 +402,7 @@ def play(window, partida, volume):
     read = False
     pause = False
     controls = False
+    sound_options = False
 
     mercader, player, sign, all_enemies_group, arrow_group, checkpoint, checkpoint_end, firstBoss, meleeEnemies_group, objects, fireball_group, background, bg_image, heart_image, coin_image, gem_image, coins, gems, option1_mercader, option2_mercader, option3_mercader, text = build_levels.build_level(partida)
     
@@ -412,6 +413,9 @@ def play(window, partida, volume):
         delta_time = clock.tick(FPS) / 1000.0
 
         BACK_BUTTON = None
+        OPTIONS_BACK = None
+        scroll_bar_rect = None
+        scroll_bar_rect2 = None
 
         if read:
             distance=0
@@ -451,30 +455,10 @@ def play(window, partida, volume):
             window.blit(surface, (0, 0))   
 
             PAUSE_TEXT = resource_manager.get_font(75).render("PAUSE MENU", True, "#b68f40")
-            PAUSE_RECT = PAUSE_TEXT.get_rect(center=(500, 150))
+            PAUSE_RECT = PAUSE_TEXT.get_rect(center=(500, 100))
             window.blit(PAUSE_TEXT, PAUSE_RECT)
 
-            if not controls:
-                RESUME_BUTTON = Button(image=None, pos=(500, 300), 
-                                    text_input="RESUME", font=resource_manager.get_font(50), base_color="Black", hovering_color="Green")
-                RESUME_BUTTON.changeColor(MENU_MOUSE_POS)
-                RESUME_BUTTON.update(window)
-
-                RESTART_BUTTON = Button(image=None, pos=(500, 435), 
-                                    text_input="RESTART", font=resource_manager.get_font(50), base_color="Black", hovering_color="Green")
-                RESTART_BUTTON.changeColor(MENU_MOUSE_POS)
-                RESTART_BUTTON.update(window)
-
-                RESTART2_BUTTON = Button(image=None, pos=(500, 565), 
-                                    text_input="LAST CHECKPOINT", font=resource_manager.get_font(50), base_color="Black", hovering_color="Green")
-                RESTART2_BUTTON.changeColor(MENU_MOUSE_POS)
-                RESTART2_BUTTON.update(window) 
-
-                CONTROLS_BUTTON = Button(image=None, pos=(500, 700), 
-                                    text_input="CONTROLS", font=resource_manager.get_font(50), base_color="Black", hovering_color="Green")
-                CONTROLS_BUTTON.changeColor(MENU_MOUSE_POS)
-                CONTROLS_BUTTON.update(window) 
-            else:
+            if controls:
                 JUMP_TEXT = resource_manager.get_font(35).render("Space -> Jump", True, (0,0,0))
                 JUMP_RECT = JUMP_TEXT.get_rect(center=(500, 300))
                 window.blit(JUMP_TEXT, JUMP_RECT)    
@@ -491,7 +475,83 @@ def play(window, partida, volume):
                 BACK_BUTTON = Button(image=None, pos=(500, 700), 
                                     text_input="BACK", font=resource_manager.get_font(50), base_color="Black", hovering_color="Green")
                 BACK_BUTTON.changeColor(MENU_MOUSE_POS)
-                BACK_BUTTON.update(window) 
+                BACK_BUTTON.update(window)  
+            elif sound_options:
+                volumen = volume.music_volume
+                sound = volume.sounds_volume
+
+                VOLUME_TEXT = resource_manager.get_font(75).render("MUSIC", True, (0,0,0))
+                VOLUME_RECT = VOLUME_TEXT.get_rect(center=(400, 340))
+                SCREEN.blit(VOLUME_TEXT, VOLUME_RECT)
+
+                scroll_bar_width =  20
+                scroll_bar_height =  200
+                scroll_bar = pygame.Surface((scroll_bar_width, scroll_bar_height))
+                scroll_bar.fill((250,  250,  250))
+
+                # Draw the thumb (the part you drag)
+                thumb_height = int(volumen * scroll_bar_height)
+                thumb = pygame.Surface((scroll_bar_width, thumb_height))
+                thumb.fill((50,  50,  50))  # Set a different color for the thumb
+                scroll_bar.blit(thumb, (0, scroll_bar_height - thumb_height))
+
+                scroll_bar_rect = scroll_bar.get_rect(center=(700,  340))
+                window.blit(scroll_bar, scroll_bar_rect.topleft)
+
+
+                SOUND_TEXT = resource_manager.get_font(75).render("SOUND", True, (0,0,0))
+                SOUND_RECT = SOUND_TEXT.get_rect(center=(400, 585))
+                SCREEN.blit(SOUND_TEXT, SOUND_RECT)
+
+                scroll_bar_width2 =  20
+                scroll_bar_height2 =  200
+                scroll_bar2 = pygame.Surface((scroll_bar_width2, scroll_bar_height2))
+                scroll_bar2.fill((250,  250,  250))
+
+                # Draw the thumb (the part you drag)
+                thumb_height2 = int(sound * scroll_bar_height2)
+                thumb2 = pygame.Surface((scroll_bar_width2, thumb_height2))
+                thumb2.fill((50,  50,  50))  # Set a different color for the thumb
+                scroll_bar2.blit(thumb2, (0, scroll_bar_height2 - thumb_height2))
+
+                scroll_bar_rect2 = scroll_bar2.get_rect(center=(700,  585))
+                window.blit(scroll_bar2, scroll_bar_rect2.topleft)
+
+                OPTIONS_BACK = Button(image=None, pos=(515, 750), 
+                                    text_input="BACK", font=resource_manager.get_font(50), base_color="Black", hovering_color="Green")
+
+                OPTIONS_BACK.changeColor(MENU_MOUSE_POS)
+                OPTIONS_BACK.update(SCREEN)    
+            else:
+                RESUME_BUTTON = Button(image=None, pos=(500, 250), 
+                                    text_input="RESUME", font=resource_manager.get_font(50), base_color="Black", hovering_color="Green")
+                RESUME_BUTTON.changeColor(MENU_MOUSE_POS)
+                RESUME_BUTTON.update(window)
+
+                RESTART_BUTTON = Button(image=None, pos=(500, 350), 
+                                    text_input="RESTART", font=resource_manager.get_font(50), base_color="Black", hovering_color="Green")
+                RESTART_BUTTON.changeColor(MENU_MOUSE_POS)
+                RESTART_BUTTON.update(window)
+
+                RESTART2_BUTTON = Button(image=None, pos=(500, 450), 
+                                    text_input="LAST CHECKPOINT", font=resource_manager.get_font(50), base_color="Black", hovering_color="Green")
+                RESTART2_BUTTON.changeColor(MENU_MOUSE_POS)
+                RESTART2_BUTTON.update(window) 
+
+                CONTROLS_BUTTON = Button(image=None, pos=(500, 550), 
+                                    text_input="CONTROLS", font=resource_manager.get_font(50), base_color="Black", hovering_color="Green")
+                CONTROLS_BUTTON.changeColor(MENU_MOUSE_POS)
+                CONTROLS_BUTTON.update(window)
+
+                OPTIONS_BUTTON = Button(image=None, pos=(500, 650), 
+                                    text_input="OPTIONS", font=resource_manager.get_font(50), base_color="Black", hovering_color="Green")
+                OPTIONS_BUTTON.changeColor(MENU_MOUSE_POS)
+                OPTIONS_BUTTON.update(window)
+
+                MENU_BUTTON = Button(image=None, pos=(500, 750), 
+                                    text_input="MAIN MENU", font=resource_manager.get_font(50), base_color="Black", hovering_color="Green")
+                MENU_BUTTON.changeColor(MENU_MOUSE_POS)
+                MENU_BUTTON.update(window)
             pygame.display.update()                
 
         for event in pygame.event.get():
@@ -505,10 +565,14 @@ def play(window, partida, volume):
                 if read and (event.key == pygame.K_SPACE):
                     read = False   
                 if pause and (event.key == pygame.K_SPACE):
-                    pause = False     
+                    pause = False 
+                    sound_options = False
+                    controls = False    
                 if event.key == pygame.K_ESCAPE:
                     if pause:   
                         pause = False 
+                        sound_options = False
+                        controls = False 
                     else:
                         partida.coins = player.coins
                         partida.gems = player.gems
@@ -538,18 +602,72 @@ def play(window, partida, volume):
                     negociation3(player, volume.sounds_volume)
                 if read and RESUME_BUTTON.checkForInput(MENU_MOUSE_POS):
                     read = False  
-                if pause and RESUME_BUTTON.checkForInput(MENU_MOUSE_POS):
-                    pause = False
-                if pause and RESTART_BUTTON.checkForInput(MENU_MOUSE_POS):
-                    partida_new = Partida()
-                    play(window, partida_new, volume)
-                if pause and RESTART2_BUTTON.checkForInput(MENU_MOUSE_POS):
-                    #partida.lives = 3
-                    play(window, partida, volume)   
-                if pause and CONTROLS_BUTTON.checkForInput(MENU_MOUSE_POS):
-                    controls = True  
+                if pause and not controls and not sound_options:    
+                    if RESUME_BUTTON.checkForInput(MENU_MOUSE_POS):
+                        pause = False
+                    if RESTART_BUTTON.checkForInput(MENU_MOUSE_POS):
+                        partida_new = Partida()
+                        play(window, partida_new, volume)
+                    if RESTART2_BUTTON.checkForInput(MENU_MOUSE_POS):
+                        play(window, partida, volume)   
+                    if CONTROLS_BUTTON.checkForInput(MENU_MOUSE_POS):
+                        controls = True  
+                    if OPTIONS_BUTTON.checkForInput(MENU_MOUSE_POS):
+                        sound_options = True    
+                    if MENU_BUTTON.checkForInput(MENU_MOUSE_POS):
+                        main_menu(window, volume)         
                 if pause and controls and BACK_BUTTON is not None and BACK_BUTTON.checkForInput(MENU_MOUSE_POS):
-                    controls = False              
+                    controls = False 
+
+            # Manejo de la pantalla de opciones de volumen                 
+            if sound_options:
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if OPTIONS_BACK is not None and OPTIONS_BACK.checkForInput(MENU_MOUSE_POS):
+                        sound_options = False
+                    if scroll_bar_rect is not None and scroll_bar_rect.collidepoint(event.pos):
+                        # Start dragging the scroll bar thumb for music
+                        dragging_thumb = True
+                        last_mouse_y = event.pos[1]  
+                    if scroll_bar_rect2 is not None and scroll_bar_rect2.collidepoint(event.pos):
+                        # Start dragging the scroll bar thumb for sound
+                        dragging_thumb2 = True
+                        last_mouse_y = event.pos[1]         
+                elif event.type == pygame.MOUSEBUTTONUP:
+                    dragging_thumb = False
+                    dragging_thumb2 = False
+                elif event.type == pygame.MOUSEMOTION:
+                    if dragging_thumb:
+                        delta_y = event.pos[1] - last_mouse_y
+                        volumen += delta_y / scroll_bar_height
+                        volumen = max(min(volumen,  1),  0)
+                        volume.music_volume = volumen
+                        last_mouse_y = event.pos[1]
+
+                        mixer.music.set_volume(volumen)
+
+                        # Update the thumb position
+                        thumb_height = int(volumen * scroll_bar_height)
+                        thumb = pygame.Surface((scroll_bar_width, thumb_height))
+                        thumb.fill((100,  100,  100))
+                        scroll_bar.fill((200,  200,  200))  # Reset the scroll bar background
+                        scroll_bar.blit(thumb, (0, scroll_bar_height - thumb_height))    
+
+
+                    if dragging_thumb2:
+                        delta_y = event.pos[1] - last_mouse_y
+                        sound += delta_y / scroll_bar_height2
+                        sound = max(min(sound,  1),  0)
+                        volume.sounds_volume = sound
+                        last_mouse_y = event.pos[1]
+
+                        # Update the thumb position
+                        thumb_height2 = int(sound * scroll_bar_height2)
+                        thumb2 = pygame.Surface((scroll_bar_width2, thumb_height2))
+                        thumb2.fill((100,  100,  100))
+                        scroll_bar2.fill((200,  200,  200))  # Reset the scroll bar background
+                        scroll_bar2.blit(thumb2, (0, scroll_bar_height2 - thumb_height2))
+
+
 
         if not read and not pause:
             player.loop(delta_time, all_enemies_group, window, partida, volume)
