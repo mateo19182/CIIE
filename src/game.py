@@ -606,8 +606,22 @@ def play(window, partida, volume):
                         pause = False
                     if RESTART_BUTTON.checkForInput(MENU_MOUSE_POS):
                         partida_new = Partida()
+                        text = "Level 1: Forest"
+                        message = "The adventure begins, the dragon waits"  
+                        show_loading_screen(text,message)
                         play(window, partida_new, volume)
                     if RESTART2_BUTTON.checkForInput(MENU_MOUSE_POS):
+                        partida.lives = player.lives.lives
+                        if partida.level == 1:
+                            text = "Level 1: Forest"
+                            message = "The adventure begins, the dragon waits"
+                        elif partida.level == 2:
+                            text = "Level 2: Cave"
+                            message = "Our warrior is closer to revenge, keep going!"
+                        else:
+                            text = "Level 3: Dragon island"
+                            message = "Last step, be ready to fight the dragon!"  
+                        show_loading_screen(text,message)
                         play(window, partida, volume)   
                     if CONTROLS_BUTTON.checkForInput(MENU_MOUSE_POS):
                         controls = True  
