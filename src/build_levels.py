@@ -311,10 +311,8 @@ def build_level(partida):
         meleeEnemies_group.add(meleeEnemie6)
         
         floor = [Block5(i*block2_size-distance,HEIGHT - block2_size ,block2_size)for i in range(-10,8)]
-        floor5 = [Block5(i*block2_size-distance + 6000,HEIGHT - block2_size - 64 ,block2_size)for i in range(0,5)]
-        floor6 = [Block5(i*block2_size-distance + 7000,HEIGHT - block2_size - 64 ,block2_size)for i in range(0,5)]
-        floor7 = [Block5(i*block2_size-distance + 9200,HEIGHT - block2_size - 320 + i*block2_size,block2_size)for i in range(0,6)]
-        floor8 = [Block5(i*block2_size-distance + 9584,HEIGHT - block2_size  ,block2_size)for i in range(0,15)]
+        
+        
         
         build0 = [Block6(i*block2_size-distance + 3700,HEIGHT - block2_size - 256 ,block2_size)for i in range(0,6)]
         build1 = [Block6(i*block2_size-distance + 3700,HEIGHT - block2_size - 256 ,block2_size)for i in range(0,7)]
@@ -322,6 +320,17 @@ def build_level(partida):
         build3 = [Block6(i*block2_size-distance + 3700,HEIGHT - block2_size - 128 ,block2_size)for i in range(0,9)]
         build4 = [Block6(i*block2_size-distance + 3700,HEIGHT - block2_size - 64 ,block2_size)for i in range(0,19)]
         build5 = [Block6(i*block2_size-distance + 3700,HEIGHT - block2_size ,block2_size)for i in range(0,19)]
+        build6 = [Block6(i*block2_size-distance + 6000,HEIGHT - block2_size - 64 ,block2_size)for i in range(0,5)]
+        build7 = [Block6(i*block2_size-distance + 7000,HEIGHT - block2_size - 64 ,block2_size)for i in range(0,5)]
+        build8 = [Block6(i*block2_size-distance + 6000,HEIGHT - block2_size  ,block2_size)for i in range(0,5)]
+        build9 = [Block6(i*block2_size-distance + 7000,HEIGHT - block2_size  ,block2_size)for i in range(0,5)]
+        build10 = [Block6(i*block2_size-distance + 9200,HEIGHT - block2_size - 320 + i*block2_size,block2_size)for i in range(0,6)]
+        build11 = [Block6(i*block2_size-distance + 9200,HEIGHT - block2_size  ,block2_size)for i in range(0,20)]
+        build12 = [Block6(i*block2_size-distance + 9200,HEIGHT - block2_size - 256 + i*block2_size,block2_size)for i in range(0,5)]
+        build13 = [Block6(i*block2_size-distance + 9200,HEIGHT - block2_size - 192 + i*block2_size,block2_size)for i in range(0,4)]
+        build14 = [Block6(i*block2_size-distance + 9200,HEIGHT - block2_size - 128 + i*block2_size,block2_size)for i in range(0,3)]
+        build15 = [Block6(i*block2_size-distance + 9200,HEIGHT - block2_size - 64 ,block2_size)for i in range(0,1)]
+       
         
         plat1 = [Block5(i*block4_size-distance + 1000,HEIGHT - block2_size - 384,block4_size)for i in range(0,10)]
         plat2 = [Block5(i*block4_size-distance + 1672,HEIGHT - block2_size - 384,block4_size)for i in range(0,10)]
@@ -368,10 +377,10 @@ def build_level(partida):
         spike2 = [Spikeball(2*i*block4_size - distance + 4600 ,HEIGHT - block2_size - 350 - 2*i*block4_size,block2_size)for i in range(0,3)]
         spike3 = [Spikeball(40*i - distance + 5850 ,HEIGHT - block2_size - 500 - 3*i,block2_size)for i in range(0,20)]
 
-        objects = [*build0,*build1,*build2,*build3,*build4,*build5, *floor, *floor5,*floor6,*floor7,*floor8, *plat1, *plat2, *plat3, *plat4, *plat5, *plat6, *plat7, *plat8, *plat9, *plat10, *plat11, *plat12, *plat13, *plat14, *plat15,*plat16, *plat17, *plat18,*plat19,*plat20,*plat21,*plat22,*plat23,*plat24,*plat25,*plat26,*plat27,*plat28,*plat29,*plat30, *spike1, *spike2, *spike3]
+        objects = [*build0,*build1,*build2,*build3,*build4,*build5,*build6,*build7,*build8,*build9,*build10,*build11,*build12,*build13,*build14,*build15, *floor, *plat1, *plat2, *plat3, *plat4, *plat5, *plat6, *plat7, *plat8, *plat9, *plat10, *plat11, *plat12, *plat13, *plat14, *plat15,*plat16, *plat17, *plat18,*plat19,*plat20,*plat21,*plat22,*plat23,*plat24,*plat25,*plat26,*plat27,*plat28,*plat29,*plat30, *spike1, *spike2, *spike3]
 
         gems = []
-
+        putGems(-632 - distance,680,1,gems)
         putGems(2097 - distance,584,1,gems)
         putGems(8595 - distance,583,1,gems)
 
