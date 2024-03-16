@@ -252,7 +252,7 @@ def build_level(partida):
         gems = []
 
         putGems(2100 - distance,682,1,gems)
-        putGems(2370 - distance,106,1,gems)
+        putGems(3080 - distance,362,1,gems)
 
         gems = pygame.sprite.Group(gems)
 
@@ -276,12 +276,16 @@ def build_level(partida):
         if partida.checkpoint == 1:
             distance = 8800
             checkpoint_activated = True
+            
         player = Player(400,400,50,50, lives,fireball_group,partida.coins,partida.gems)
         sign = Sign(300-distance,647,100,100)
         rangedenemie1 = RangedEnemies(1200-distance,270,100,100,30,arrow_group,"GnomeTinkerer")
         meleeEnemie1 = Skull(2875 - distance,350,1000,1000,"Skull")
         meleeEnemie2 = Skull(3525 - distance,350,1000,1000,"Skull")
         meleeEnemie3 = MeleeEnemie(4475-distance,500,100,100,"Skeleton")
+        meleeEnemie4 = Skull(8550 - distance,250,1000,1000,"Skull")
+        meleeEnemie5 = Skull(8050 - distance,250,1000,1000,"Skull")
+        meleeEnemie6 = MeleeEnemie(5320 - distance,205,1000,1000,"HalflingRogue")
         mercader = Mercader(3915-distance, 400, 100, 100)
         firstBoss = ThirdBoss(9800-distance,390,100,100)
         checkpoint = Checkpoint(9185-distance,290,50,50, checkpoint_activated)
@@ -290,6 +294,9 @@ def build_level(partida):
         all_enemies_group.add(meleeEnemie1)
         all_enemies_group.add(meleeEnemie2)
         all_enemies_group.add(meleeEnemie3)
+        all_enemies_group.add(meleeEnemie4)
+        all_enemies_group.add(meleeEnemie5)
+        all_enemies_group.add(meleeEnemie6)
 
 
         all_enemies_group.add(rangedenemie1)
@@ -299,6 +306,10 @@ def build_level(partida):
         meleeEnemies_group.add(meleeEnemie1)
         meleeEnemies_group.add(meleeEnemie2)
         meleeEnemies_group.add(meleeEnemie3)
+        meleeEnemies_group.add(meleeEnemie4)
+        meleeEnemies_group.add(meleeEnemie5)
+        meleeEnemies_group.add(meleeEnemie6)
+        
         floor = [Block5(i*block2_size-distance,HEIGHT - block2_size ,block2_size)for i in range(-10,8)]
         floor5 = [Block5(i*block2_size-distance + 6000,HEIGHT - block2_size - 64 ,block2_size)for i in range(0,5)]
         floor6 = [Block5(i*block2_size-distance + 7000,HEIGHT - block2_size - 64 ,block2_size)for i in range(0,5)]
@@ -362,7 +373,7 @@ def build_level(partida):
         gems = []
 
         putGems(2097 - distance,584,1,gems)
-        putGems(6790 - distance,83,2,gems)
+        putGems(8595 - distance,583,1,gems)
 
         gems = pygame.sprite.Group(gems)
 
@@ -375,6 +386,8 @@ def build_level(partida):
         putCoins(700 - distance,42,3,coins)
         putCoins(4449 - distance,282,2,coins)
         putCoins(4721 - distance,133,2,coins)
+        putCoins(6770 - distance,83,4,coins)
+        putCoins(7255 - distance,183,3,coins)
 
         coins = pygame.sprite.Group(coins)   
 

@@ -441,7 +441,7 @@ class SecondBoss(pygame.sprite.Sprite):
         bar_x = self.rect.x - offset_x 
         bar_y = self.rect.y - 20
         pygame.draw.rect(window, (255, 0, 0), (bar_x, bar_y, bar_width, bar_height))
-        pygame.draw.rect(window, (0, 255, 0), (bar_x, bar_y, bar_width * (self.vida / 3), bar_height))
+        pygame.draw.rect(window, (0, 255, 0), (bar_x, bar_y, bar_width * (self.vida / 7), bar_height))
         
 
 class ThirdBoss(pygame.sprite.Sprite):
