@@ -186,10 +186,22 @@ def build_level(partida):
         column5 = [Block2(block2_size + 3840-distance,HEIGHT - block2_size -  832 +  (64*i),block2_size)for i in range(0,11)]
         column6 = [Block2(block2_size + 4800-distance,HEIGHT - block2_size -  832 +  (64*i),block2_size)for i in range(3,15)]
         column7 = [Block2(block2_size + 7804-distance,HEIGHT - block2_size -  832 +  (64*i),block2_size)for i in range(0,12)]
+        column8 = [Block2(block2_size + 1920-distance,HEIGHT - block2_size -  192,block2_size)]
         
         spike1 = [Block3(i*block3_size-distance,HEIGHT - block3_size - 128, block3_size)for i in range(1,10)]
+        spike2 = [Block3(i*block3_size-distance + 3326,HEIGHT - block3_size - 384, block3_size)for i in range(0,4)]
+        spike3 = [Block3(i*block3_size + 3904-distance,HEIGHT - block2_size - 256 , block2_size)for i in range(10,15)]
+        spike4 = [Block3(i*block3_size + 4928-distance,HEIGHT - block2_size - 64,block2_size)for i in range(0,9)]
+       
 
         mini_spike1 = [Block4(i*block4_size-distance,HEIGHT - block4_size - 192, block4_size)for i in range(1,10)]
+        mini_spike2 = [Block4(i*block4_size-distance + 896,HEIGHT - block4_size - 576, block4_size)for i in range(0,4)]
+        mini_spike3 = [Block4(i*block4_size-distance + 1152,HEIGHT - block4_size - 640, block4_size)for i in range(0,6)]
+        mini_spike4 = [Block4(i*block4_size-distance + 1728,HEIGHT - block4_size - 64, block4_size)for i in range(0,2)]
+        mini_spike5 = [Block4(i*block2_size-distance + 3072,HEIGHT - block2_size - 480 - (64*i), block4_size)for i in range(0,5)]
+        mini_spike6 = [Block4(i*block2_size-distance + 3104,HEIGHT - block2_size - 480 - (64*i), block4_size)for i in range(0,5)]
+       
+        
 
         plat1 = [Block2(i*block2_size + 664-distance,HEIGHT - block2_size - 320, block2_size)for i in range(1,10)]
         plat2 = [Block2(i*block2_size + 960-distance,HEIGHT - block2_size - 576, block2_size)for i in range(1,15)]
@@ -207,8 +219,8 @@ def build_level(partida):
         plat12 = [Block2(i*block2_size + 3008-distance,HEIGHT - block2_size - 192, block2_size)for i in range(0,7)]
         plat13 = [Block2(i*block2_size + 3008-distance,HEIGHT - block2_size - 256, block2_size)for i in range(0,7)]
 
-        plat14 = [Block2(block2_size + 3328-distance,HEIGHT - block2_size - 256 + (64*i), block2_size)for i in range(0,2)]
         plat14 = [Block2(block2_size + 3392-distance,HEIGHT - block2_size - 256 + (64*i), block2_size)for i in range(0,2)]
+        
         plat15 = [Block2(block2_size + 3584-distance,HEIGHT - block2_size - 64 - (64*i), block2_size)for i in range(0,2)]
         plat16 = [Block2(block2_size + 3648-distance,HEIGHT - block2_size - 64 - (64*i), block2_size)for i in range(0,2)]
 
@@ -223,7 +235,7 @@ def build_level(partida):
         plat21 = [Block2(i*block2_size + 3904-distance,HEIGHT - block2_size - 640 , block2_size)for i in range(1,4)]
         plat22 = [Block2(i*block2_size + 3904-distance,HEIGHT - block2_size - 640 , block2_size)for i in range(11,15)]
 
-        plat23 = [Block2(i*block2_size + 3904-distance,HEIGHT - block2_size - 320 , block2_size)for i in range(7,9)]
+        plat23 = [Block2(i*block2_size + 3904-distance,HEIGHT - block2_size - 352 , block2_size)for i in range(7,9)]
         plat24 = [Block2(i*block2_size + 3904-distance,HEIGHT - block2_size - 576 , block2_size)for i in range(7,9)]
 
         plat27 = [Block2(i*block2_size + 4992-distance,HEIGHT - block2_size - 384 + (64*i) , block2_size)for i in range(1,4)]
@@ -249,7 +261,7 @@ def build_level(partida):
         
         
         
-        objects = [*mini_spike1,*spike1,*floor,*column,*column2,*column3,*column4,*column5,*column6,*column7,*plat1,*plat2,*plat3,*plat4,*plat5,*plat6,*plat7,*plat8,*plat9,*plat10,*plat11,*plat12,*plat13,*plat14,*plat15,*plat16,*plat17,*plat18,*plat19,*plat20,*plat21,*plat22,*plat23,*plat24,*plat25,*plat26,*plat27,*plat28,*plat29,*plat30,*plat31,*plat32,*plat33,*plat34,*plat35,*plat36,*plat37,*plat38,*plat39]
+        objects = [*mini_spike1,*mini_spike2,*mini_spike3,*mini_spike4,*mini_spike5,*mini_spike6,*spike1,*spike2,*spike3,*spike4,*floor,*column,*column2,*column3,*column4,*column5,*column6,*column7,*column8,*plat1,*plat2,*plat3,*plat4,*plat5,*plat6,*plat7,*plat8,*plat9,*plat10,*plat11,*plat12,*plat13,*plat14,*plat15,*plat16,*plat17,*plat18,*plat19,*plat20,*plat21,*plat22,*plat23,*plat24,*plat25,*plat26,*plat27,*plat28,*plat29,*plat30,*plat31,*plat32,*plat33,*plat34,*plat35,*plat36,*plat37,*plat38,*plat39]
 
         gems = []
 
