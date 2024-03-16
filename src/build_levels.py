@@ -16,6 +16,7 @@ def build_level(partida):
     fireball_group = pygame.sprite.Group()
 
     distance = 0
+    player_distance = 0
     checkpoint_activated = False 
 
     block_size = 96
@@ -30,10 +31,10 @@ def build_level(partida):
     if partida.level == 1:
         background,bg_image, heart_image, coin_image, gem_image = resource_manager.get_background("Night.png")
         if partida.checkpoint == 1:
-            distance = 7300
+            distance = 7400
             checkpoint_activated = True
         
-        player = Player(400,400,50,50, lives,fireball_group,partida.coins,partida.gems)
+        player = Player(275,640,50,50, lives,fireball_group,partida.coins,partida.gems)
         sign = Sign(300-distance,618,100,100)
         rangedenemie1 = RangedEnemies(900-distance,500,100,100,4,arrow_group,"HalflingRanger")
         rangedenemie2 = RangedEnemies(6135-distance,230,100,100,4,arrow_group,"HalflingRanger")
@@ -146,9 +147,10 @@ def build_level(partida):
 
         if partida.checkpoint == 1:
             distance = 7300
+            player_distance = 100
             checkpoint_activated = True
         
-        player = Player(400,400,50,50, lives,fireball_group,partida.coins,partida.gems)
+        player = Player(400,672 - player_distance,50,50, lives,fireball_group,partida.coins,partida.gems)
         sign = Sign(700-distance,647,100,100)
         rangedenemie1 = RangedEnemies(945-distance,335,100,100,30,arrow_group,"GnomeTinkerer")
         rangedenemie2 = RangedEnemies(6553-distance,530,100,100,30,arrow_group,"GnomeTinkerer")
@@ -274,15 +276,15 @@ def build_level(partida):
         background,bg_image, heart_image, coin_image, gem_image = resource_manager.get_background("Cave2.png")
 
         if partida.checkpoint == 1:
-            distance = 8800
+            distance = 8950
+            player_distance = 347
             checkpoint_activated = True
             
-        player = Player(400,400,50,50, lives,fireball_group,partida.coins,partida.gems)
+        player = Player(275,672 -  player_distance,50,50, lives,fireball_group,partida.coins,partida.gems)
         sign = Sign(300-distance,647,100,100)
         rangedenemie1 = RangedEnemies(1200-distance,270,100,100,30,arrow_group,"GnomeTinkerer")
         meleeEnemie1 = Skull(2875 - distance,350,1000,1000,"Skull")
         meleeEnemie2 = Skull(3525 - distance,350,1000,1000,"Skull")
-        meleeEnemie3 = MeleeEnemie(4475-distance,500,100,100,"Skeleton")
         meleeEnemie4 = Skull(8550 - distance,250,1000,1000,"Skull")
         meleeEnemie5 = Skull(8050 - distance,250,1000,1000,"Skull")
         meleeEnemie6 = MeleeEnemie(5320 - distance,205,1000,1000,"HalflingRogue")
@@ -293,7 +295,6 @@ def build_level(partida):
 
         all_enemies_group.add(meleeEnemie1)
         all_enemies_group.add(meleeEnemie2)
-        all_enemies_group.add(meleeEnemie3)
         all_enemies_group.add(meleeEnemie4)
         all_enemies_group.add(meleeEnemie5)
         all_enemies_group.add(meleeEnemie6)
@@ -305,7 +306,6 @@ def build_level(partida):
 
         meleeEnemies_group.add(meleeEnemie1)
         meleeEnemies_group.add(meleeEnemie2)
-        meleeEnemies_group.add(meleeEnemie3)
         meleeEnemies_group.add(meleeEnemie4)
         meleeEnemies_group.add(meleeEnemie5)
         meleeEnemies_group.add(meleeEnemie6)
