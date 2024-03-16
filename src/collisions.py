@@ -98,7 +98,7 @@ def collide_enemie(player,enemie,objects,volume):
             player.get_hit(volume.sounds_volume)
                 
     for obj in objects:
-        if(pygame.sprite.collide_mask(enemie,obj)):
+        if(pygame.sprite.collide_rect(enemie,obj)):
             enemie.fall = False
             return
                 
