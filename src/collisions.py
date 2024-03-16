@@ -66,6 +66,8 @@ def collide_checkpoint(player,checkpoint,partida,volume):
     if(pygame.sprite.collide_mask(player,checkpoint)):
         if not checkpoint.activated:
             checkpoint.activated = True
+            partida.coins = player.coins
+            partida.gems = player.gems
             death_sound = mixer.Sound(resource_manager.get_sound("checkpoint"))
             death_sound.play()
             death_sound.set_volume(volume.sounds_volume)

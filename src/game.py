@@ -80,9 +80,14 @@ def collide_end(player,checkpoint,partida,volume):
 
 def handle_move(partida,volume,player,enemies_group,boss,meleeEnemies_group,checkpoint,checkpoint_end,objects,arrow_group,fireball_group,delta):
     vertical_collide = handle_vertical_colission(player,objects,player.y_vel)
-    if player.lives.lives <= 0 or player.death_menu:
-        player.die(partida, volume, False)
+    if player.death_menu:
+        if partida.coins >= 10 and partida.checkpoint==1:
+            partida.coins -= 10
         death_menu(window, partida, volume)
+        return
+    if player.lives.lives <= 0:
+        player.die(partida, volume, False)
+        #death_menu(window, partida, volume)
         return 
     keys = pygame.key.get_pressed()
     player.x_vel = 0
@@ -174,7 +179,7 @@ def show_loading_screen(level_text, message):
         elif progress <= 0.99:
             window.blit(Load3, where)
         pygame.display.update()
-        pygame.time.wait(40)
+        pygame.time.wait(30)
     window.blit(Load4, where)
     pygame.display.update()   
 
@@ -573,8 +578,8 @@ def play(window, partida, volume):
                         sound_options = False
                         controls = False 
                     else:
-                        partida.coins = player.coins
-                        partida.gems = player.gems
+                        #partida.coins = player.coins
+                        #partida.gems = player.gems
                         pause = True    
                         if read:
                             read=False
@@ -612,6 +617,8 @@ def play(window, partida, volume):
                         play(window, partida_new, volume)
                     if RESTART2_BUTTON.checkForInput(MENU_MOUSE_POS):
                         partida.lives = player.lives.lives
+                        if partida.coins >= 10 and partida.checkpoint==1:
+                            partida.coins -= 10
                         if partida.level == 1:
                             text = "Level 1: Forest"
                             message = "The adventure begins, the dragon waits"

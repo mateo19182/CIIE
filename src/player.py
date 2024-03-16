@@ -39,7 +39,6 @@ class Player(pygame.sprite.Sprite):
         self.dead = False
         self.fallen = False
         self.death_menu = False
-        self.out_of_range = False
         self.unlocked = 1
 
     def jump(self,volume):
@@ -59,10 +58,7 @@ class Player(pygame.sprite.Sprite):
         self.rect.x += dx  * delta
         self.rect.y += dy * delta
         if self.rect.y > HEIGHT + 100 :
-            #if self.out_of_range:
-                self.die(partida, volume, True)
-            #else:
-            #    self.out_of_range = True    
+            self.die(partida, volume, True)    
 
     def move_left(self,vel):
         self.x_vel = -vel
