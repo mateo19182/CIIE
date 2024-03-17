@@ -43,7 +43,7 @@ def build_level(partida):
         meleeEnemie3 = MeleeEnemie(8320-distance,500,100,100,"HalflingRogue")
         mercader = Mercader(2700-distance, 625, 100, 100) 
         firstBoss = Boss(8500-distance,450,100,100)
-        checkpoint = Checkpoint(7700-distance,375,50,50, checkpoint_activated)
+        checkpoint = Checkpoint(7700-distance,390,50,50, checkpoint_activated)
         checkpoint_end = CheckpointEnd(8950-distance,575,50,50)
 
         all_enemies_group.add(meleeEnemie1)
@@ -63,16 +63,16 @@ def build_level(partida):
         floor2 = [Block(i*block_size-distance,HEIGHT - block_size ,block_size)for i in range(5 + WIDTH*2 // block_size,WIDTH*4 // block_size)]
         floor3 = [Block(i*block_size + 7200-distance,HEIGHT - block_size ,block_size)for i in range(0,30)]
         
-        column = [Block(block_size + 3000-distance,HEIGHT - block_size - (100*i),block_size)for i in range(1,7)]
-        column2 = [Block(block_size + 7100-distance,HEIGHT - block_size - (100*i),block_size)for i in range(1,5)]
-        column3 = [Block(block_size + 7200-distance,HEIGHT - block_size - (100*i),block_size)for i in range(1,5)]
-        column4 = [Block(block_size + 7300-distance,HEIGHT - block_size - (100*i),block_size)for i in range(1,4)]
-        column5 = [Block(block_size + 7400-distance,HEIGHT - block_size - (100*i),block_size)for i in range(1,4)]
-        column6 = [Block(block_size + 7500-distance,HEIGHT - block_size - (100*i),block_size)for i in range(1,3)]
-        column7 = [Block(block_size + 7600-distance,HEIGHT - block_size - (100*i),block_size)for i in range(1,3)]
-        column8 = [Block(block_size + 7700-distance,HEIGHT - block_size - (100*i),block_size)for i in range(1,2)]
-        column9 = [Block(block_size + 7800-distance,HEIGHT - block_size - (100*i),block_size)for i in range(1,2)]
-        column10 = [Block(block_size + 9700-distance,HEIGHT - block_size - (100*i),block_size)for i in range(1,7)]
+        column = [Block(block_size + 3000-distance,HEIGHT - block_size - (block_size*i),block_size)for i in range(1,7)]
+        column2 = [Block(block_size + 7100-distance,HEIGHT - block_size - (block_size*i),block_size)for i in range(1,5)]
+        column3 = [Block(2*block_size + 7100-distance,HEIGHT - block_size - (block_size*i),block_size)for i in range(1,5)]
+        column4 = [Block(3*block_size + 7100-distance,HEIGHT - block_size - (block_size*i),block_size)for i in range(1,4)]
+        column5 = [Block(4*block_size + 7100-distance,HEIGHT - block_size - (block_size*i),block_size)for i in range(1,4)]
+        column6 = [Block(5*block_size + 7100-distance,HEIGHT - block_size - (block_size*i),block_size)for i in range(1,3)]
+        column7 = [Block(6*block_size + 7100-distance,HEIGHT - block_size - (block_size*i),block_size)for i in range(1,3)]
+        column8 = [Block(7*block_size + 7100-distance,HEIGHT - block_size - (block_size*i),block_size)for i in range(1,2)]
+        column9 = [Block(8*block_size + 7100-distance,HEIGHT - block_size - (block_size*i),block_size)for i in range(1,2)]
+        
             
 
         plat1 = [Platform(i*block_size + 800-distance,HEIGHT - block_size - 125, plat_size)for i in range(0,4)]
@@ -112,7 +112,7 @@ def build_level(partida):
         
         plat22 = [Platform(block_size - distance,HEIGHT - block_size + 400,plat_size)]
 
-        objects = [*floor,*floor2,*floor3,*column,*column2,*column3,*column4,*column5,*column6,*column7,*column8,*column9,*column10 ,*plat1,*plat2,*plat3,*plat4,*plat5,*plat6,*plat7,*plat8,*plat9,*plat10,*plat11,*plat12,*plat13,*plat14,*plat15,*plat16,*plat17,*plat18,*plat19,*plat20,*plat21,*plat22]
+        objects = [*floor,*floor2,*floor3,*column,*column2,*column3,*column4,*column5,*column6,*column7,*column8,*column9,*plat1,*plat2,*plat3,*plat4,*plat5,*plat6,*plat7,*plat8,*plat9,*plat10,*plat11,*plat12,*plat13,*plat14,*plat15,*plat16,*plat17,*plat18,*plat19,*plat20,*plat21,*plat22]
         
         gems = []
         
@@ -177,7 +177,7 @@ def build_level(partida):
         meleeEnemies_group.add(meleeEnemie5)
 
         ############################################# NIVEL 2 - CUEVA ###############################################################   
-        floor = [Block2(i*block2_size-distance,HEIGHT - block2_size ,block2_size)for i in range(-WIDTH // block_size,WIDTH*14 // block_size)]
+        floor = [Block2(i*block2_size-distance,HEIGHT - block2_size ,block2_size)for i in range(-WIDTH // block_size,WIDTH*15 // block_size)]
 
         column = [Block2(block2_size + 600-distance,HEIGHT - block2_size - (64*i),block2_size)for i in range(3,13)]
         column2 = [Block2(block2_size + 1600-distance,HEIGHT - block2_size - (64*i),block2_size)for i in range(1,10)]
@@ -188,13 +188,13 @@ def build_level(partida):
         column7 = [Block2(block2_size + 7804-distance,HEIGHT - block2_size -  832 +  (64*i),block2_size)for i in range(0,12)]
         column8 = [Block2(block2_size + 1920-distance,HEIGHT - block2_size -  192,block2_size)]
         
-        spike1 = [Block3(i*block3_size-distance,HEIGHT - block3_size - 128, block3_size)for i in range(1,10)]
+        
         spike2 = [Block3(i*block3_size-distance + 3326,HEIGHT - block3_size - 384, block3_size)for i in range(0,4)]
         spike3 = [Block3(i*block3_size + 3904-distance,HEIGHT - block2_size - 256 , block2_size)for i in range(10,15)]
         spike4 = [Block3(i*block3_size + 4928-distance,HEIGHT - block2_size - 64,block2_size)for i in range(0,9)]
        
 
-        mini_spike1 = [Block4(i*block4_size-distance,HEIGHT - block4_size - 192, block4_size)for i in range(1,10)]
+        
         mini_spike2 = [Block4(i*block4_size-distance + 896,HEIGHT - block4_size - 576, block4_size)for i in range(0,4)]
         mini_spike3 = [Block4(i*block4_size-distance + 1152,HEIGHT - block4_size - 640, block4_size)for i in range(0,6)]
         mini_spike4 = [Block4(i*block4_size-distance + 1728,HEIGHT - block4_size - 64, block4_size)for i in range(0,2)]
@@ -261,7 +261,7 @@ def build_level(partida):
         
         
         
-        objects = [*mini_spike1,*mini_spike2,*mini_spike3,*mini_spike4,*mini_spike5,*mini_spike6,*spike1,*spike2,*spike3,*spike4,*floor,*column,*column2,*column3,*column4,*column5,*column6,*column7,*column8,*plat1,*plat2,*plat3,*plat4,*plat5,*plat6,*plat7,*plat8,*plat9,*plat10,*plat11,*plat12,*plat13,*plat14,*plat15,*plat16,*plat17,*plat18,*plat19,*plat20,*plat21,*plat22,*plat23,*plat24,*plat25,*plat26,*plat27,*plat28,*plat29,*plat30,*plat31,*plat32,*plat33,*plat34,*plat35,*plat36,*plat37,*plat38,*plat39]
+        objects = [*mini_spike2,*mini_spike3,*mini_spike4,*mini_spike5,*mini_spike6,*spike2,*spike3,*spike4,*floor,*column,*column2,*column3,*column4,*column5,*column6,*column7,*column8,*plat1,*plat2,*plat3,*plat4,*plat5,*plat6,*plat7,*plat8,*plat9,*plat10,*plat11,*plat12,*plat13,*plat14,*plat15,*plat16,*plat17,*plat18,*plat19,*plat20,*plat21,*plat22,*plat23,*plat24,*plat25,*plat26,*plat27,*plat28,*plat29,*plat30,*plat31,*plat32,*plat33,*plat34,*plat35,*plat36,*plat37,*plat38,*plat39]
 
         gems = []
 
