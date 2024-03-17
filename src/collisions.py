@@ -83,7 +83,7 @@ def collide_fireball(fireball_group,enemies_group,objects,volume):
         for enemy in enemies_group:
             if pygame.sprite.collide_rect(fireball,enemy):
                 enemy.take_damage(volume)
-                enemy.is_alive = False
+                #enemy.is_alive = False
                 fireball.kill()    
                 
         for obj in objects:
