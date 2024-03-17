@@ -4,7 +4,7 @@ from objects import Block, Block2, Block3, Block4, Block5, Block6, Platform, Spi
 import resource_manager
 from player import Player
 from partida import HEIGHT, WIDTH
-from NPCs import RangedEnemies, MeleeEnemie, Mercader, Boss, SecondBoss, Skull, ThirdBoss
+from NPCs import RangedEnemies, MeleeEnemie, Mercader, Boss, SecondBoss, Skeleton, Skull, ThirdBoss
 from items import Sign, Checkpoint, CheckpointEnd, Lives, putCoins, putGems
 
 def build_level(partida):
@@ -73,8 +73,6 @@ def build_level(partida):
         column8 = [Block(7*block_size + 7100-distance,HEIGHT - block_size - (block_size*i),block_size)for i in range(1,2)]
         column9 = [Block(8*block_size + 7100-distance,HEIGHT - block_size - (block_size*i),block_size)for i in range(1,2)]
         
-            
-
         plat1 = [Platform(i*block_size + 800-distance,HEIGHT - block_size - 125, plat_size)for i in range(0,4)]
         plat2 = [Platform(i*block_size + 1300-distance,HEIGHT - block_size - 300, plat_size)for i in range(0,2)]
         plat3 = [Platform(4*i*block_size + 1600-distance,HEIGHT - block_size - 500, plat_size)for i in range(0,2)]
@@ -297,6 +295,7 @@ def build_level(partida):
         meleeEnemie4 = Skull(8550 - distance,250,1000,1000,"Skull")
         meleeEnemie5 = Skull(8050 - distance,250,1000,1000,"Skull")
         meleeEnemie6 = MeleeEnemie(5320 - distance,205,1000,1000,"HalflingRogue")
+        #meleeEnemie7 = Skeleton(5500 - distance,205,1000,1000,"Skeleton")
         mercader = Mercader(3915-distance, 400, 100, 100)
         firstBoss = ThirdBoss(9800-distance,390,100,100)
         checkpoint = Checkpoint(9185-distance,290,50,50, checkpoint_activated)
@@ -307,7 +306,7 @@ def build_level(partida):
         all_enemies_group.add(meleeEnemie4)
         all_enemies_group.add(meleeEnemie5)
         all_enemies_group.add(meleeEnemie6)
-
+        #all_enemies_group.add(meleeEnemie7)
 
         all_enemies_group.add(rangedenemie1)
 
@@ -318,6 +317,7 @@ def build_level(partida):
         meleeEnemies_group.add(meleeEnemie4)
         meleeEnemies_group.add(meleeEnemie5)
         meleeEnemies_group.add(meleeEnemie6)
+        #meleeEnemies_group.add(meleeEnemie7)
         
         floor = [Block5(i*block2_size-distance,HEIGHT - block2_size ,block2_size)for i in range(-10,8)]
         
