@@ -59,24 +59,25 @@ def draw(window,background,bg_image,heart_image, coin_image,gem_image,arrow_grou
         
     pygame.display.update()
 
-def collide_end(player,checkpoint,partida,volume):
+def collide_end(player,checkpoint,partida,volume,boss):
     if(pygame.sprite.collide_mask(player,checkpoint)):
-        partida.lives = 3
-        partida.coins = player.coins
-        partida.gems = player.gems
-        if partida.level != 3:
-            partida.level += 1
-            partida.checkpoint = 0
-            if partida.level == 2:
-                text = "Level 2: Cave"
-                message = "Our warrior is closer to revenge, keep going!"
+        if partida.level==3 and not boss.is_alive:
+            partida.lives = 3
+            partida.coins = player.coins
+            partida.gems = player.gems
+            if partida.level != 3:
+                partida.level += 1
+                partida.checkpoint = 0
+                if partida.level == 2:
+                    text = "Level 2: Cave"
+                    message = "Our warrior is closer to revenge, keep going!"
+                else:
+                    text = "Level 3: Dragon island"
+                    message = "Last step, be ready to fight the dragon!"   
+                show_loading_screen(text, message)
+                play(window, partida, volume)    
             else:
-                text = "Level 3: Dragon island"
-                message = "Last step, be ready to fight the dragon!"   
-            show_loading_screen(text, message)
-            play(window, partida, volume)    
-        else:
-            game_completed(window, partida,volume)    
+                game_completed(window, partida,volume)    
 
 def handle_move(partida,volume,player,enemies_group,boss,meleeEnemies_group,checkpoint,checkpoint_end,objects,arrow_group,fireball_group,delta):
     vertical_collide = handle_vertical_colission(player,objects,player.y_vel)
@@ -97,7 +98,7 @@ def handle_move(partida,volume,player,enemies_group,boss,meleeEnemies_group,chec
     collide_arrow(player,arrow_group,objects, volume)
     collide_boss(player,boss,PLAYER_VEL * 2, delta, window, partida, volume)
     collide_checkpoint(player,checkpoint, partida,volume)
-    collide_end(player,checkpoint_end, partida, volume)
+    collide_end(player,checkpoint_end, partida, volume,boss)
     collide_fireball(fireball_group,enemies_group,objects,volume)
     
     for meleeEnemie in meleeEnemies_group:
