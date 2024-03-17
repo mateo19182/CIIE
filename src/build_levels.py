@@ -157,7 +157,7 @@ def build_level(partida):
         meleeEnemie1 = MeleeEnemie(1400-distance,625,100,100,"HalflingRogue")
         meleeEnemie2 = MeleeEnemie(4375-distance,525,100,100,"HalflingRogue")
         mercader = Mercader(2700-distance, 655, 100, 100) 
-        firstBoss = SecondBoss(8500-distance,480,100,100)
+        firstBoss = SecondBoss(8500-distance,480,200,300)
         checkpoint = Checkpoint(7700-distance,480,50,50, checkpoint_activated)
         checkpoint_end = CheckpointEnd(9000-distance,610,50,50)
         meleeEnemie4 = Skull(5950 - distance,350,1000,1000,"Skull")
@@ -195,7 +195,6 @@ def build_level(partida):
        
 
         
-        mini_spike2 = [Block4(i*block4_size-distance + 896,HEIGHT - block4_size - 576, block4_size)for i in range(0,4)]
         mini_spike3 = [Block4(i*block4_size-distance + 1152,HEIGHT - block4_size - 640, block4_size)for i in range(0,6)]
         mini_spike4 = [Block4(i*block4_size-distance + 1728,HEIGHT - block4_size - 64, block4_size)for i in range(0,2)]
         mini_spike5 = [Block4(i*block2_size-distance + 3072,HEIGHT - block2_size - 480 - (64*i), block4_size)for i in range(0,5)]
@@ -259,9 +258,7 @@ def build_level(partida):
         plat38 = [Block2(i*block2_size + 6400-distance,HEIGHT - block2_size -  448 , block2_size)for i in range(14,16)]
 
         
-        
-        
-        objects = [*mini_spike2,*mini_spike3,*mini_spike4,*mini_spike5,*mini_spike6,*spike2,*spike3,*spike4,*floor,*column,*column2,*column3,*column4,*column5,*column6,*column7,*column8,*plat1,*plat2,*plat3,*plat4,*plat5,*plat6,*plat7,*plat8,*plat9,*plat10,*plat11,*plat12,*plat13,*plat14,*plat15,*plat16,*plat17,*plat18,*plat19,*plat20,*plat21,*plat22,*plat23,*plat24,*plat25,*plat26,*plat27,*plat28,*plat29,*plat30,*plat31,*plat32,*plat33,*plat34,*plat35,*plat36,*plat37,*plat38,*plat39]
+        objects = [*mini_spike3,*mini_spike4,*mini_spike5,*mini_spike6,*spike2,*spike3,*spike4,*floor,*column,*column2,*column3,*column4,*column5,*column6,*column7,*column8,*plat1,*plat2,*plat3,*plat4,*plat5,*plat6,*plat7,*plat8,*plat9,*plat10,*plat11,*plat12,*plat13,*plat14,*plat15,*plat16,*plat17,*plat18,*plat19,*plat20,*plat21,*plat22,*plat23,*plat24,*plat25,*plat26,*plat27,*plat28,*plat29,*plat30,*plat31,*plat32,*plat33,*plat34,*plat35,*plat36,*plat37,*plat38,*plat39]
 
         gems = []
 
