@@ -152,10 +152,86 @@ class MeleeEnemie(pygame.sprite.Sprite):
 
     def update_sprite(self,player):
         sprite_sheet = "idle"
-        if self.sprite_sheet_name=="Skeleton":
-            sprites = resource_manager.load_sprite_sheets("Enemies",self.sprite_sheet_name,32,32,False)
+        sprites = resource_manager.load_sprite_sheets("Enemies",self.sprite_sheet_name,16,16,False)
+        sprites = sprites[sprite_sheet]
+        sprite_index = (self.animation_count // self.ANIMATION_DELAY) % len(sprites)
+        self.sprite = sprites[sprite_index]
+        self.sprite = pygame.transform.scale(self.sprite,(16 * 5, 16 * 5))
+        self.animation_count += 1
+
+        if(sprite_index == 0):
+            self.frame_count = 0
+
+        dx = player.rect.x - self.rect.x
+
+        if dx < 0:
+            self.orientation = "left"
+            self.sprite = pygame.transform.flip(self.sprite,True,False)
+        elif dx > 0:
+            self.orientation = "right"
+            self.sprite = pygame.transform.flip(self.sprite,False,False)
+
+        self.update()
+
+    def update(self):
+        self.rect.x += self.x_vel
+        self.rect = self.sprite.get_rect(topleft = (self.rect.x,self.rect.y))
+        self.mask = pygame.mask.from_surface(self.sprite)
+        
+    def draw(self,window,offset_x):
+        window.blit(self.sprite,(self.rect.x - offset_x,self.rect.y))
+
+class Skeleton(pygame.sprite.Sprite):
+    ANIMATION_DELAY = 20
+    GRAVITY = 8
+    
+    def __init__(self,x,y,width,height,sprite_sheet_name):
+        super().__init__()
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.animation_count = 0
+        self.frame_count = 0
+        self.rect = pygame.Rect(x,y,width,height)
+        self.mask = None
+        self.sprite = None
+        self.orientation = "left"
+        self.x_vel = 0
+        self.fall = False
+        self.is_alive = True
+        self.sprite_sheet_name = sprite_sheet_name
+        
+    def loop(self,player,volume):
+        self.frame_count += 1
+        
+        dx = player.rect.x - self.rect.x
+        dy = player.rect.y - self.rect.y
+        distance = math.sqrt(dx**2 + dy**2)
+        
+        max_velocity = 2
+    
+        if distance < 300:
+            ratio = min(1, distance / 150)
+            self.x_vel = ratio * max_velocity * (dx / distance)
         else:
-            sprites = resource_manager.load_sprite_sheets("Enemies",self.sprite_sheet_name,16,16,False)
+            self.x_vel = 0
+
+        if not self.fall:
+            self.rect.x += self.x_vel
+            
+        self.update_sprite(player)
+
+    def take_damage(self,volume):
+        self.kill()
+        death_sound = mixer.Sound(resource_manager.get_sound("melee_enemie_death"))
+        death_sound.play()
+        death_sound.set_volume(volume.sounds_volume)
+        self.update_sprite(self)
+
+    def update_sprite(self,player):
+        sprite_sheet = "idle"
+        sprites = resource_manager.load_sprite_sheets("Enemies",self.sprite_sheet_name,32,32,False)
         sprites = sprites[sprite_sheet]
         sprite_index = (self.animation_count // self.ANIMATION_DELAY) % len(sprites)
         self.sprite = sprites[sprite_index]
