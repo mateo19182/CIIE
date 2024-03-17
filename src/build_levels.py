@@ -189,16 +189,15 @@ def build_level(partida):
         column8 = [Block2(block2_size + 1920-distance,HEIGHT - block2_size -  192,block2_size)]
         
         
-        spike2 = [Block3(i*block3_size-distance + 3326,HEIGHT - block3_size - 384, block3_size)for i in range(0,4)]
-        spike3 = [Block3(i*block3_size + 3904-distance,HEIGHT - block2_size - 256 , block2_size)for i in range(10,15)]
-        spike4 = [Block3(i*block3_size + 4928-distance,HEIGHT - block2_size - 64,block2_size)for i in range(0,9)]
+        spike2 = [Block3(i*block3_size-distance + 3326,HEIGHT - block3_size - 382 - i, block3_size)for i in range(0,4)]
+        spike3 = [Block3(i*block3_size + 3904-distance,HEIGHT - block2_size - 241 - i, block2_size)for i in range(10,15)]
+        spike4 = [Block3(i*block3_size + 4928-distance,HEIGHT - block2_size - 55 - i,block2_size)for i in range(0,9)]
        
 
-        
-        mini_spike3 = [Block4(i*block4_size-distance + 1152,HEIGHT - block4_size - 640, block4_size)for i in range(0,6)]
-        mini_spike4 = [Block4(i*block4_size-distance + 1728,HEIGHT - block4_size - 64, block4_size)for i in range(0,2)]
-        mini_spike5 = [Block4(i*block2_size-distance + 3072,HEIGHT - block2_size - 480 - (64*i), block4_size)for i in range(0,5)]
-        mini_spike6 = [Block4(i*block2_size-distance + 3104,HEIGHT - block2_size - 480 - (64*i), block4_size)for i in range(0,5)]
+        mini_spike3 = [Block4(i*block4_size-distance + 1152,HEIGHT - block4_size - 635 - i, block4_size)for i in range(0,6)]
+        mini_spike4 = [Block4(i*block4_size-distance + 1728,HEIGHT - block4_size - 63 - i, block4_size)for i in range(0,2)]
+        mini_spike5 = [Block4(i*block2_size-distance + 3072,HEIGHT - block2_size - 476 - (64*i) - i, block4_size)for i in range(0,5)]
+        mini_spike6 = [Block4(i*block2_size-distance + 3104,HEIGHT - block2_size - 476 - (64*i) - i, block4_size)for i in range(0,5)]
        
         
 
