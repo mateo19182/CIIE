@@ -61,7 +61,7 @@ def draw(window,background,bg_image,heart_image, coin_image,gem_image,arrow_grou
 
 def collide_end(player,checkpoint,partida,volume,boss):
     if(pygame.sprite.collide_mask(player,checkpoint)):
-        if partida.level==3 and not boss.is_alive:
+        if not (partida.level==3 and boss.is_alive):
             partida.lives = 3
             partida.coins = player.coins
             partida.gems = player.gems
