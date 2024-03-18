@@ -399,8 +399,8 @@ def build_level(partida):
 
         putCoins(1400 - distance,487,4,coins)
         putCoins(0 - distance,523,2,coins)
-        putCoins(300 - distance,234,2,coins)
-        putCoins(700 - distance,42,3,coins)
+        putCoins(300 - distance,294,2,coins)
+        putCoins(700 - distance,72,3,coins)
         putCoins(4449 - distance,282,2,coins)
         putCoins(4721 - distance,133,2,coins)
         putCoins(6770 - distance,83,4,coins)
