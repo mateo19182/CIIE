@@ -342,9 +342,9 @@ def build_level(partida):
         
         plat1 = [Block5(i*block4_size-distance + 1000,HEIGHT - block2_size - 384,block4_size)for i in range(0,10)]
         plat2 = [Block5(i*block4_size-distance + 1672,HEIGHT - block2_size - 384,block4_size)for i in range(0,10)]
-        plat3 = [Block5(i*block4_size-distance + 300,HEIGHT - block2_size - 448,block4_size)for i in range(0,3)]
-        plat4 = [Block5(i*block4_size-distance + 700,HEIGHT - block2_size - 640,block4_size)for i in range(0,4)]
-        plat5 = [Block5(i*block4_size-distance,HEIGHT - block2_size - 150,block4_size)for i in range(0,3)]
+        plat3 = [Block5(i*block4_size-distance + 300,HEIGHT - block2_size - 390,block4_size)for i in range(0,3)]
+        plat4 = [Block5(i*block4_size-distance + 700,HEIGHT - block2_size - 610,block4_size)for i in range(0,4)]
+        plat5 = [Block5(i*block4_size-distance,HEIGHT - block2_size - 160,block4_size)for i in range(0,3)]
         
         plat6 = [Block5(3*i*block4_size-distance + 2100 ,HEIGHT - block2_size - 100 - 4*i*block2_size,block4_size)for i in range(0,5)]
         plat7 = [Block5(3*i*block4_size-distance + 2500 ,HEIGHT - block2_size - 100 - 4*i*block2_size,block4_size)for i in range(0,5)]
@@ -398,7 +398,7 @@ def build_level(partida):
         coins = []
 
         putCoins(1400 - distance,487,4,coins)
-        putCoins(0 - distance,533,2,coins)
+        putCoins(0 - distance,523,2,coins)
         putCoins(300 - distance,234,2,coins)
         putCoins(700 - distance,42,3,coins)
         putCoins(4449 - distance,282,2,coins)
