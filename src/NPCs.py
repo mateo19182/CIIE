@@ -436,12 +436,12 @@ class SecondBoss(pygame.sprite.Sprite):
         self.orientation = "left"
         self.x_vel = 0
         self.fall = False
-        self.vida = 7
+        self.vida = 5
         self.is_alive = True
         self.last_damage_time = 0
         self.explosions = pygame.sprite.Group()  
         self.state = "Idle"
-        self.player_proximity_threshold = 1000 
+        self.player_proximity_threshold = 500 
 
     def loop(self, player, volume):
         self.frame_count += 1
@@ -517,7 +517,7 @@ class SecondBoss(pygame.sprite.Sprite):
         bar_x = self.rect.x - offset_x 
         bar_y = self.rect.y - 20
         pygame.draw.rect(window, (255, 0, 0), (bar_x, bar_y, bar_width, bar_height))
-        pygame.draw.rect(window, (0, 255, 0), (bar_x, bar_y, bar_width * (self.vida / 7), bar_height))
+        pygame.draw.rect(window, (0, 255, 0), (bar_x, bar_y, bar_width * (self.vida / 5), bar_height))
         
 
 class ThirdBoss(pygame.sprite.Sprite):
@@ -541,7 +541,7 @@ class ThirdBoss(pygame.sprite.Sprite):
         self.orientation = "left"
         self.x_vel = 0
         self.fall = False
-        self.vida = 3
+        self.vida = 7
         self.is_alive = True
         self.last_damage_time = 0
         self.state = "IDLE"  # Initial state
@@ -655,7 +655,7 @@ class ThirdBoss(pygame.sprite.Sprite):
         bar_x = self.rect.x - offset_x
         bar_y = self.rect.y - 20
         pygame.draw.rect(window, (255, 0, 0), (bar_x, bar_y, bar_width, bar_height))
-        pygame.draw.rect(window, (0, 255, 0), (bar_x, bar_y, bar_width * (self.vida / 3), bar_height))
+        pygame.draw.rect(window, (0, 255, 0), (bar_x, bar_y, bar_width * (self.vida / 7), bar_height))
 
 class Mercader(pygame.sprite.Sprite):
     SPRITES = resource_manager.load_sprite_sheets("Mercader","Mercader",16,16,False)

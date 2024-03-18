@@ -436,7 +436,7 @@ def build_level(partida):
         The cave whispers tales of ancient times, 
         where the veil between the known and the 
         unknown is thin. With each step, our warrior
-        draws nearer to the dragon island, the
+        draws nearer to the dragon fortress, the
         epicenter of vengeance. Good luck on your
         journey at the cave, and beware the shadows 
         that lurk within."""
@@ -445,7 +445,7 @@ def build_level(partida):
         destination, after going through the perils
         of the forest and the depths of the cave. 
         Now, our warrior stands at the brink of 
-        the Dragon's Island, ready to quench their 
+        the Dragon's Fortress, ready to quench their 
         thirst for vengeance against the almighty 
         dragon. Good luck, you will need it..."""
         
